@@ -1,0 +1,66 @@
+{
+  "canisters": {
+    "vault": {
+      "build": "src/vault/build.sh",
+      "candid": "src/vault/vault.did",
+      "wasm": "vault.wasm",
+      "type": "custom"
+    },
+    "ledger": {
+      "candid": "ledger.did"
+    }
+  },
+  "defaults": {
+    "replica": {
+      "subnet_type": "system"
+    },
+    "bitcoin": {
+      "enabled": false,
+      "nodes": [
+        "127.0.0.1:18444"
+      ],
+      "log_level": "error"
+    },
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "networks": {
+    "test": {
+      "providers": [
+        "https://ic0.app/"
+      ],
+      "type": "persistent"
+    },
+    "dev": {
+      "providers": [
+        "https://ic0.app/"
+      ],
+      "type": "persistent"
+    },
+    "fiduciary": {
+      "providers": [
+        "https://ic0.app/"
+      ],
+      "type": "persistent"
+    },
+    "stage": {
+      "providers": [
+        "https://ic0.app/"
+      ],
+      "type": "persistent"
+    },
+    "prod": {
+      "providers": [
+        "https://ic0.app/"
+      ],
+      "type": "persistent"
+    },
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}

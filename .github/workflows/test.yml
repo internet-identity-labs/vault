@@ -1,0 +1,37 @@
+name: BEItest
+on: [push, workflow_dispatch]
+
+
+jobs:
+  test:
+    runs-on: [self-hosted, Linux, X64]
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout CI repo.
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: internet-identity-labs/ci_libs
+          ref: main
+          path: ci_libs
+
+      - name: Cache Cargo dependencies.
+        uses: actions/cache@v2
+        with:
+          path: |
+            /home/ubuntu/.cargo/bin/
+            /home/ubuntu/.cargo/registry/index/
+            /home/ubuntu/.cargo/registry/cache/
+            /home/ubuntu/.cargo/git/db/
+            /home/ubuntu/.cargo/cargo_target/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+
+      - name: BE Integration Tests JS
+        run: npm i && npm run test

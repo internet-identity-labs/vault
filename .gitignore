@@ -1,0 +1,27 @@
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
+
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
+
+# rust
+target
+
+# dfx temporary files
+.dfx/
+
+# frontend code
+node_modules/
+dist/
+identity_manager.wasm
+pub_sub_channel.wasm
+verifier.wasm
+internet_identity.wasm
+eth_secret_storage.wasm
+
+
+# Old dids
+src/eth_secret_storage/eth_secret_storage.old.did
