@@ -48,6 +48,20 @@ fn init(conf: Option<Conf>) {
 
 #[update]
 #[candid_method(update)]
+async fn config(conf: Conf) {
+    trap_if_not_authenticated();
+    CONF.with(|c| c.replace(conf));
+}
+
+#[query]
+#[candid_method(query)]
+async fn get_config() -> Conf {
+    trap_if_not_authenticated();
+    CONF.with(|c| c.borrow().clone())
+}
+
+#[update]
+#[candid_method(update)]
 async fn register_vault(request: VaultRegisterRequest) -> Vault {
     let mut user = user_service::get_or_new_by_caller();
     let mut vault = vault_service::register(user.address.clone(), request.name, request.description);
@@ -246,6 +260,11 @@ pub fn post_upgrade() {
     memory::post_upgrade()
 }
 
+
+#[update]
+async fn get_trusted_origins() -> Vec<String> {
+    CONF.with(|c| c.borrow().clone().origins.unwrap())
+}
 
 fn trap_if_not_authenticated() {
     let princ = caller();

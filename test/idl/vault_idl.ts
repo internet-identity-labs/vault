@@ -1,5 +1,9 @@
 export const idlFactory = ({ IDL }) => {
-    const Conf = IDL.Record({ 'ledger_canister_id' : IDL.Principal });
+    const Conf = IDL.Record({
+        'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
+        'origins' : IDL.Opt(IDL.Vec(IDL.Text)),
+        'ledger_canister_id' : IDL.Principal,
+    });
     const TransactionState = IDL.Variant({
         'Approved' : IDL.Null,
         'Rejected' : IDL.Null,
@@ -116,18 +120,17 @@ export const idlFactory = ({ IDL }) => {
             [Transaction],
             [],
         ),
+        'config' : IDL.Func([Conf], [], []),
+        'count' : IDL.Func([Backup], [IDL.Nat64], ['query']),
         'get_all_json' : IDL.Func(
             [IDL.Nat32, IDL.Nat32, Backup],
             [IDL.Text],
             ['query'],
         ),
-        'count' : IDL.Func(
-            [Backup],
-            [IDL.Nat64],
-            ['query'],
-        ),
+        'get_config' : IDL.Func([], [Conf], ['query']),
         'get_policies' : IDL.Func([IDL.Nat64], [IDL.Vec(Policy)], ['query']),
         'get_transactions' : IDL.Func([], [IDL.Vec(Transaction)], ['query']),
+        'get_trusted_origins' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
         'get_vaults' : IDL.Func([], [IDL.Vec(Vault)], ['query']),
         'get_wallets' : IDL.Func([IDL.Nat64], [IDL.Vec(Wallet)], ['query']),
         'register_policy' : IDL.Func([PolicyRegisterRequest], [Policy], []),
@@ -139,13 +142,17 @@ export const idlFactory = ({ IDL }) => {
         'register_vault' : IDL.Func([VaultRegisterRequest], [Vault], []),
         'register_wallet' : IDL.Func([WalletRegisterRequest], [Wallet], []),
         'store_member' : IDL.Func([VaultMemberRequest], [Vault], []),
+        'sync_controllers' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
         'update_policy' : IDL.Func([Policy], [Policy], []),
         'update_vault' : IDL.Func([Vault], [Vault], []),
         'update_wallet' : IDL.Func([Wallet], [Wallet], []),
-        'sync_controllers' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
     });
 };
 export const init = ({ IDL }) => {
-    const Conf = IDL.Record({ 'ledger_canister_id' : IDL.Principal });
+    const Conf = IDL.Record({
+        'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
+        'origins' : IDL.Opt(IDL.Vec(IDL.Text)),
+        'ledger_canister_id' : IDL.Principal,
+    });
     return [IDL.Opt(Conf)];
 };

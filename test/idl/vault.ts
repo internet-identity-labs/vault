@@ -11,7 +11,11 @@ export type Backup = { 'Users' : null } |
     { 'Vaults' : null } |
     { 'Transactions' : null } |
     { 'Policies' : null };
-export interface Conf { 'ledger_canister_id' : Principal }
+export interface Conf {
+    'controllers' : [] | [Array<Principal>],
+    'origins' : [] | [Array<string>],
+    'ledger_canister_id' : Principal,
+}
 export type Currency = { 'ICP' : null };
 export type ObjectState = { 'Active' : null } |
     { 'Archived' : null };
@@ -74,7 +78,7 @@ export interface Vault {
     'state' : ObjectState,
     'wallets' : Array<string>,
     'created_date' : bigint,
-    'policies' : Array<bigint>,
+    'policies' : [bigint],
 }
 export interface VaultMember {
     'user_uuid' : string,
@@ -99,7 +103,7 @@ export interface Wallet {
     'uid' : string,
     'modified_date' : bigint,
     'name' : [] | [string],
-    'vaults' : Array<bigint>,
+    'vaults' : [bigint],
     'state' : ObjectState,
     'created_date' : bigint,
 }
@@ -109,22 +113,25 @@ export interface WalletRegisterRequest {
 }
 export interface _SERVICE {
     'approve_transaction' : ActorMethod<[TransactionApproveRequest], Transaction>,
-    'get_all_json' : ActorMethod<[number, number, Backup], string>,
+    'config' : ActorMethod<[Conf], undefined>,
     'count' : ActorMethod<[Backup], bigint>,
+    'get_all_json' : ActorMethod<[number, number, Backup], string>,
+    'get_config' : ActorMethod<[], Conf>,
     'get_policies' : ActorMethod<[bigint], Array<Policy>>,
     'get_transactions' : ActorMethod<[], Array<Transaction>>,
+    'get_trusted_origins' : ActorMethod<[], Array<string>>,
     'get_vaults' : ActorMethod<[], Array<Vault>>,
     'get_wallets' : ActorMethod<[bigint], Array<Wallet>>,
     'register_policy' : ActorMethod<[PolicyRegisterRequest], Policy>,
     'register_transaction' : ActorMethod<
         [TransactionRegisterRequest],
         Transaction
-        >,
+    >,
     'register_vault' : ActorMethod<[VaultRegisterRequest], Vault>,
     'register_wallet' : ActorMethod<[WalletRegisterRequest], Wallet>,
     'store_member' : ActorMethod<[VaultMemberRequest], Vault>,
+    'sync_controllers' : ActorMethod<[], Array<string>>,
     'update_policy' : ActorMethod<[Policy], Policy>,
     'update_vault' : ActorMethod<[Vault], Vault>,
     'update_wallet' : ActorMethod<[Wallet], Wallet>,
-    'sync_controllers' : () => Promise<Array<string>>,
 }

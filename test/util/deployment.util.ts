@@ -12,7 +12,6 @@ const localhost: string = "http://127.0.0.1:8000";
 
 export const deploy = async ({clean = true, apps}: { clean?: boolean, apps: App[] }): Promise<Dfx> => {
     var i = 0;
-    var imConfigurationArguments = [];
     var dfx: Dfx = {
         root: null,
         user: {
@@ -61,10 +60,7 @@ export const deploy = async ({clean = true, apps}: { clean?: boolean, apps: App[
             dfx.vault.actor_member_2 = await getActor(dfx.vault.id, dfx.vault.member_2, vaultIdl);
             return dfx;
         }
-
-        DFX.CONFIGURE_IM(imConfigurationArguments.join("; "));
-
-        return dfx;
+        throw Error("Empty App")
     }
 
     DFX.STOP();

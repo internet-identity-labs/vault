@@ -21,6 +21,7 @@ pub struct VaultMemoryObject {
 pub struct Conf {
     pub ledger_canister_id: Principal,
     pub controllers: Option<Vec<Principal>>,
+    pub origins: Option<Vec<String>>
 }
 
 
@@ -28,7 +29,8 @@ impl Default for Conf {
     fn default() -> Self {
         Conf {
             ledger_canister_id: MAINNET_LEDGER_CANISTER_ID,
-            controllers: Default::default()
+            controllers: Default::default(),
+            origins: Default::default()
         }
     }
 }
