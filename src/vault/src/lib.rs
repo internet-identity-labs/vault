@@ -11,7 +11,7 @@ use ic_cdk_macros::*;
 
 use crate::enums::{Backup, TransactionState};
 use crate::memory::{Conf, CONF};
-use crate::policy_service::{Policy, PolicyType, ThresholdPolicy};
+use crate::policy_service::{get, Policy, PolicyType, ThresholdPolicy};
 use crate::policy_service::Currency::ICP;
 use crate::request::{CanisterIdRequest, PolicyRegisterRequest, TransactionApproveRequest, TransactionRegisterRequest, VaultMemberRequest, VaultRegisterRequest, WalletRegisterRequest};
 use crate::security_service::{trap_if_not_permitted, verify_wallets};
@@ -19,7 +19,7 @@ use crate::transaction_service::Transaction;
 use crate::TransactionState::Approved;
 use crate::transfer_service::transfer;
 use crate::user_service::{get_or_new_by_caller, migrate_to_address, User};
-use crate::util::{caller_to_address, caller_to_address_anonymous, to_array};
+use crate::util::{caller_to_address, caller_to_address_legacy, to_array};
 use crate::vault_service::{Vault, VaultRole};
 use crate::wallet_service::{generate_address, Wallet};
 
@@ -262,7 +262,11 @@ pub fn post_upgrade() {
 
 #[update]
 async fn migrate_user(to_address: String) -> bool {
-    let from_address = caller_to_address_anonymous();
+    let from_address = caller_to_address_legacy();
+    let user = user_service::get_or_new_by_address(from_address.clone());
+    let vault_ids = user.vaults;
+    transaction_service::migrate_all(vault_ids.clone(), from_address.clone(), to_address.clone());
+    vault_service::migrate_all(vault_ids, from_address.clone(), to_address.clone());
     migrate_to_address(from_address, to_address)
 }
 

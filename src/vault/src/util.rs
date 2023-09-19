@@ -6,7 +6,7 @@ pub fn caller_to_address() -> String {
     return AccountIdentifier::new(&caller(), &Subaccount([0; 32])).to_string();
 }
 
-pub fn caller_to_address_anonymous() -> String {
+pub fn caller_to_address_legacy() -> String {
     return AccountIdentifier::new(&caller(), &Subaccount([1; 32])).to_string();
 }
 
