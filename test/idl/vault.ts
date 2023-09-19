@@ -15,6 +15,7 @@ export interface Conf {
     'controllers' : [] | [Array<Principal>],
     'origins' : [] | [Array<string>],
     'ledger_canister_id' : Principal,
+    'is_test_env' : [boolean]
 }
 export type Currency = { 'ICP' : null };
 export type ObjectState = { 'Active' : null } |
@@ -122,6 +123,7 @@ export interface _SERVICE {
     'get_trusted_origins' : ActorMethod<[], Array<string>>,
     'get_vaults' : ActorMethod<[], Array<Vault>>,
     'get_wallets' : ActorMethod<[bigint], Array<Wallet>>,
+    'migrate_user' : ActorMethod<[string], boolean>,
     'register_policy' : ActorMethod<[PolicyRegisterRequest], Policy>,
     'register_transaction' : ActorMethod<
         [TransactionRegisterRequest],

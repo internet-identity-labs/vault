@@ -21,7 +21,8 @@ pub struct VaultMemoryObject {
 pub struct Conf {
     pub ledger_canister_id: Principal,
     pub controllers: Option<Vec<Principal>>,
-    pub origins: Option<Vec<String>>
+    pub origins: Option<Vec<String>>,
+    pub is_test_env: Option<bool>
 }
 
 
@@ -30,7 +31,8 @@ impl Default for Conf {
         Conf {
             ledger_canister_id: MAINNET_LEDGER_CANISTER_ID,
             controllers: Default::default(),
-            origins: Default::default()
+            origins: Default::default(),
+            is_test_env: None
         }
     }
 }

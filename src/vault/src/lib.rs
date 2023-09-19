@@ -262,7 +262,12 @@ pub fn post_upgrade() {
 
 #[update]
 async fn migrate_user(to_address: String) -> bool {
-    let from_address = caller_to_address_legacy();
+    let conf =  CONF.with(|c| c.borrow().clone());
+    let mut from_address = caller_to_address_legacy();
+    //we can not emulate test user with legacy account type
+    if conf.is_test_env.is_some() {
+        from_address = caller_to_address();
+    }
     let user = user_service::get_or_new_by_address(from_address.clone());
     let vault_ids = user.vaults;
     transaction_service::migrate_all(vault_ids.clone(), from_address.clone(), to_address.clone());
