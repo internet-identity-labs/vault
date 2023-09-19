@@ -2,7 +2,7 @@ import "mocha";
 import {deploy} from "../util/deployment.util";
 import {Dfx} from "../type/dfx";
 import {App} from "../constanst/app.enum";
-import {Vault, VaultMember,} from "../idl/vault";
+import {Conf, Vault, VaultMember,} from "../idl/vault";
 import {expect} from "chai";
 import {principalToAddress} from "ictool"
 import {DFX} from "../constanst/dfx.const";
@@ -28,6 +28,20 @@ describe("Vault", () => {
 
     after(() => {
         DFX.STOP();
+    });
+
+    it("get_config", async function () {
+        DFX.USE_TEST_ADMIN();
+        DFX.ADD_CONTROLLER(dfx.user.identity.getPrincipal().toText(), "vault");
+        DFX.ADD_CONTROLLER(dfx.vault.id, "vault");
+        DFX.SYNC_CONTROLLERS()
+        let config = await dfx.vault.admin_actor.get_config() as Conf
+        let origins = ["http:localhost:4200"]
+        config.origins = [origins]
+        await dfx.vault.admin_actor.config(config)
+        let updatedConfig = await dfx.vault.admin_actor.get_config() as Conf
+        expect(updatedConfig.origins.length).eq(1)
+        expect(updatedConfig.origins[0][0]).eq("http:localhost:4200")
     });
 
     it("get_vaults empty", async function () {

@@ -1,11 +1,7 @@
-type Approve = record {
-    status : TransactionState;
-    signer : text;
-    created_date : nat64;
-};
-
 type Conf = record {
-    ledger_canister_id : principal
+    ledger_canister_id : principal;
+    controllers: opt vec principal;
+    origins: opt vec text
 };
 
 type Currency = variant {
@@ -133,6 +129,12 @@ type Wallet = record {
     created_date : nat64;
 };
 
+type Approve = record {
+    status : TransactionState;
+    signer : text;
+    created_date : nat64;
+};
+
 type WalletRegisterRequest = record {
     name : opt text;
     vault_id : nat64
@@ -153,4 +155,7 @@ type WalletRegisterRequest = record {
     get_all_json: (nat32, nat32, Backup) -> (text) query;
     sync_controllers: () -> (vec text);
     count: (Backup) -> (nat64) query;
+    config: (Conf) -> ();
+    get_config: () -> (Conf) query;
+    get_trusted_origins: () -> (vec text);
 }
