@@ -39,9 +39,9 @@ describe.skip("Transaction", () => {
     before(async () => {
         dfx = await deploy({apps: [App.Vault]});
 
-        adminAddress = principalToAddress(dfx.user.identity.getPrincipal() as any, Array(32).fill(1));
-        memberAddress1 = principalToAddress(dfx.vault.member_1.getPrincipal() as any, Array(32).fill(1));
-        memberAddress2 = principalToAddress(dfx.vault.member_2.getPrincipal() as any, Array(32).fill(1));
+        adminAddress = principalToAddress(dfx.user.identity.getPrincipal() as any);
+        memberAddress1 = principalToAddress(dfx.vault.member_1.getPrincipal() as any);
+        memberAddress2 = principalToAddress(dfx.vault.member_2.getPrincipal() as any);
 
         let request: VaultRegisterRequest = {
             description: ["test"],

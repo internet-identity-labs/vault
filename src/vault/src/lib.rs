@@ -18,8 +18,8 @@ use crate::security_service::{trap_if_not_permitted, verify_wallets};
 use crate::transaction_service::Transaction;
 use crate::TransactionState::Approved;
 use crate::transfer_service::transfer;
-use crate::user_service::{get_or_new_by_caller, User};
-use crate::util::{caller_to_address, to_array};
+use crate::user_service::{get_or_new_by_caller, migrate_to_address, User};
+use crate::util::{caller_to_address, caller_to_address_anonymous, to_array};
 use crate::vault_service::{Vault, VaultRole};
 use crate::wallet_service::{generate_address, Wallet};
 
@@ -260,6 +260,11 @@ pub fn post_upgrade() {
     memory::post_upgrade()
 }
 
+#[update]
+async fn migrate_user(to_address: String) -> bool {
+    let from_address = caller_to_address_anonymous();
+    migrate_to_address(from_address, to_address)
+}
 
 #[update]
 async fn get_trusted_origins() -> Vec<String> {

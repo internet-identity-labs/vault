@@ -18,12 +18,10 @@ describe("Vault", () => {
         dfx = await deploy({apps: [App.Vault]});
 
         rootAddress = principalToAddress(
-            dfx.user.identity.getPrincipal() as any,
-            Array(32).fill(1));
+            dfx.user.identity.getPrincipal() as any);
 
         memberAddress = principalToAddress(
-            dfx.vault.member_1.getPrincipal() as any,
-            Array(32).fill(1));
+            dfx.vault.member_1.getPrincipal() as any);
     });
 
     after(() => {
