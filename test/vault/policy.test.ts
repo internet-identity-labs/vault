@@ -21,6 +21,14 @@ describe("Policy", async function () {
         dfx = await deploy({apps: [App.Vault]});
         memberAddress = principalToAddress(
             dfx.vault.member_1.getPrincipal() as any);
+    });
+
+    after(() => {
+        DFX.STOP();
+    });
+    let defaultPolicy1: Policy;
+    let defaultPolicy2: Policy;
+    it("verify default policy", async function () {
         await dfx.vault.admin_actor.register_vault({
             description: [],
             name: "vault1"
@@ -38,14 +46,7 @@ describe("Policy", async function () {
         });
         wallet1 = await dfx.vault.admin_actor.register_wallet({name: ["Wallet1"], vault_id: 2n}) as Wallet
         wallet2 = await dfx.vault.admin_actor.register_wallet({name: ["Wallet2"], vault_id: 1n}) as Wallet
-    });
 
-    after(() => {
-        DFX.STOP();
-    });
-    let defaultPolicy1: Policy;
-    let defaultPolicy2: Policy;
-    it("verify default policy", async function () {
         let policies = await dfx.vault.admin_actor.get_policies(1n) as [Policy]
         defaultPolicy1 = policies[0]
         let policies2 = await dfx.vault.admin_actor.get_policies(2n) as [Policy]
