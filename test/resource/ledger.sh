@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 echo "===========SETUP========="
-gunzip ledger.wasm.gz
 test -f ledger.wasm.gz || curl -o ledger.wasm.gz "https://download.dfinity.systems/ic/d87954601e4b22972899e9957e800406a0a6b929/canisters/ledger-canister.wasm.gz"
 test -f ledger.wasm || gunzip ledger.wasm.gz
 test -f ledger.did || curl -o ledger.did "https://raw.githubusercontent.com/dfinity/ic/d87954601e4b22972899e9957e800406a0a6b929/rs/rosetta-api/icp_ledger/ledger.did"
