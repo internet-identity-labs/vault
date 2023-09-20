@@ -11,10 +11,11 @@ import {Principal} from "@dfinity/principal";
 
 let memberAddress: string;
 
-describe("Policy", () => {
+describe("Policy", async function () {
     var dfx: Dfx;
     let wallet1: Wallet;
     let wallet2: Wallet;
+    this.timeout(90000);
 
     before(async () => {
         dfx = await deploy({apps: [App.Vault]});
