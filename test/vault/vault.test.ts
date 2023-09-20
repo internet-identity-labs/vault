@@ -1,13 +1,11 @@
 import "mocha";
-import {deploy, getActor} from "../util/deployment.util";
+import {deploy} from "../util/deployment.util";
 import {Dfx} from "../type/dfx";
 import {App} from "../constanst/app.enum";
-import {Conf, Vault, VaultMember,} from "../idl/vault";
+import {Vault, VaultMember,} from "../idl/vault";
 import {expect} from "chai";
 import {principalToAddress} from "ictool"
 import {DFX} from "../constanst/dfx.const";
-import {idlFactory as vaultIdl} from "../idl/vault_idl";
-import {Ed25519KeyIdentity} from "@dfinity/identity";
 
 let rootAddress: string;
 let memberAddress: string;
@@ -28,21 +26,6 @@ describe("Vault", () => {
 
     after(() => {
         DFX.STOP();
-    });
-
-    it("get_config", async function () {
-        DFX.USE_TEST_ADMIN();
-        DFX.ADD_CONTROLLER(dfx.user.identity.getPrincipal().toText(), "vault");
-        DFX.ADD_CONTROLLER(dfx.vault.id, "vault");
-        DFX.SYNC_CONTROLLERS()
-        let config = await dfx.vault.admin_actor.get_config() as Conf
-        let origins = ["http:localhost:4200"]
-        config.origins = [origins]
-        config.is_test_env = [true]
-        await dfx.vault.admin_actor.config(config)
-        let updatedConfig = await dfx.vault.admin_actor.get_config() as Conf
-        expect(updatedConfig.origins.length).eq(1)
-        expect(updatedConfig.origins[0][0]).eq("http:localhost:4200")
     });
 
     it("get_vaults empty", async function () {
@@ -197,20 +180,6 @@ describe("Vault", () => {
         } catch (e: any) {
             expect(e.message.includes("Not enough permissions")).eq(true)
         }
-    });
-
-    it("migrate users vaults", async function () {
-        let identity = Ed25519KeyIdentity.generate()
-       let vaults = await dfx.vault.actor_member_1.get_vaults() as [Vault]
-       let newActor = await getActor(dfx.vault.id, identity, vaultIdl);
-        let state = await dfx.vault.actor_member_1.migrate_user(principalToAddress(identity.getPrincipal() as any))
-        expect(state).eq(true)
-        let updated_vaults = await newActor.get_vaults() as [Vault]
-        expect(vaults.length).eq(updated_vaults.length)
-         let member = vaults[0].members.find(l=>l.user_uuid === principalToAddress(identity.getPrincipal() as any))
-        expect(member).eq(undefined)
-        let memberUpdated = updated_vaults[0].members.find(l=>l.user_uuid === principalToAddress(identity.getPrincipal() as any))
-        expect(memberUpdated).not.eq(undefined)
     });
 });
 

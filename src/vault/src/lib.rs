@@ -3,15 +3,15 @@ extern crate core;
 extern crate maplit;
 
 use candid::{candid_method, export_service, Principal};
+use ic_cdk::{call, caller, id, trap};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use ic_cdk::{call, caller, id, trap};
 use ic_cdk::export::candid;
 use ic_cdk_macros::*;
 
 use crate::enums::{Backup, TransactionState};
 use crate::memory::{Conf, CONF};
-use crate::policy_service::{get, Policy, PolicyType, ThresholdPolicy};
+use crate::policy_service::{Policy, PolicyType, ThresholdPolicy};
 use crate::policy_service::Currency::ICP;
 use crate::request::{CanisterIdRequest, PolicyRegisterRequest, TransactionApproveRequest, TransactionRegisterRequest, VaultMemberRequest, VaultRegisterRequest, WalletRegisterRequest};
 use crate::security_service::{trap_if_not_permitted, verify_wallets};

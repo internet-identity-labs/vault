@@ -1,9 +1,10 @@
 import "mocha";
-import {deploy} from "../util/deployment.util";
+import {deploy, getActor} from "../util/deployment.util";
 import {Dfx} from "../type/dfx";
 import {App} from "../constanst/app.enum";
 import {
     Approve,
+    Conf,
     Policy,
     PolicyRegisterRequest,
     ThresholdPolicy,
@@ -18,9 +19,11 @@ import {fromHexString, principalToAddress, principalToAddressBytes} from "ictool
 import {DFX} from "../constanst/dfx.const";
 import {Principal} from "@dfinity/principal";
 import {fail} from "assert";
+import {Ed25519KeyIdentity} from "@dfinity/identity";
+import {idlFactory as vaultIdl} from "../idl/vault_idl";
 
 
-describe.skip("Transaction", () => {
+describe("Transaction", () => {
     var dfx: Dfx;
     let adminAddress: string;
     let memberAddress1: string;
@@ -395,6 +398,43 @@ describe.skip("Transaction", () => {
         expect(usersString).contains(adminAddress)
         expect(usersString).contains(memberAddress1)
         expect(usersString).contains(memberAddress2)
+    });
+
+    it("get_config", async function () {
+        DFX.USE_TEST_ADMIN();
+        DFX.ADD_CONTROLLER(dfx.user.identity.getPrincipal().toText(), "vault");
+        DFX.ADD_CONTROLLER(dfx.vault.id, "vault");
+        DFX.SYNC_CONTROLLERS()
+        let config = await dfx.vault.admin_actor.get_config() as Conf
+        let origins = ["http:localhost:4200"]
+        config.origins = [origins]
+        config.is_test_env = [true]
+        await dfx.vault.admin_actor.config(config)
+        let updatedConfig = await dfx.vault.admin_actor.get_config() as Conf
+        expect(updatedConfig.origins.length).eq(1)
+        expect(updatedConfig.origins[0][0]).eq("http:localhost:4200")
+    });
+
+    it("migrate users", async function () {
+        let identity = Ed25519KeyIdentity.generate()
+        let vaults = await dfx.vault.admin_actor.get_vaults() as [Vault]
+        let transactions = await dfx.vault.admin_actor.get_transactions() as Array<Transaction>
+
+        let newActor = await getActor(dfx.vault.id, identity, vaultIdl);
+        let updatedAddress = principalToAddress(identity.getPrincipal() as any)
+        let state = await dfx.vault.admin_actor.migrate_user(updatedAddress)
+        expect(state).eq(true)
+        let updatedVaults = await newActor.get_vaults() as [Vault]
+        expect(vaults.length).eq(updatedVaults.length)
+        let member = vaults[0].members.find(l => l.user_uuid === updatedAddress)
+        expect(member).eq(undefined)
+        let memberUpdated = updatedVaults[0].members.find(l => l.user_uuid === updatedAddress)
+        expect(memberUpdated).not.eq(undefined)
+
+        let updatedTransactions = await newActor.get_transactions() as Array<Transaction>
+        expect(updatedTransactions[0].owner).eq(updatedAddress)
+        expect(updatedTransactions[1].owner).eq(updatedAddress)
+        expect(transactions.length).eq(updatedTransactions.length)
     });
 
 
