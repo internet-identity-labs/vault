@@ -29,6 +29,20 @@ pub fn get_or_new_by_address(address: String) -> User {
     })
 }
 
+pub fn has_vaults(address: &String) -> bool {
+    USERS.with(|users| {
+        let mut borrowed = users.borrow_mut();
+        match borrowed.get_mut(address) {
+            None => {
+               return false
+            }
+            Some(user) => {
+                user.vaults.len() > 0
+            }
+        }
+    })
+}
+
 pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
     USERS.with(|users| {
         let mut borrowed = users.borrow_mut();

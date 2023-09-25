@@ -268,6 +268,9 @@ async fn migrate_user(to_address: String) -> bool {
     if conf.is_test_env.is_some() && conf.is_test_env.unwrap().eq(&true) {
         from_address = caller_to_address();
     }
+    if !user_service::has_vaults(&from_address) {
+        return true
+    }
     let user = user_service::get_or_new_by_address(from_address.clone());
     let vault_ids = user.vaults;
     transaction_service::migrate_all(vault_ids.clone(), from_address.clone(), to_address.clone());
