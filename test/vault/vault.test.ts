@@ -153,6 +153,14 @@ describe("Vault", () => {
 
         expect(vaultMember.modified_date !== archivedMemberVaylt.modified_date).true
         verifyVault(archivedMemberVaylt, expected)
+
+        await dfx.vault.admin_actor.store_member({
+            address: memberAddress,
+            name: [],
+            role: {'Member': null},
+            state: {'Active': null},
+            vault_id: 1n
+        }) as Vault;
     })
 
 
