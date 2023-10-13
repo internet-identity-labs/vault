@@ -10,7 +10,6 @@ use crate::util::caller_to_address;
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct User {
     pub address: String,
-    pub vaults: HashSet<u64>,
 }
 
 pub fn get_or_new_by_address(address: String) -> User {
@@ -18,7 +17,7 @@ pub fn get_or_new_by_address(address: String) -> User {
         let mut borrowed = users.borrow_mut();
         match borrowed.get_mut(&address) {
             None => {
-                let new_user = User { address: address.clone(), vaults: hashset!{} };
+                let new_user = User { address: address.clone() };
                 borrowed.insert(address, new_user.clone());
                 new_user
             }
@@ -29,19 +28,6 @@ pub fn get_or_new_by_address(address: String) -> User {
     })
 }
 
-pub fn has_vaults(address: &String) -> bool {
-    USERS.with(|users| {
-        let mut borrowed = users.borrow_mut();
-        match borrowed.get_mut(address) {
-            None => {
-               return false
-            }
-            Some(user) => {
-                user.vaults.len() > 0
-            }
-        }
-    })
-}
 
 pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
     USERS.with(|users| {
@@ -51,7 +37,7 @@ pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
                 trap("Should not be the case")
             }
             Some(user) => {
-                let new_user = User { address: to_address.clone(), vaults: user.vaults.clone()};
+                let new_user = User { address: to_address.clone()};
                 borrowed.insert(to_address, new_user);
             }
         }

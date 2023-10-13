@@ -17,7 +17,6 @@ pub enum ObjectState {
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum Backup {
-    Vaults,
     Wallets,
     Users,
     Policies,

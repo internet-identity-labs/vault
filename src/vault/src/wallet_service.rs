@@ -63,20 +63,12 @@ pub fn get_by_uid(uid: &String) -> Wallet {
     })
 }
 
-pub fn get_wallets(uids: HashSet<String>) -> Vec<Wallet> {
+pub fn get_wallets() -> Vec<Wallet> {
     WALLETS.with(|wallets| {
-        let mut result: Vec<Wallet> = Default::default();
-        for key in uids {
-            match wallets.borrow().get(&key) {
-                None => {
-                    trap("Not registered")
-                }
-                Some(wallet) => {
-                    result.push(wallet.clone())
-                }
-            }
-        }
-        result
+        let wts = wallets.borrow_mut();
+        let wallet_vec: Vec<Wallet> = wts.keys()
+            .map(|key| wts.get(key).unwrap().clone()).collect();
+        wallet_vec
     })
 }
 
