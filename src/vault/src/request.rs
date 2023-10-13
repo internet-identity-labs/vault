@@ -19,7 +19,6 @@ pub struct VaultRegisterRequest {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct VaultMemberRequest {
-    pub vault_id: u64,
     pub address: String,
     pub name: Option<String>,
     pub role: VaultRole,
@@ -28,7 +27,6 @@ pub struct VaultMemberRequest {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletRegisterRequest {
-    pub vault_id: u64,
     pub name: Option<String>,
 }
 
@@ -40,7 +38,6 @@ pub struct TransactionApproveRequest {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct PolicyRegisterRequest {
-   pub vault_id: u64,
    pub policy_type: PolicyType,
 }
 

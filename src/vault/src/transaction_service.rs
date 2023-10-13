@@ -16,7 +16,6 @@ use crate::TransactionState::{Approved, Canceled, Pending, Rejected};
 pub struct Transaction {
     pub id: u64,
     pub from: String,
-    pub vault_id: u64,
     pub to: String,
     pub approves: HashSet<Approve>,
     pub amount: u64,
@@ -70,7 +69,6 @@ pub fn register_transaction(amount: u64, to: String, wallet: String, policy: Pol
         let t: Transaction = Transaction {
             id: (ts.len() + 1) as u64,
             from: wallet,
-            vault_id: policy.vault,
             to,
             approves: hashset! {},
             amount,
@@ -142,28 +140,14 @@ pub fn store_transaction(transaction: Transaction) -> Option<Transaction> {
     })
 }
 
-pub fn get_all(vaults: HashSet<u64>) -> Vec<Transaction> {
+pub fn get_all() -> Vec<Transaction> {
     TRANSACTIONS.with(|transactions| {
         return transactions.borrow().iter()
             .map(|a| a.1.clone())
-            .filter(|t| vaults.contains(&t.vault_id))
             .collect();
     })
 }
 
-pub fn migrate_all(vaults: HashSet<u64>, address_from: String, address_to: String) {
-    TRANSACTIONS.with(|transactions| {
-        let tr_to_migrate: Vec<Transaction> = transactions.borrow_mut().iter()
-            .map(|a| a.1.clone())
-            .filter(|t| vaults.contains(&t.vault_id))
-            .filter(|t| t.owner.eq(&address_from))
-            .collect();
-        for mut tr in tr_to_migrate {
-            tr.owner = address_to.clone();
-            transactions.borrow_mut().insert(tr.id, tr);
-        }
-    })
-}
 
 
 pub fn get_by_id(id: u64) -> Transaction {

@@ -6,7 +6,6 @@ use ic_cdk::trap;
 use serde::{Serialize};
 
 use crate::enums::ObjectState;
-use crate::memory::VAULTS;
 use crate::User;
 use crate::VaultRole::Admin;
 
@@ -29,7 +28,6 @@ pub struct VaultMember {
     pub role: VaultRole,
     pub name: Option<String>,
     pub state: ObjectState,
-    pub migrated: Option<bool>
 }
 
 impl Hash for VaultMember {
@@ -54,120 +52,4 @@ impl PartialEq for VaultMember {
     fn eq(&self, other: &Self) -> bool {
         self.user_uuid.eq(&other.user_uuid)
     }
-}
-
-pub fn register(user_uuid: String, name: String, description: Option<String>) -> Vault {
-    VAULTS.with(|vaults| {
-        let vault_id = (vaults.borrow().len() + 1) as u64;
-        let mut participants: HashSet<VaultMember> = Default::default();
-        let owner = VaultMember { user_uuid, role: Admin, name: None, state: ObjectState::Active, migrated: None };
-        participants.insert(owner);
-        let vault_new: Vault = Vault {
-            id: vault_id.clone(),
-            name,
-            description,
-            wallets: hashset![],
-            policies: hashset![],
-            members: participants,
-            state: ObjectState::Active,
-            created_date: ic_cdk::api::time(),
-            modified_date: ic_cdk::api::time(),
-        };
-        vaults.borrow_mut().insert(vault_id, vault_new.clone());
-        return vault_new;
-    })
-}
-
-pub fn get(ids: HashSet<u64>) -> Vec<Vault> {
-    VAULTS.with(|vaults| {
-        let mut result: Vec<Vault> = Default::default();
-        let borrowed = vaults.borrow();
-        for id in ids {
-            match borrowed.get(&id) {
-                None => {
-                    trap("Nonexistent key error")
-                }
-                Some(v) => { result.push(v.clone()) }
-            }
-        }
-        result
-    })
-}
-
-pub fn migrate_all(ids: HashSet<u64>, from_address: String, to_address: String) {
-    VAULTS.with(|vaults| {
-        let mut result: Vec<Vault> = Default::default();
-        let mut borrowed = vaults.borrow_mut();
-        for id in ids {
-            match borrowed.get(&id) {
-                None => {
-                    trap("Nonexistent key error")
-                }
-                Some(v) => { result.push(v.clone()) }
-            }
-        }
-
-        for mut vault in result {
-            let mut new_members: HashSet<VaultMember> = Default::default();
-            for mut member in vault.members {
-                if member.user_uuid.eq(&from_address) {
-                    member.user_uuid = to_address.clone();
-                    member.migrated = Some(true);
-                }
-                new_members.insert(member);
-            }
-            vault.members = new_members;
-            borrowed.insert(vault.id.clone(), vault);
-        }
-    })
-}
-
-pub fn get_by_id(id: &u64) -> Vault {
-    VAULTS.with(|vaults| {
-        match vaults.borrow().get(id) {
-            None => {
-                trap("Nonexistent key error")
-            }
-            Some(v) => {
-                v.clone()
-            }
-        }
-    })
-}
-
-pub fn add_vault_member(vault_id: u64, user: &User, role: VaultRole, name: Option<String>, state: ObjectState) -> Vault {
-    let mut vault = get_by_id(&vault_id);
-    let vm = VaultMember {
-        user_uuid: user.address.clone(),
-        role,
-        name,
-        state,
-        migrated: None,
-    };
-    vault.members.replace(vm);
-    restore(&vault)
-}
-
-pub fn restore(vault: &Vault) -> Vault {
-    VAULTS.with(|vaults| {
-        let mut v = vault.clone();
-        v.modified_date = ic_cdk::api::time();
-        match vaults.borrow_mut().insert(v.id.clone(), v.clone()) {
-            None => {
-                trap("No such vault")
-            }
-            Some(_) => {
-                v
-            }
-        }
-    })
-}
-
-
-pub fn update(vault: Vault) -> Vault {
-    let mut old = get_by_id(&vault.id);
-    old.state = vault.state;
-    old.description = vault.description;
-    old.name = vault.name;
-    restore(&old)
 }

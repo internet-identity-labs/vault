@@ -11,7 +11,6 @@ use crate::memory::POLICIES;
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Policy {
     pub id: u64,
-    pub vault: u64,
     pub state: ObjectState,
     pub policy_type: PolicyType,
     pub created_date: u64,
@@ -38,17 +37,16 @@ pub enum Currency {
     ICP,
 }
 
-pub fn register_policy(vault: u64, policy_type: PolicyType) -> Policy {
+pub fn register_policy( policy_type: PolicyType) -> Policy {
     POLICIES.with(|policies| {
         let ps = Policy {
             id: (policies.borrow().len() + 1) as u64,
-            vault,
             state: ObjectState::Active,
             policy_type,
             created_date: ic_cdk::api::time(),
             modified_date: ic_cdk::api::time(),
         };
-        policies.borrow_mut().insert(ps.id.clone(), ps.clone());
+        policies.borrow_mut().insert(ps.id, ps.clone());
         ps
     })
 }
@@ -56,23 +54,23 @@ pub fn register_policy(vault: u64, policy_type: PolicyType) -> Policy {
 pub fn restore_policy(mut policy: Policy) -> Policy {
     POLICIES.with(|policies| {
         policy.modified_date = ic_cdk::api::time();
-        policies.borrow_mut().insert(policy.id.clone(), policy.clone());
+        policies.borrow_mut().insert(policy.id, policy.clone());
         policy
     })
 }
 
 
 pub fn update_policy(ps: Policy) -> Policy {
-    let mut old = get_by_id(&ps.id);
+    let mut old = get_by_id(ps.id);
     old.policy_type = ps.policy_type;
     old.state = ps.state;
     restore_policy(old.clone())
 }
 
 
-pub fn get_by_id(id: &u64) -> Policy {
+pub fn get_by_id(id: u64) -> Policy {
     POLICIES.with(|policies| {
-        match policies.borrow().get(id) {
+        match policies.borrow().get(&id) {
             None => {
                 trap("Not registered")
             }
@@ -83,23 +81,16 @@ pub fn get_by_id(id: &u64) -> Policy {
     })
 }
 
-pub fn get(ids: HashSet<u64>) -> Vec<Policy> {
+pub fn get() -> Vec<Policy> {
     POLICIES.with(|policies| {
-        let mut result: Vec<Policy> = Default::default();
-        for id in ids {
-            match policies.borrow_mut().get(&id) {
-                None => {
-                    trap("Nonexistent key error")
-                }
-                Some(v) => { result.push(v.clone()) }
-            }
-        }
-        result
+            let wts = policies.borrow_mut();
+            let wallet_vec: Vec<Policy> = wts.keys().map(|key| wts.get(key).unwrap().clone()).collect();
+            wallet_vec
     })
 }
 
-pub fn define_correct_policy(ids: HashSet<u64>, amount: &u64, wallet: &String) -> Policy {
-    let policy = get(ids).into_iter()
+pub fn define_correct_policy( amount: u64, wallet: &String) -> Policy {
+    let policy = get().into_iter()
         //define policies related to requested wallet
         .map(|l| match l.policy_type.clone() {
             PolicyType::ThresholdPolicy(threshold_policy) => {
@@ -118,7 +109,7 @@ pub fn define_correct_policy(ids: HashSet<u64>, amount: &u64, wallet: &String) -
         .filter(|l| l.is_some())
         .map(|l| l.unwrap())
         //find all policies with thresholdAmount less or equal to actual amount
-        .filter(|l| l.1 <= *amount)
+        .filter(|l| l.1 <= amount)
         .reduce(|a, b|
             //find closest (biggest) greaterThan
             if a.1 > b.1 { a } else if b.1 > a.1 { b }
