@@ -7,7 +7,9 @@
       "type": "custom"
     },
     "ledger": {
-      "candid": "ledger.did"
+      "type": "custom",
+      "candid": "ledger.did",
+      "wasm": "ledger.wasm"
     }
   },
   "defaults": {

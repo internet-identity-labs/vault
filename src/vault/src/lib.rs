@@ -3,9 +3,9 @@ extern crate core;
 extern crate maplit;
 
 use candid::{candid_method, export_service, Principal};
+use ic_cdk::{call, caller, id, trap};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use ic_cdk::{call, caller, id, trap};
 use ic_cdk::export::candid;
 use ic_cdk_macros::*;
 
@@ -19,8 +19,8 @@ use crate::security_service::{trap_if_not_permitted, verify_wallets};
 use crate::transaction_service::Transaction;
 use crate::TransactionState::Approved;
 use crate::transfer_service::transfer;
-use crate::user_service::{get_or_new_by_caller, User};
-use crate::util::{caller_to_address, to_array};
+use crate::user_service::{get_or_new_by_caller, migrate_to_address, User};
+use crate::util::{caller_to_address, caller_to_address_legacy, to_array};
 use crate::vault_service::{Vault, VaultRole};
 use crate::wallet_service::{generate_address, Wallet};
 
@@ -262,6 +262,23 @@ pub fn post_upgrade() {
     memory::post_upgrade()
 }
 
+#[update]
+async fn migrate_user(to_address: String) -> bool {
+    let conf =  CONF.with(|c| c.borrow().clone());
+    let mut from_address = caller_to_address_legacy();
+    //we can not emulate test user with legacy account type
+    if conf.is_test_env.is_some() && conf.is_test_env.unwrap().eq(&true) {
+        from_address = caller_to_address();
+    }
+    if !user_service::has_vaults(&from_address) {
+        return true
+    }
+    let user = user_service::get_or_new_by_address(from_address.clone());
+    let vault_ids = user.vaults;
+    transaction_service::migrate_all(vault_ids.clone(), from_address.clone(), to_address.clone());
+    vault_service::migrate_all(vault_ids, from_address.clone(), to_address.clone());
+    migrate_to_address(from_address, to_address)
+}
 
 #[update]
 async fn get_trusted_origins() -> Vec<String> {

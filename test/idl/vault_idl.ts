@@ -3,6 +3,7 @@ export const idlFactory = ({ IDL }) => {
         'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
         'origins' : IDL.Opt(IDL.Vec(IDL.Text)),
         'ledger_canister_id' : IDL.Principal,
+        'is_test_env' : IDL.Opt(IDL.Bool)
     });
     const TransactionState = IDL.Variant({
         'Approved' : IDL.Null,
@@ -133,6 +134,7 @@ export const idlFactory = ({ IDL }) => {
         'get_trusted_origins' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
         'get_vaults' : IDL.Func([], [IDL.Vec(Vault)], ['query']),
         'get_wallets' : IDL.Func([IDL.Nat64], [IDL.Vec(Wallet)], ['query']),
+        'migrate_user' : IDL.Func([IDL.Text], [IDL.Bool], []),
         'register_policy' : IDL.Func([PolicyRegisterRequest], [Policy], []),
         'register_transaction' : IDL.Func(
             [TransactionRegisterRequest],
@@ -153,6 +155,7 @@ export const init = ({ IDL }) => {
         'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
         'origins' : IDL.Opt(IDL.Vec(IDL.Text)),
         'ledger_canister_id' : IDL.Principal,
+        'is_test_env' : IDL.Opt(IDL.Bool)
     });
     return [IDL.Opt(Conf)];
 };

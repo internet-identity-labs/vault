@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use candid::CandidType;
+use ic_cdk::trap;
 use serde::Deserialize;
 use crate::memory::USERS;
 use serde::Serialize;
@@ -24,6 +25,39 @@ pub fn get_or_new_by_address(address: String) -> User {
             Some(user) => {
                 user.clone()
             }
+        }
+    })
+}
+
+pub fn has_vaults(address: &String) -> bool {
+    USERS.with(|users| {
+        let mut borrowed = users.borrow_mut();
+        match borrowed.get_mut(address) {
+            None => {
+               return false
+            }
+            Some(user) => {
+                user.vaults.len() > 0
+            }
+        }
+    })
+}
+
+pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
+    USERS.with(|users| {
+        let mut borrowed = users.borrow_mut();
+        match borrowed.get_mut(&from_address) {
+            None => {
+                trap("Should not be the case")
+            }
+            Some(user) => {
+                let new_user = User { address: to_address.clone(), vaults: user.vaults.clone()};
+                borrowed.insert(to_address, new_user);
+            }
+        }
+        match borrowed.remove(&from_address) {
+            None => {false}
+            Some(_) => {true}
         }
     })
 }

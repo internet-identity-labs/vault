@@ -93,6 +93,33 @@ pub fn get(ids: HashSet<u64>) -> Vec<Vault> {
     })
 }
 
+pub fn migrate_all(ids: HashSet<u64>, from_address: String, to_address: String) {
+    VAULTS.with(|vaults| {
+        let mut result: Vec<Vault> = Default::default();
+        let mut borrowed = vaults.borrow_mut();
+        for id in ids {
+            match borrowed.get(&id) {
+                None => {
+                    trap("Nonexistent key error")
+                }
+                Some(v) => { result.push(v.clone()) }
+            }
+        }
+
+        for mut vault in result {
+            let mut new_members: HashSet<VaultMember> = Default::default();
+            for mut member in vault.members {
+                if member.user_uuid.eq(&from_address) {
+                    member.user_uuid = to_address.clone()
+                }
+                new_members.insert(member);
+            }
+            vault.members = new_members;
+            borrowed.insert(vault.id, vault);
+        }
+    })
+}
+
 pub fn get_by_id(id: &u64) -> Vault {
     VAULTS.with(|vaults| {
         match vaults.borrow().get(id) {

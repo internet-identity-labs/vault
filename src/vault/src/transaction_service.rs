@@ -151,6 +151,20 @@ pub fn get_all(vaults: HashSet<u64>) -> Vec<Transaction> {
     })
 }
 
+pub fn migrate_all(vaults: HashSet<u64>, address_from: String, address_to: String) {
+    TRANSACTIONS.with(|transactions| {
+        let tr_to_migrate: Vec<Transaction> = transactions.borrow_mut().iter()
+            .map(|a| a.1.clone())
+            .filter(|t| vaults.contains(&t.vault_id))
+            .filter(|t| t.owner.eq(&address_from))
+            .collect();
+        for mut tr in tr_to_migrate {
+            tr.owner = address_to.clone();
+            transactions.borrow_mut().insert(tr.id, tr);
+        }
+    })
+}
+
 
 pub fn get_by_id(id: u64) -> Transaction {
     TRANSACTIONS.with(|transactions| {

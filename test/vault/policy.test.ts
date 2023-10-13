@@ -19,8 +19,7 @@ describe("Policy", () => {
     before(async () => {
         dfx = await deploy({apps: [App.Vault]});
         memberAddress = principalToAddress(
-            dfx.vault.member_1.getPrincipal() as any,
-            Array(32).fill(1));
+            dfx.vault.member_1.getPrincipal() as any);
         await dfx.vault.admin_actor.register_vault({
             description: [],
             name: "vault1"
@@ -43,6 +42,7 @@ describe("Policy", () => {
     after(() => {
         DFX.STOP();
     });
+
     let defaultPolicy1: Policy;
     let defaultPolicy2: Policy;
     it("verify default policy", async function () {
