@@ -100,6 +100,7 @@ type VaultMember = record {
     name : opt text;
     role : VaultRole;
     state : ObjectState;
+    migrated: opt bool;
 };
 
 type VaultMemberRequest = record {

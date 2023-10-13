@@ -71,6 +71,7 @@ export const idlFactory = ({ IDL }) => {
         'name' : IDL.Opt(IDL.Text),
         'role' : VaultRole,
         'state' : ObjectState,
+        'migrated' : IDL.Opt(IDL.Bool)
     });
     const Vault = IDL.Record({
         'id' : IDL.Nat64,

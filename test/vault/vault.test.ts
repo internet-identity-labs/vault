@@ -228,7 +228,8 @@ function getExpectedVault(): Vault {
                 name: [],
                 role: {'Admin': null},
                 state: {'Active': null},
-                user_uuid: rootAddress
+                user_uuid: rootAddress,
+                migrated: []
             }
         ],
         modified_date: 0n,
@@ -245,5 +246,6 @@ function getDefaultMember(): VaultMember {
         user_uuid: memberAddress,
         name: ["MoyaLaskovayaSuchechka"],
         role: {'Member': null},
+        migrated: []
     }
 }

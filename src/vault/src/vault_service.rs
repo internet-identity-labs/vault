@@ -29,6 +29,7 @@ pub struct VaultMember {
     pub role: VaultRole,
     pub name: Option<String>,
     pub state: ObjectState,
+    pub migrated: Option<bool>
 }
 
 impl Hash for VaultMember {
@@ -59,7 +60,7 @@ pub fn register(user_uuid: String, name: String, description: Option<String>) ->
     VAULTS.with(|vaults| {
         let vault_id = (vaults.borrow().len() + 1) as u64;
         let mut participants: HashSet<VaultMember> = Default::default();
-        let owner = VaultMember { user_uuid, role: Admin, name: None, state: ObjectState::Active };
+        let owner = VaultMember { user_uuid, role: Admin, name: None, state: ObjectState::Active, migrated: None };
         participants.insert(owner);
         let vault_new: Vault = Vault {
             id: vault_id,
@@ -110,7 +111,8 @@ pub fn migrate_all(ids: HashSet<u64>, from_address: String, to_address: String) 
             let mut new_members: HashSet<VaultMember> = Default::default();
             for mut member in vault.members {
                 if member.user_uuid.eq(&from_address) {
-                    member.user_uuid = to_address.clone()
+                    member.user_uuid = to_address.clone();
+                    member.migrated = Some(true);
                 }
                 new_members.insert(member);
             }
@@ -140,6 +142,7 @@ pub fn add_vault_member(vault_id: u64, user: &User, role: VaultRole, name: Optio
         role,
         name,
         state,
+        migrated: None,
     };
     vault.members.replace(vm);
     restore(&vault)

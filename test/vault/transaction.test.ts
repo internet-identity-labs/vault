@@ -430,6 +430,7 @@ describe("Transaction", () => {
         expect(member).eq(undefined)
         let memberUpdated = updatedVaults[0].members.find(l => l.user_uuid === updatedAddress)
         expect(memberUpdated).not.eq(undefined)
+        expect(memberUpdated.migrated[0]).eq(true)
 
         let updatedTransactions = await newActor.get_transactions() as Array<Transaction>
         expect(updatedTransactions[0].owner).eq(updatedAddress)

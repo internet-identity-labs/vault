@@ -11,6 +11,7 @@ use crate::util::caller_to_address;
 pub struct User {
     pub address: String,
     pub vaults: HashSet<u64>,
+    pub migrated: Option<bool>
 }
 
 pub fn get_or_new_by_address(address: String) -> User {
@@ -18,7 +19,7 @@ pub fn get_or_new_by_address(address: String) -> User {
         let mut borrowed = users.borrow_mut();
         match borrowed.get_mut(&address) {
             None => {
-                let new_user = User { address: address.clone(), vaults: hashset!{} };
+                let new_user = User { address: address.clone(), vaults: hashset!{}, migrated: None };
                 borrowed.insert(address, new_user.clone());
                 new_user
             }
@@ -37,7 +38,7 @@ pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
                 trap("Should not be the case")
             }
             Some(user) => {
-                let new_user = User { address: to_address.clone(), vaults: user.vaults.clone()};
+                let new_user = User { address: to_address.clone(), vaults: user.vaults.clone(), migrated: Some(true)};
                 borrowed.insert(to_address, new_user);
             }
         }

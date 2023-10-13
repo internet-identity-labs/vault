@@ -86,6 +86,7 @@ export interface VaultMember {
     'name' : [] | [string],
     'role' : VaultRole,
     'state' : ObjectState,
+    'migrated' : [] | [boolean]
 }
 export interface VaultMemberRequest {
     'name' : [] | [string],
