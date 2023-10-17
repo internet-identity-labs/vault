@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use candid::Principal;
 use ic_cdk::{caller, trap};
 use ic_ledger_types::{AccountIdentifier, Subaccount};
 
@@ -6,8 +7,8 @@ pub fn caller_to_address() -> String {
     return AccountIdentifier::new(&caller(), &Subaccount([0; 32])).to_string();
 }
 
-pub fn caller_to_address_legacy() -> String {
-    return AccountIdentifier::new(&caller(), &Subaccount([1; 32])).to_string();
+pub fn to_address(principal: Principal) -> String {
+    return AccountIdentifier::new(&principal, &Subaccount([0; 32])).to_string();
 }
 
 pub fn to_array<T>(v: Vec<T>) -> [T; 32] {

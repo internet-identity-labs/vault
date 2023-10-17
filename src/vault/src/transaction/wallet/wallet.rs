@@ -1,0 +1,46 @@
+use candid::{CandidType, Principal};
+use ic_cdk::{call, trap};
+use ic_cdk::api::time;
+use serde::{Deserialize, Serialize};
+
+use crate::enums::{Network, ObjectState};
+use crate::state::VaultState;
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct Wallet {
+    pub uid: String,
+    pub name: String,
+    pub network: Network,
+    pub state: ObjectState,
+    pub modified_date: u64,
+    pub created_date: u64,
+}
+
+impl Wallet {
+    pub fn new(uid: String, name: String, network: Network) -> Self {
+        Wallet {
+            uid,
+            name,
+            network,
+            state: ObjectState::Active,
+            modified_date: time(),
+            created_date: time(),
+        }
+    }
+}
+
+pub fn restore_wallet(wallet: Wallet, mut state: VaultState) -> VaultState {
+    state.wallets.retain(|existing| existing.uid != wallet.uid);
+    state.wallets.push(wallet);
+    state
+}
+
+
+pub async fn generate_address() -> String {
+    let raw_rand: Vec<u8> = match call(Principal::management_canister(), "raw_rand", ()).await {
+        Ok((res, )) => res,
+        Err((_, err)) => trap(&format!("failed to get sub: {}", err)),
+    };
+    hex::encode(raw_rand)
+}
+

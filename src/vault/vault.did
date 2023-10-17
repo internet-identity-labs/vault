@@ -1,11 +1,92 @@
+type Approve = record {
+    status : TransactionState;
+    signer : text;
+    created_date : nat64;
+};
+
+type BasicTransactionFields = record {
+    id : nat64;
+    transaction_type : TrType;
+    threshold : opt nat8;
+    initiator : text;
+    modified_date : nat64;
+    memo : opt text;
+    state : TransactionState;
+    approves : vec Approve;
+    is_vault_state : bool;
+    created_date : nat64;
+    batch_uid : opt text;
+};
+
 type Conf = record {
-    ledger_canister_id : principal;
-    controllers: opt vec principal;
-    origins: opt vec text
+    origins : vec text
 };
 
 type Currency = variant {
     ICP
+};
+
+type Member = record {
+    modified_date : nat64;
+    name : text;
+    role : VaultRole;
+    state : ObjectState;
+    member_id : text;
+    created_date : nat64;
+};
+
+type MemberCreateTransaction = record {
+    name : text;
+    role : VaultRole;
+    member_id : text;
+    common : BasicTransactionFields;
+};
+
+type MemberCreateTransactionRequest = record {
+    name : text;
+    role : VaultRole;
+    member_id : text;
+    batch_uid : opt text;
+};
+
+type MemberRemoveTransaction = record {
+    member_id : text;
+    common : BasicTransactionFields;
+};
+
+type MemberRemoveTransactionRequest = record {
+    member_id : text;
+    batch_uid : opt text;
+};
+
+type MemberUpdateNameTransaction = record {
+    name : text;
+    member_id : text;
+    common : BasicTransactionFields;
+};
+
+type MemberUpdateNameTransactionRequest = record {
+    name : text;
+    member_id : text;
+    batch_uid : opt text;
+};
+
+type MemberUpdateRoleTransaction = record {
+    role : VaultRole;
+    member_id : text;
+    common : BasicTransactionFields;
+};
+
+type MemberUpdateRoleTransactionRequest = record {
+    role : VaultRole;
+    member_id : text;
+    batch_uid : opt text;
+};
+
+type Network = variant {
+    IC;
+    BTC;
+    ETH
 };
 
 type ObjectState = variant {
@@ -14,47 +95,101 @@ type ObjectState = variant {
 };
 
 type Policy = record {
-    id : nat64;
-    vault : nat64;
-    modified_date : nat64;
-    state : ObjectState;
-    policy_type : PolicyType;
-    created_date : nat64;
-};
-
-type PolicyRegisterRequest = record {
-    vault_id : nat64;
-    policy_type : PolicyType;
-};
-
-type PolicyType = variant {
-    threshold_policy : ThresholdPolicy
-};
-
-type ThresholdPolicy = record {
-    member_threshold : opt nat8;
-    amount_threshold : nat64;
-    wallets : opt vec text;
-    currency : Currency;
-};
-
-type Transaction = record {
-    id : nat64;
-    to : text;
+    uid : text;
     member_threshold : nat8;
-    block_index : opt nat64;
-    owner : text;
-    from : text;
     modified_date : nat64;
-    memo : opt text;
-    vault_id : nat64;
     amount_threshold : nat64;
-    state : TransactionState;
-    approves : vec Approve;
+    wallets : vec text;
     currency : Currency;
-    amount : nat64;
     created_date : nat64;
-    policy_id : nat64;
+};
+
+type PolicyCreateTransaction = record {
+    uid : text;
+    member_threshold : nat8;
+    amount_threshold : nat64;
+    wallets : vec text;
+    currency : Currency;
+    common : BasicTransactionFields;
+};
+
+type PolicyCreateTransactionRequest = record {
+    member_threshold : nat8;
+    amount_threshold : nat64;
+    wallets : vec text;
+    currency : Currency;
+    batch_uid : opt text;
+};
+
+type PolicyRemoveTransaction = record {
+    uid : text;
+    common : BasicTransactionFields;
+};
+
+type PolicyRemoveTransactionRequest = record {
+    uid : text;
+    batch_uid : opt text;
+};
+
+type PolicyUpdateTransaction = record {
+    uid : text;
+    member_threshold : nat8;
+    amount_threshold : nat64;
+    common : BasicTransactionFields;
+};
+
+type PolicyUpdateTransactionRequest = record {
+    uid : text;
+    member_threshold : nat8;
+    amount_threshold : nat64;
+    batch_uid : opt text;
+};
+
+type Quorum = record {
+    modified_date : nat64;
+    quorum : nat8
+};
+
+type QuorumUpdateTransaction = record {
+    common : BasicTransactionFields;
+    quorum : nat8;
+};
+
+type QuorumUpdateTransactionRequest = record {
+    quorum : nat8;
+    batch_uid : opt text;
+};
+
+type TopUpTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
+};
+
+type TopUpTransactionRequest = record {
+    currency : Currency;
+    wallet : text;
+    amount : nat64;
+};
+
+type TrType = variant {
+    WalletUpdateName;
+    MemberCreate;
+    PolicyRemove;
+    VersionUpgrade;
+    WalletCreate;
+    PolicyCreate;
+    MemberRemove;
+    PolicyUpdate;
+    MemberUpdateName;
+    VaultNamingUpdate;
+    MemberUpdateRole;
+    QuorumUpdate;
+    TopUp;
+    Transfer;
 };
 
 type TransactionApproveRequest = record {
@@ -62,58 +197,75 @@ type TransactionApproveRequest = record {
     state : TransactionState;
 };
 
-type TransactionRegisterRequest = record {
-    address : text;
-    amount : nat64;
-    wallet_id : text;
+type TransactionCandid = variant {
+    WalletCreateTransactionV : WalletCreateTransaction;
+    PolicyCreateTransactionV : PolicyCreateTransaction;
+    MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
+    TopUpTransactionV : TopUpTransaction;
+    VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
+    TransferTransactionV : TransferTransaction;
+    PolicyRemoveTransactionV : PolicyRemoveTransaction;
+    PolicyUpdateTransactionV : PolicyUpdateTransaction;
+    MemberCreateTransactionV : MemberCreateTransaction;
+    MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
+    UpgradeTransactionV : VersionUpgradeTransaction;
+    QuorumUpdateTransactionV : QuorumUpdateTransaction;
+    WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
+    MemberRemoveTransactionV : MemberRemoveTransaction;
+};
+
+type TransactionRequest = variant {
+    QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
+    VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
+    MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
+    TopUpTransactionRequestV : TopUpTransactionRequest;
+    WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
+    MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
+    MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
+    TransferTransactionRequestV : TransferTransactionRequest;
+    MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
+    WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
+    PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
+    VersionUpgradeTransactionRequestV : VersionUpgradeTransactionRequest;
+    PolicyRemoveTransactionRequestV : PolicyRemoveTransactionRequest;
+    PolicyCreateTransactionRequestV : PolicyCreateTransactionRequest;
 };
 
 type TransactionState = variant {
+    Blocked;
     Approved;
     Rejected;
-    Canceled;
-    Pending
+    Executed;
+    Pending;
 };
 
-type Backup = variant {
-    Vaults;
-    Wallets;
-    Users;
-    Policies;
-    Transactions;
-};
-
-type Vault = record {
-    id : nat64;
-    members : vec VaultMember;
-    modified_date : nat64;
-    name : text;
-    description : opt text;
-    state : ObjectState;
-    wallets : vec text;
-    created_date : nat64;
-    policies : vec nat64;
-};
-
-type VaultMember = record {
-    user_uuid : text;
-    name : opt text;
-    role : VaultRole;
-    state : ObjectState;
-    migrated: opt bool;
-};
-
-type VaultMemberRequest = record {
-    name : opt text;
-    role : VaultRole;
-    vault_id : nat64;
-    state : ObjectState;
+type TransferTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
     address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
 };
 
-type VaultRegisterRequest = record {
-    name : text;
-    description : opt text
+type TransferTransactionRequest = record {
+    currency : Currency;
+    address : text;
+    wallet : text;
+    amount : nat64;
+};
+
+type VaultNamingUpdateTransaction = record {
+    name : opt text;
+    description : opt text;
+    common : BasicTransactionFields;
+};
+
+type VaultNamingUpdateTransactionRequest = record {
+    name : opt text;
+    description : opt text;
+    batch_uid : opt text;
 };
 
 type VaultRole = variant {
@@ -121,43 +273,62 @@ type VaultRole = variant {
     Admin
 };
 
+type VaultState = record {
+    members : vec Member;
+    name : opt text;
+    description : opt text;
+    wallets : vec Wallet;
+    quorum : Quorum;
+    policies : vec Policy;
+};
+
+type VersionUpgradeTransaction = record {
+    version : text;
+    common : BasicTransactionFields;
+};
+
+type VersionUpgradeTransactionRequest = record {
+    version : text
+};
+
 type Wallet = record {
     uid : text;
     modified_date : nat64;
-    name : opt text;
-    vaults : vec nat64;
+    name : text;
+    network : Network;
     state : ObjectState;
     created_date : nat64;
 };
 
-type Approve = record {
-    status : TransactionState;
-    signer : text;
-    created_date : nat64;
+type WalletCreateTransaction = record {
+    uid : text;
+    name : text;
+    network : Network;
+    common : BasicTransactionFields;
 };
 
-type WalletRegisterRequest = record {
-    name : opt text;
-    vault_id : nat64
-};service : (opt Conf) -> {
-    approve_transaction : (TransactionApproveRequest) -> (Transaction);
-    get_policies : (nat64) -> (vec Policy) query;
-    get_transactions : () -> (vec Transaction) query;
-    get_vaults : () -> (vec Vault) query;
-    get_wallets : (nat64) -> (vec Wallet) query;
-    register_policy : (PolicyRegisterRequest) -> (Policy);
-    register_transaction : (TransactionRegisterRequest) -> (Transaction);
-    register_vault : (VaultRegisterRequest) -> (Vault);
-    register_wallet : (WalletRegisterRequest) -> (Wallet);
-    store_member : (VaultMemberRequest) -> (Vault);
-    update_policy : (Policy) -> (Policy);
-    update_vault : (Vault) -> (Vault);
-    update_wallet : (Wallet) -> (Wallet);
-    get_all_json: (nat32, nat32, Backup) -> (text) query;
-    sync_controllers: () -> (vec text);
-    count: (Backup) -> (nat64) query;
-    config: (Conf) -> ();
-    get_config: () -> (Conf) query;
-    get_trusted_origins: () -> (vec text);
-    migrate_user: (text) -> (bool);
+type WalletCreateTransactionRequest = record {
+    name : text;
+    network : Network;
+    batch_uid : opt text;
+};
+
+type WalletUpdateNameTransaction = record {
+    uid : text;
+    name : text;
+    common : BasicTransactionFields;
+};
+
+type WalletUpdateNameTransactionRequest = record {
+    uid : text;
+    name : text;
+    batch_uid : opt text;
+};service : (principal, Conf) -> {
+    approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
+    canister_balance : () -> (nat64) query;
+    execute : () -> ();
+    get_state : (opt nat64) -> (VaultState) query;
+    get_transactions_all : () -> (vec TransactionCandid) query;
+    get_version : () -> (text) query;
+    request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
 }
