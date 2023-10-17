@@ -12,13 +12,12 @@ use crate::memory::WALLETS;
 pub struct Wallet {
     pub uid: String,
     pub name: Option<String>,
-    pub vaults: HashSet<u64>,
     pub state: ObjectState,
     pub created_date: u64,
     pub modified_date: u64,
 }
 
-pub fn new_and_store(name: Option<String>, vault_id: u64, address: String) -> Wallet {
+pub fn new_and_store(name: Option<String>, address: String) -> Wallet {
     WALLETS.with(|wts| {
         let mut wallets = wts.borrow_mut();
         if wallets.contains_key(&address) {
@@ -27,7 +26,6 @@ pub fn new_and_store(name: Option<String>, vault_id: u64, address: String) -> Wa
         let wallet_new = Wallet {
             uid: address.clone(),
             name,
-            vaults: hashset![vault_id],
             state: ObjectState::Active,
             created_date: ic_cdk::api::time(),
             modified_date: ic_cdk::api::time(),

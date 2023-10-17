@@ -48,7 +48,7 @@ pub fn register_policy(vault: u64, policy_type: PolicyType) -> Policy {
             created_date: ic_cdk::api::time(),
             modified_date: ic_cdk::api::time(),
         };
-        policies.borrow_mut().insert(ps.id, ps.clone());
+        policies.borrow_mut().insert(ps.id.clone(), ps.clone());
         ps
     })
 }
@@ -56,23 +56,23 @@ pub fn register_policy(vault: u64, policy_type: PolicyType) -> Policy {
 pub fn restore_policy(mut policy: Policy) -> Policy {
     POLICIES.with(|policies| {
         policy.modified_date = ic_cdk::api::time();
-        policies.borrow_mut().insert(policy.id, policy.clone());
+        policies.borrow_mut().insert(policy.id.clone(), policy.clone());
         policy
     })
 }
 
 
 pub fn update_policy(ps: Policy) -> Policy {
-    let mut old = get_by_id(ps.id);
+    let mut old = get_by_id(&ps.id);
     old.policy_type = ps.policy_type;
     old.state = ps.state;
     restore_policy(old.clone())
 }
 
 
-pub fn get_by_id(id: u64) -> Policy {
+pub fn get_by_id(id: &u64) -> Policy {
     POLICIES.with(|policies| {
-        match policies.borrow().get(&id) {
+        match policies.borrow().get(id) {
             None => {
                 trap("Not registered")
             }
@@ -98,7 +98,7 @@ pub fn get(ids: HashSet<u64>) -> Vec<Policy> {
     })
 }
 
-pub fn define_correct_policy(ids: HashSet<u64>, amount: u64, wallet: &String) -> Policy {
+pub fn define_correct_policy(ids: HashSet<u64>, amount: &u64, wallet: &String) -> Policy {
     let policy = get(ids).into_iter()
         //define policies related to requested wallet
         .map(|l| match l.policy_type.clone() {
@@ -118,7 +118,7 @@ pub fn define_correct_policy(ids: HashSet<u64>, amount: u64, wallet: &String) ->
         .filter(|l| l.is_some())
         .map(|l| l.unwrap())
         //find all policies with thresholdAmount less or equal to actual amount
-        .filter(|l| l.1 <= amount)
+        .filter(|l| l.1 <= *amount)
         .reduce(|a, b|
             //find closest (biggest) greaterThan
             if a.1 > b.1 { a } else if b.1 > a.1 { b }

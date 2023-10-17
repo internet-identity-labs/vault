@@ -85,7 +85,7 @@ pub fn register_transaction(amount: u64, to: String, wallet: String, policy: Pol
             modified_date: ic_cdk::api::time(),
             memo: None,
         };
-        ts.insert(t.id, t.clone());
+        ts.insert(t.id.clone(), t.clone());
         t
     })
 }

@@ -1,8 +1,8 @@
 use candid::Principal;
-use ic_cdk::export::{candid::{CandidType, Deserialize}};
 
 use crate::{PolicyType, TransactionState, VaultRole};
 use crate::enums::ObjectState;
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct TransactionRegisterRequest {
