@@ -19,7 +19,7 @@ pub fn get_or_new_by_address(address: String) -> User {
         let mut borrowed = users.borrow_mut();
         match borrowed.get_mut(&address) {
             None => {
-                let new_user = User { address: address.clone(), vaults: hashset!{}, migrated: None };
+                let new_user = User { address: address.clone(), vaults: hashset!{}, migrated: Some(true) };
                 borrowed.insert(address, new_user.clone());
                 new_user
             }
