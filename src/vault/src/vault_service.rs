@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
-use ic_cdk::export::{candid::{CandidType, Deserialize}};
+use candid::{CandidType, Deserialize};
 use ic_cdk::trap;
 use serde::{Serialize};
 
@@ -63,7 +63,7 @@ pub fn register(user_uuid: String, name: String, description: Option<String>) ->
         let owner = VaultMember { user_uuid, role: Admin, name: None, state: ObjectState::Active, migrated: None };
         participants.insert(owner);
         let vault_new: Vault = Vault {
-            id: vault_id,
+            id: vault_id.clone(),
             name,
             description,
             wallets: hashset![],
@@ -117,7 +117,7 @@ pub fn migrate_all(ids: HashSet<u64>, from_address: String, to_address: String) 
                 new_members.insert(member);
             }
             vault.members = new_members;
-            borrowed.insert(vault.id, vault);
+            borrowed.insert(vault.id.clone(), vault);
         }
     })
 }
@@ -152,7 +152,7 @@ pub fn restore(vault: &Vault) -> Vault {
     VAULTS.with(|vaults| {
         let mut v = vault.clone();
         v.modified_date = ic_cdk::api::time();
-        match vaults.borrow_mut().insert(v.id, v.clone()) {
+        match vaults.borrow_mut().insert(v.id.clone(), v.clone()) {
             None => {
                 trap("No such vault")
             }

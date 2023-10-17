@@ -1,10 +1,10 @@
 use candid::Principal;
 use ic_cdk::storage;
 use crate::{Backup, Policy, Transaction, User, Vault, Wallet};
-use ic_cdk::export::{candid::{CandidType, Deserialize}};
 use ic_ledger_types::MAINNET_LEDGER_CANISTER_ID;
 use std::cell::RefCell;
 use std::collections::{HashMap};
+use candid::{CandidType, Deserialize};
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct VaultMemoryObject {
@@ -206,7 +206,7 @@ pub fn post_upgrade() {
     let (mo, ): (VaultMemoryObject, ) = storage::stable_restore().unwrap();
     let mut vaults: HashMap<u64, Vault> = Default::default();
     for vault in mo.vaults {
-        vaults.insert(vault.id, vault);
+        vaults.insert(vault.id.clone(), vault);
     }
     let mut wallets: HashMap<String, Wallet> = Default::default();
     for wallet in mo.wallets {
@@ -218,17 +218,17 @@ pub fn post_upgrade() {
     }
     let mut policies: HashMap<u64, Policy> = Default::default();
     for policy in mo.policies {
-        policies.insert(policy.id, policy);
+        policies.insert(policy.id.clone(), policy);
     }
     let mut transactions: HashMap<u64, Transaction> = Default::default();
     for transaction in mo.transactions {
-        transactions.insert(transaction.id, transaction);
+        transactions.insert(transaction.id.clone(), transaction);
     }
     let conf = mo.conf.unwrap_or(Conf::default());
-    VAULTS.with(|storage| *storage.borrow_mut() = vaults);
-    USERS.with(|storage| *storage.borrow_mut() = users);
-    WALLETS.with(|storage| *storage.borrow_mut() = wallets);
-    POLICIES.with(|storage| *storage.borrow_mut() = policies);
-    TRANSACTIONS.with(|storage| *storage.borrow_mut() = transactions);
-    CONF.with(|storage| *storage.borrow_mut() = conf);
+    VAULTS.with(|mut storage| *storage.borrow_mut() = vaults);
+    USERS.with(|mut storage| *storage.borrow_mut() = users);
+    WALLETS.with(|mut storage| *storage.borrow_mut() = wallets);
+    POLICIES.with(|mut storage| *storage.borrow_mut() = policies);
+    TRANSACTIONS.with(|mut storage| *storage.borrow_mut() = transactions);
+    CONF.with(|mut storage| *storage.borrow_mut() = conf);
 }
