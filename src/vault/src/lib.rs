@@ -10,6 +10,7 @@ use ic_cdk::export::candid;
 use ic_cdk_macros::*;
 
 use crate::enums::{Backup, TransactionState};
+use crate::enums::ObjectState::Archived;
 use crate::memory::{Conf, CONF};
 use crate::policy_service::{Policy, PolicyType, ThresholdPolicy};
 use crate::policy_service::Currency::ICP;
@@ -172,7 +173,8 @@ async fn register_transaction(request: TransactionRegisterRequest) -> Transactio
     let vault = vaults.first().unwrap(); //for now one2one
     trap_if_not_permitted(vault.id, vec![VaultRole::Admin, VaultRole::Member]);
     let policy = policy_service::define_correct_policy(vault.policies.clone(), request.amount, &wallet.uid);
-    let transaction = transaction_service::register_transaction(request.amount, request.address, wallet.uid, policy, vault.members.len());
+    let members = vault.members.iter().filter(|s| !s.state.eq(&Archived)).count();
+    let transaction = transaction_service::register_transaction(request.amount, request.address, wallet.uid, policy, members);
     let approve = TransactionApproveRequest {
         transaction_id: transaction.id,
         state: TransactionState::Approved,
@@ -267,6 +269,9 @@ async fn migrate_user(to_address: String) -> bool {
     //we can not emulate test user with legacy account type
     if conf.is_test_env.is_some() && conf.is_test_env.unwrap().eq(&true) {
         from_address = caller_to_address();
+    }
+    if !user_service::has_vaults(&from_address) {
+        return true
     }
     let user = user_service::get_or_new_by_address(from_address.clone());
     let vault_ids = user.vaults;
