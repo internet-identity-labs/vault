@@ -50,14 +50,19 @@ type TrType = variant {
     Quorum
 };
 
+type TransactionApproveRequest = record {
+    transaction_id : nat64;
+    state : TransactionState;
+};
+
+type TransactionCandid = variant {
+    QuorumTransaction : QuorumTransaction
+};
+
 type TransactionRequestType = variant {
     WalletCreateTransaction : WalletCreateTransaction;
     TransferTransaction : TransferTransaction;
     QuorumStateTransaction : QuorumTransactionRequest;
-};
-
-type TransactionResponse = variant {
-    QuorumTransaction : QuorumTransaction
 };
 
 type TransactionState = variant {
@@ -80,13 +85,16 @@ type TransferTransaction = record {
 type WalletCreateTransaction = record {
     name : text;
     network : Network
-};service : (opt Conf) -> {
+};
+
+service : (opt Conf) -> {
+    approve : (TransactionApproveRequest) -> (TransactionCandid);
     config : (Conf) -> ();
     count : (Backup) -> (nat64) query;
     execute : () -> ();
     get_all_json : (nat32, nat32, Backup) -> (text) query;
     get_config : () -> (Conf) query;
-    get_transactions_all : () -> (vec TransactionResponse) query;
+    get_transactions_all : () -> (vec TransactionCandid) query;
     request_transaction : (TransactionRequestType) -> ();
     sync_controllers : () -> (vec text);
 }
