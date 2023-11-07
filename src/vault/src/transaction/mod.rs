@@ -2,3 +2,8 @@ pub mod quorum_transaction;
 pub mod transaction;
 pub mod transactions_service;
 pub mod quorum;
+pub mod member_transaction;
+pub mod members;
+pub mod transaction_request_handler;
+pub mod transaction_approve_handler;
+pub mod transaction_builder;

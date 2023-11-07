@@ -6,12 +6,18 @@ use std::ops::Deref;
 use ic_cdk::{print, storage, trap};
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Executed};
-use crate::transaction::transaction::{TransactionNew, TransactionIterator, TrType, TransactionCandid};
+use crate::transaction::transaction::{TransactionNew, TransactionIterator, TrType, TransactionCandid, Candid};
 use crate::transaction_service::Transaction;
 
 use candid::CandidType;
 use candid::types::{Serializer, Type, TypeId};
 use serde::{Deserialize, Serialize};
+use crate::transaction::transaction::TrType::{Quorum,
+                                              MemberCreate,
+                                              MemberUpdateName,
+                                              MemberUpdateRole,
+                                              MemberArchive,
+                                              MemberUnArchive};
 
 thread_local! {
     pub static TRANSACTIONS: RefCell<Vec<Box<dyn TransactionNew>>> = RefCell::new(Default::default());
@@ -130,12 +136,27 @@ pub fn stable_save() {
 
 pub fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    let trs : Vec<TransactionCandid> = mo.transactions;
-
+    let mut trs: Vec<Box<dyn TransactionNew>> = mo.transactions
+        .into_iter().map(|x| x.to_transaction()).collect();
+    trs.sort();
+    for transaction in trs {
+        if is_vault_transaction(transaction) && transaction.get_state().eq(&Executed) {
+            transaction.execute();
+        }
+    }
     TRANSACTIONS.with(|utrs| {
         utrs.borrow_mut();
         utrs.replace(trs)
     });
-    storage::stable_save((trs, )).unwrap();
+}
+
+fn is_vault_transaction(tr: Box<dyn TransactionNew>) -> bool {
+    let trss = hashset![  Quorum,
+    MemberCreate,
+    MemberUpdateName,
+    MemberUpdateRole,
+    MemberArchive,
+    MemberUnArchive];
+    trss.contains(tr.get_type())
 }
 
