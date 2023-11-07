@@ -5,11 +5,6 @@
       "candid": "src/vault/vault.did",
       "wasm": "vault.wasm",
       "type": "custom"
-    },
-    "ledger": {
-      "type": "custom",
-      "candid": "ledger.did",
-      "wasm": "ledger.wasm"
     }
   },
   "defaults": {
