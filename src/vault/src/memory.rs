@@ -1,11 +1,12 @@
 use candid::Principal;
 use ic_cdk::storage;
-use crate::{Backup, Policy, Transaction, User, Wallet};
+use crate::{Backup, Policy, User, Wallet};
 use ic_ledger_types::MAINNET_LEDGER_CANISTER_ID;
 use std::cell::RefCell;
 use std::collections::{HashMap};
 use candid::CandidType;
 use candid::Deserialize;
+use crate::transaction_service::Transaction;
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct VaultMemoryObject {
@@ -42,7 +43,7 @@ thread_local! {
     pub static USERS: RefCell<HashMap<String, User>> = RefCell::new(Default::default());
     pub static WALLETS: RefCell<HashMap<String, Wallet>> = RefCell::new(Default::default());
     pub static POLICIES: RefCell<HashMap<u64, Policy>> = RefCell::new(Default::default());
-    pub static TRANSACTIONS: RefCell<HashMap<u64, Transaction>> = RefCell::new(Default::default());
+    pub static TRANSACTIONS: RefCell<HashMap<u64, Transaction >> = RefCell::new(Default::default());
 }
 
 pub fn pre_upgrade() {

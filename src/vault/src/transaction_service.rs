@@ -7,7 +7,7 @@ use ic_ledger_types::BlockIndex;
 use serde::{Deserialize, Serialize};
 
 use crate::{caller_to_address, Policy, PolicyType};
-use crate::enums::TransactionState;
+use crate::enums::{Network, ObjectState, TransactionState};
 use crate::memory::TRANSACTIONS;
 use crate::policy_service::Currency;
 use crate::TransactionState::{Approved, Canceled, Pending, Rejected};
@@ -22,9 +22,6 @@ pub struct Transaction {
     pub state: TransactionState,
     pub policy_id: u64,
     pub block_index: Option<BlockIndex>,
-    pub amount_threshold: u64,
-    pub currency: Currency,
-    pub member_threshold: u8,
     pub owner: String,
     pub created_date: u64,
     pub modified_date: u64,
@@ -54,15 +51,15 @@ pub fn register_transaction(amount: u64, to: String, wallet: String, policy: Pol
     let amount_threshold: u64;
     let member_threshold: u8;
 
-    match policy.policy_type.clone() {
-        PolicyType::ThresholdPolicy(tp) => {
-            amount_threshold = tp.amount_threshold;
-            member_threshold = match tp.member_threshold {
-                None => { members as u8 } //means required all
-                Some(threshold) => { threshold }
-            };
-        }
-    }
+    // match policy.policy_type.clone() {
+    //     PolicyType::ThresholdPolicy(tp) => {
+    //         amount_threshold = tp.amount_threshold;
+    //         member_threshold = match tp.member_threshold {
+    //             None => { members as u8 } //means required all
+    //             Some(threshold) => { threshold }
+    //         };
+    //     }
+    // }
     TRANSACTIONS.with(|transactions| {
         let mut ts = transactions.borrow_mut();
 
@@ -75,9 +72,6 @@ pub fn register_transaction(amount: u64, to: String, wallet: String, policy: Pol
             state: TransactionState::Pending,
             policy_id: policy.id,
             block_index: None,
-            amount_threshold,
-            currency: Currency::ICP,
-            member_threshold,
             owner: caller_to_address(),
             created_date: ic_cdk::api::time(),
             modified_date: ic_cdk::api::time(),
@@ -115,6 +109,9 @@ pub fn approve_transaction(mut transaction: Transaction, state: TransactionState
         Canceled => {
             transaction.state = Canceled
         }
+        Completed => {
+            trap("Incorrect state")
+        }
     }
 
     transaction.modified_date = ic_cdk::api::time();
@@ -131,7 +128,7 @@ pub fn is_transaction_approved(transaction: &Transaction) -> bool {
     return transaction.approves.clone()
         .into_iter()
         .filter(|l| l.status.eq(&TransactionState::Approved))
-        .count() as u8 >= transaction.member_threshold;
+        .count() as u8 >= 0;
 }
 
 pub fn store_transaction(transaction: Transaction) -> Option<Transaction> {

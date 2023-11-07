@@ -20,7 +20,9 @@ pub struct Policy {
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub enum PolicyType {
     #[serde(rename = "threshold_policy")]
-    ThresholdPolicy(ThresholdPolicy)
+    ThresholdPolicy(ThresholdPolicy),
+    #[serde(rename = "quorum_policy")]
+    QuorumPolicy(QuorumPolicy)
 }
 
 
@@ -31,6 +33,37 @@ pub struct ThresholdPolicy {
     pub member_threshold: Option<u8>,
     pub wallets: Option<Vec<String>>,
 }
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct QuorumPolicy  {
+    pub amount_threshold: u64,
+}
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct QuorumPolicyEmpty  {
+    pub amount_threshold: u64,
+}
+
+trait QuorumPolicyTrait {
+    fn get_a() -> usize {
+        return 65;
+    }
+}
+
+
+impl QuorumPolicyTrait for QuorumPolicy  {
+    fn get_a() -> usize {
+        return 22;
+    }
+}
+
+impl QuorumPolicyTrait for QuorumPolicyEmpty  {
+    fn get_a() -> usize {
+        return 33;
+    }
+}
+
+
+
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub enum Currency {
@@ -103,6 +136,9 @@ pub fn define_correct_policy( amount: u64, wallet: &String) -> Policy {
                         Some((l, threshold_policy.amount_threshold, threshold_policy.member_threshold, vec![]))
                     }
                 }
+            }
+            PolicyType::QuorumPolicy(threshold_policy) => {
+                trap("Non now")
             }
         }
         )

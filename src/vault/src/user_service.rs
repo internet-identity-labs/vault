@@ -28,26 +28,6 @@ pub fn get_or_new_by_address(address: String) -> User {
     })
 }
 
-
-pub fn migrate_to_address(from_address : String, to_address: String) -> bool {
-    USERS.with(|users| {
-        let mut borrowed = users.borrow_mut();
-        match borrowed.get_mut(&from_address) {
-            None => {
-                trap("Should not be the case")
-            }
-            Some(user) => {
-                let new_user = User { address: to_address.clone()};
-                borrowed.insert(to_address, new_user);
-            }
-        }
-        match borrowed.remove(&from_address) {
-            None => {false}
-            Some(_) => {true}
-        }
-    })
-}
-
 pub fn get_or_new_by_caller() -> User {
     let address = caller_to_address();
     get_or_new_by_address(address)
