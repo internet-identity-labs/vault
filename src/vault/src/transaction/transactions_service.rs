@@ -1,23 +1,19 @@
 use std::cell::RefCell;
-use std::cmp::{Ordering, Reverse};
-use std::collections::BinaryHeap;
-use std::collections::HashSet;
-use std::ops::Deref;
-use ic_cdk::{print, storage, trap};
-use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Approved, Executed};
-use crate::transaction::transaction::{TransactionNew, TransactionIterator, TrType, TransactionCandid, Candid};
-use crate::transaction_service::Transaction;
 
 use candid::CandidType;
-use candid::types::{Serializer, Type, TypeId};
+use candid::types::Serializer;
+use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
-use crate::transaction::transaction::TrType::{Quorum,
+
+use crate::enums::TransactionState;
+use crate::enums::TransactionState::{Approved, Executed};
+use crate::transaction::transaction::{Candid, TransactionCandid, TransactionIterator, TransactionNew};
+use crate::transaction::transaction::TrType::{MemberArchive,
                                               MemberCreate,
+                                              MemberUnarchive,
                                               MemberUpdateName,
                                               MemberUpdateRole,
-                                              MemberArchive,
-                                              MemberUnArchive};
+                                              Quorum};
 
 thread_local! {
     pub static TRANSACTIONS: RefCell<Vec<Box<dyn TransactionNew>>> = RefCell::new(Default::default());
@@ -96,11 +92,11 @@ pub fn is_blocked<F>(mut f: F) -> bool
     where
         F: FnMut(&Box<dyn TransactionNew>) -> bool,
 {
-    is_blocked_heap(f, get_unfinished_transactions())
+    is_blocked_line(f, get_unfinished_transactions())
 }
 
 
-pub fn is_blocked_heap<F>(mut f: F, trs: Vec<Box<dyn TransactionNew>>) -> bool
+pub fn is_blocked_line<F>(mut f: F, trs: Vec<Box<dyn TransactionNew>>) -> bool
     where
         F: FnMut(&Box<dyn TransactionNew>) -> bool,
 {
@@ -139,8 +135,8 @@ pub fn stable_restore() {
     let mut trs: Vec<Box<dyn TransactionNew>> = mo.transactions
         .into_iter().map(|x| x.to_transaction()).collect();
     trs.sort();
-    for transaction in trs {
-        if is_vault_transaction(transaction) && transaction.get_state().eq(&Executed) {
+    for transaction in &trs {
+        if is_vault_transaction(&transaction) && transaction.get_state().eq(&Executed) {
             transaction.execute();
         }
     }
@@ -150,13 +146,13 @@ pub fn stable_restore() {
     });
 }
 
-fn is_vault_transaction(tr: Box<dyn TransactionNew>) -> bool {
+fn is_vault_transaction(tr: &Box<dyn TransactionNew>) -> bool {
     let trss = hashset![  Quorum,
     MemberCreate,
     MemberUpdateName,
     MemberUpdateRole,
     MemberArchive,
-    MemberUnArchive];
-    trss.contains(tr.get_type())
+    MemberUnarchive];
+    trss.contains(&tr.get_common_ref().transaction_type)
 }
 
