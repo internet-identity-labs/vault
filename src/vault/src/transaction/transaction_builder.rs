@@ -1,32 +1,27 @@
-use std::cell::{Ref, RefCell, RefMut};
-use std::cmp::{Ordering, Reverse};
-use std::collections::BinaryHeap;
-use std::collections::HashSet;
-
 use candid::CandidType;
-use ic_cdk::api::time;
-use ic_cdk::print;
 use ic_ledger_types::BlockIndex;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Network, TransactionState};
-use crate::transaction::member_transaction::{MemberTransaction, MemberTransactionBuilder};
-use crate::transaction::members::{get_member_by_id, Member};
-use crate::transaction::quorum::Quorum;
-use crate::transaction::quorum_transaction;
-use crate::transaction::quorum_transaction::{QuorumTransaction, QuorumTransactionBuilder};
+use crate::enums::TransactionState::{Blocked, Pending};
+use crate::transaction::quorum::quorum::get_vault_admin_block_predicate;
 use crate::transaction::transaction::TransactionNew;
-use crate::transaction::transaction_request_handler::handle_transaction_request;
-use crate::transaction::transactions_service::{get_all_transactions, get_by_id, get_unfinished_transactions, restore_transaction, store_transaction, TRANSACTIONS};
-use crate::transaction_service::Approve;
-use crate::util::caller_to_address;
-use crate::vault_service::VaultRole;
+use crate::transaction::transactions_service::is_blocked;
 
 pub trait TransactionBuilder {
-    // type OutputType;
-    fn define_initial_state(&mut self);
-    fn define_initial_policy(&mut self);
-    fn build(self) -> Box<dyn TransactionNew>;
+    fn define_initial_state(&mut self) -> TransactionState {
+        if is_blocked(|tr| {
+            self.get_block_predicate(tr)
+        }) { Blocked } else { Pending }
+    }
+    fn get_block_predicate(&mut self, tr: &Box<dyn TransactionNew>) -> bool {
+        return get_vault_admin_block_predicate(tr);
+    }
+    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn TransactionNew>;
+    fn build(&mut self) -> Box<dyn TransactionNew> {
+        let initial_state = self.define_initial_state();
+        self.build_dyn_transaction(initial_state)
+    }
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]

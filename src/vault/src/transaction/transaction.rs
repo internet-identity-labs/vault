@@ -1,37 +1,48 @@
-use std::cell::{Ref, RefCell, RefMut};
-use std::cmp::{Ordering, Reverse};
-use std::collections::BinaryHeap;
-use std::collections::HashSet;
+use std::cell::RefMut;
+use std::cmp::Ordering;
 
+use async_trait::async_trait;
 use candid::CandidType;
-use ic_cdk::api::time;
-use ic_cdk::print;
-use ic_ledger_types::BlockIndex;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{Network, TransactionState};
-use crate::transaction::member_transaction::{MemberTransaction, MemberTransactionBuilder};
-use crate::transaction::members::{get_member_by_id, Member};
-use crate::transaction::quorum::Quorum;
-use crate::transaction::quorum_transaction;
-use crate::transaction::quorum_transaction::{QuorumTransaction, QuorumTransactionBuilder};
-use crate::transaction::transaction_request_handler::handle_transaction_request;
-use crate::transaction::transactions_service::{get_all_transactions, get_by_id, get_unfinished_transactions, restore_transaction, store_transaction, TRANSACTIONS};
+use crate::enums::TransactionState::{Approved, Blocked, Pending};
+use crate::transaction::basic_transaction::{Basic};
+use crate::transaction::member::member_archive_transaction::MemberArchiveTransaction;
+use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
+use crate::transaction::member::member_update_name_transaction::MemberUpdateNameTransaction;
+use crate::transaction::member::member_update_role_transaction::MemberUpdateRoleTransaction;
+use crate::transaction::quorum::quorum::{get_quorum, get_vault_admin_block_predicate};
+use crate::transaction::quorum::quorum_transaction::QuorumTransaction;
+use crate::transaction::transactions_service::is_blocked;
+use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
+use crate::transaction::wallet::wallet_update_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;
-use crate::util::caller_to_address;
-use crate::vault_service::VaultRole;
 
-pub trait TransactionNew {
-    fn execute(&self);
-    fn get_id(&self) -> u64;
-    fn get_type(&self) -> &TrType;
-    fn get_state(&self) -> &TransactionState;
-    fn define_state(&mut self);
-    fn set_state(&mut self, ts: TransactionState);
-    fn handle_approve(&mut self, approve: Approve);
+#[async_trait]
+pub trait TransactionNew: Basic {
+    fn define_state(&mut self) {
+        if !is_blocked(|tr| {
+            return get_vault_admin_block_predicate(tr);
+        }) {
+            if get_quorum().quorum <= self.get_common_mut().approves.len() as u64 {
+                self.set_state(Approved)
+            } else {
+                self.set_state(Pending)
+            }
+        }
+    }
+    async fn execute(&self);
+    fn handle_approve(&mut self, approve: Approve) {
+        self.store_approve(approve);
+        if self.get_common_mut().state.eq(&Pending) {
+            if get_quorum().quorum <= self.get_common_mut().approves.len() as u64 {
+                self.set_state(Approved)
+            }
+        }
+    }
     fn to_candid(&self) -> TransactionCandid;
-    fn clone_self(&self) -> Box<dyn TransactionNew>;
 }
+
 
 pub trait Candid {
     fn to_transaction(&self) -> Box<dyn TransactionNew>;
@@ -74,14 +85,16 @@ impl<'a> Iterator for TransactionIterator<'a> {
     }
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize, Eq, Hash, PartialEq)]
 pub enum TrType {
     Quorum,
     MemberCreate,
     MemberUpdateName,
     MemberUpdateRole,
     MemberArchive,
-    MemberUnArchive,
+    MemberUnarchive,
+    WalletCreate,
+    WalletUpdateName,
 }
 
 impl Eq for dyn TransactionNew {}
@@ -108,17 +121,19 @@ impl PartialOrd for dyn TransactionNew {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
     QuorumTransaction(QuorumTransaction),
-    MemberTransaction(MemberTransaction),
+    MemberCreateTransaction(MemberCreateTransaction),
+    MemberUpdateNameTransaction(MemberUpdateNameTransaction),
+    MemberUpdateRoleTransaction(MemberUpdateRoleTransaction),
+    MemberArchiveTransaction(MemberArchiveTransaction),
+    WalletCreateTransaction(WalletCreateTransaction),
+    WalletUpdateTransaction(WalletUpdateNameTransaction),
 }
 
 //TODO do something here
 impl Candid for TransactionCandid {
     fn to_transaction(&self) -> Box<dyn TransactionNew> {
         match self {
-            TransactionCandid::QuorumTransaction(trs) => {
-                Box::new(trs.to_owned())
-            }
-            TransactionCandid::MemberTransaction(trs) => {
+            trs => {
                 Box::new(trs.to_owned())
             }
         }

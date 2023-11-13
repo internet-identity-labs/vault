@@ -1,16 +1,11 @@
 use std::cell::RefCell;
-use std::cmp::{Ordering, Reverse};
-use std::collections::{BinaryHeap, HashMap};
-use std::collections::HashSet;
-use ic_cdk::api::time;
-use sha2::digest::typenum::private::IsEqualPrivate;
-use crate::enums::{ObjectState, TransactionState};
-use crate::transaction::quorum_transaction::QuorumTransaction;
-use crate::transaction::transaction::{TransactionNew, TrType};
+
 use candid::CandidType;
+use ic_cdk::api::time;
 use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
-use crate::util::caller_to_address;
+
+use crate::enums::ObjectState;
 use crate::vault_service::VaultRole;
 
 thread_local! {
@@ -49,6 +44,7 @@ pub fn get_member_by_id(id: &String) -> Member {
         }
     })
 }
+
 pub fn store_member(member: Member) {
     MEMBERS.with(|mrs| {
         mrs.borrow_mut().push(member);

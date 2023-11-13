@@ -2,37 +2,29 @@ extern crate core;
 #[macro_use]
 extern crate maplit;
 
-use std::collections::HashSet;
+use std::cell::RefCell;
+
 use candid::{export_service, Principal};
-use ic_cdk::{call, caller, id, print, storage, trap};
+use ic_cdk::{call, caller, id, print, trap};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use ic_cdk::api::time;
 use ic_cdk_macros::*;
 
 use crate::enums::{Backup, TransactionState};
-use crate::enums::ObjectState::Archived;
 use crate::memory::{Conf, CONF};
-use crate::policy_service::{Policy, PolicyType, ThresholdPolicy};
-use crate::policy_service::Currency::ICP;
-use crate::request::{CanisterIdRequest, PolicyRegisterRequest, TransactionApproveRequest, TransactionRegisterRequest, VaultMemberRequest, VaultRegisterRequest, WalletRegisterRequest};
-use crate::security_service::{trap_if_not_permitted, verify_wallets};
-use crate::transaction::quorum_transaction::QuorumTransaction;
-use crate::transaction::transaction::{TransactionNew, TransactionCandid};
-use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, get_unfinished_transactions, stable_restore, stable_save, TRANSACTIONS};
-use crate::TransactionState::Approved;
-use crate::transfer_service::transfer;
-use crate::user_service::{get_or_new_by_caller, User};
-use crate::util::{caller_to_address, to_array};
-use crate::vault_service::{VaultRole};
-use crate::wallet_service::{generate_address, Wallet};
-use std::cell::RefCell;
+use crate::policy_service::{Policy, PolicyType};
+use crate::request::{CanisterIdRequest, TransactionApproveRequest};
 use crate::transaction::members::{get_members, Member};
 use crate::transaction::quorum;
 use crate::transaction::quorum::Quorum;
+use crate::transaction::transaction::{TransactionCandid, TransactionNew};
 use crate::transaction::transaction_approve_handler::handle_approve;
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequestType};
-use crate::transaction_service::{approve_transaction, Transaction};
+use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save};
+use crate::user_service::{get_or_new_by_caller, User};
+use crate::util::{caller_to_address, to_array};
+use crate::vault_service::VaultRole;
+use crate::wallet_service::Wallet;
 
 mod user_service;
 mod vault_service;
@@ -63,7 +55,7 @@ fn init(conf: Option<Conf>) {
 
 #[update]
 async fn request_transaction(transaction_request: TransactionRequestType) {
-    handle_transaction_request(transaction_request)
+    handle_transaction_request(transaction_request).await
 }
 
 #[update]
@@ -74,7 +66,7 @@ async fn execute() {
 #[heartbeat]
 fn execute_heartbeat() {
     HEART_COUNT.with(|qp| {
-       let mut i = qp.borrow_mut();
+        let mut i = qp.borrow_mut();
         if (*i % 30) == 0 {
             print(i.to_string());
             execute_approved_transactions();
@@ -119,6 +111,8 @@ async fn get_quorum() -> Quorum {
 async fn approve(request: TransactionApproveRequest) -> TransactionCandid {
     handle_approve(request.transaction_id, request.state)
 }
+
+
 //
 //
 // #[update]
