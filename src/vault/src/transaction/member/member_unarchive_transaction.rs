@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 use crate::enums::ObjectState::Active;
 use crate::enums::TransactionState;
 use crate::impl_basic_for_transaction;
-use crate::transaction::basic_transaction::Basic;
+use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::{get_member_by_id, restore_member};
-use crate::transaction::transaction::{TransactionCandid, TransactionNew, TrType};
+use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(MemberUnarchiveTransaction);
@@ -21,26 +22,19 @@ pub struct MemberUnarchiveTransaction {
 impl MemberUnarchiveTransaction {
     fn new(state: TransactionState, id:String) -> Self {
         MemberUnarchiveTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberUnarchive),
+            common: BasicTransactionFields::new(state, TrType::MemberUnarchive, true),
             id
         }
     }
 }
 
-impl MemberArchiveTransactionBuilder {
-    pub fn init(id: String) -> Self {
-        return MemberArchiveTransactionBuilder {
-            id,
-        };
-    }
-}
 
-pub struct MemberArchiveTransactionBuilder {
+pub struct MemberUnarchiveTransactionBuilder {
     pub id: String,
 }
 
-impl TransactionBuilder for MemberArchiveTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn TransactionNew> {
+impl TransactionBuilder for MemberUnarchiveTransactionBuilder {
+    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberUnarchiveTransaction::new(
             state,
             self.id.clone(),
@@ -49,18 +43,26 @@ impl TransactionBuilder for MemberArchiveTransactionBuilder {
     }
 }
 
-#[async_trait]
-impl TransactionNew for MemberUnarchiveTransaction {
+impl MemberUnarchiveTransactionBuilder {
+    pub fn init(id: String) -> Self {
+        return MemberUnarchiveTransactionBuilder {
+            id,
+        };
+    }
+}
 
-    async fn execute(&self) {
-       let mut  m = get_member_by_id(&self.id);
+#[async_trait]
+impl ITransaction for MemberUnarchiveTransaction {
+
+    async fn execute(&self, state: VaultState) -> VaultState {
+       let mut  m = get_member_by_id(&self.id, &state);
         m.state = Active;
-        restore_member(m); //TODO use ref
+        restore_member(m, state)
     }
 
     fn to_candid(&self) -> TransactionCandid {
         let trs: MemberUnarchiveTransaction = self.clone();
-        TransactionCandid::MemberArchiveTransaction(trs)
+        TransactionCandid::MemberUnarchiveTransactionV(trs)
     }
 
 }

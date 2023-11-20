@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::{ObjectState, TransactionState};
 use crate::impl_basic_for_transaction;
+use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::member::members::{Member, store_member};
-use crate::transaction::transaction::{TransactionCandid, TransactionNew, TrType};
-use crate::transaction::basic_transaction::{Basic};
+use crate::transaction::member::members::Member;
+use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::vault_service::VaultRole;
 
@@ -24,12 +25,40 @@ pub struct MemberCreateTransaction {
 impl MemberCreateTransaction {
     fn new(state: TransactionState, id: String, name: String, role: VaultRole) -> Self {
         MemberCreateTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberCreate),
+            common: BasicTransactionFields::new(state, TrType::MemberCreate, true),
             id,
             name,
             role,
         }
     }
+}
+
+#[async_trait]
+impl ITransaction for MemberCreateTransaction {
+    async fn execute(&self, mut state: VaultState) -> VaultState {
+        let member = Member {
+            id: self.id.clone(),
+            role: self.role,
+            name: self.name.clone(),
+            state: ObjectState::Active,
+            modified_date: time(),
+            created_date: time(),
+        };
+        state.members.push(member);
+        state
+    }
+
+    fn to_candid(&self) -> TransactionCandid {
+        let trs: MemberCreateTransaction = self.clone();
+        TransactionCandid::MemberCreateTransactionV(trs)
+    }
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct MemberCreateTransactionRequest {
+    pub member: String,
+    pub name: String,
+    pub role: VaultRole,
 }
 
 pub struct MemberCreateTransactionBuilder {
@@ -39,17 +68,17 @@ pub struct MemberCreateTransactionBuilder {
 }
 
 impl MemberCreateTransactionBuilder {
-    pub fn init(id: String, name: String, role: VaultRole) -> Self {
+    pub fn init(request: MemberCreateTransactionRequest) -> Self {
         return MemberCreateTransactionBuilder {
-            id,
-            name,
-            role,
+            id: request.member,
+            name: request.name,
+            role: request.role,
         };
     }
 }
 
 impl TransactionBuilder for MemberCreateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn TransactionNew> {
+    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberCreateTransaction::new(
             state,
             self.id.clone(),
@@ -59,26 +88,5 @@ impl TransactionBuilder for MemberCreateTransactionBuilder {
         Box::new(trs)
     }
 }
-
-
-#[async_trait]
-impl TransactionNew for MemberCreateTransaction {
-    async fn execute(&self) {
-        store_member(Member {
-            id: self.id.clone(),
-            role: self.role,
-            name: self.name.clone(),
-            state: ObjectState::Active,
-            modified_date: time(),
-            created_date: time(),
-        })
-    }
-
-    fn to_candid(&self) -> TransactionCandid {
-        let trs: MemberCreateTransaction = self.clone();
-        TransactionCandid::MemberCreateTransaction(trs)
-    }
-}
-
 
 

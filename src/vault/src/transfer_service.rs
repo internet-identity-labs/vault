@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use ic_ledger_types::{AccountIdentifier, BlockIndex, DEFAULT_FEE, Memo, Subaccount, Tokens};
 
-use crate::memory::CONF;
+use crate::config::CONF;
 use crate::to_array;
 
 pub async fn transfer(amount: u64, address: String, from_hex: String) -> Result<BlockIndex, String> {

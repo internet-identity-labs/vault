@@ -8,8 +8,7 @@ pub enum TransactionState {
     Pending,
     Canceled,
     Blocked,
-    Executed,
-    Undefined
+    Executed
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
@@ -27,17 +26,13 @@ pub enum Action {
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum Network {
-    ICP,
+    IC,
     BTC,
     ETH
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
-pub enum Backup {
-    Wallets,
-    Users,
-    Policies,
-    Transactions
+pub enum Currency {
+    ICP,
 }
-
 
