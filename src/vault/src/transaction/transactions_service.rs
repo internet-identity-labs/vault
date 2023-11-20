@@ -2,44 +2,81 @@ use std::cell::RefCell;
 
 use candid::CandidType;
 use candid::types::Serializer;
-use ic_cdk::{storage, trap};
+use ic_cdk::{print, storage, trap};
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Executed};
-use crate::transaction::transaction::{Candid, TransactionCandid, TransactionIterator, TransactionNew};
-use crate::transaction::transaction::TrType::{MemberArchive,
-                                              MemberCreate,
-                                              MemberUnarchive,
-                                              MemberUpdateName,
-                                              MemberUpdateRole,
-                                              Quorum};
+use crate::state::{get_current_state, restore_state, VaultState};
+use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {
-    pub static TRANSACTIONS: RefCell<Vec<Box<dyn TransactionNew>>> = RefCell::new(Default::default());
+    pub static TRANSACTIONS: RefCell<Vec<Box<dyn ITransaction >>> = RefCell::new(Default::default());
 }
 
-pub fn execute_approved_transactions() {
+pub async fn execute_approved_transactions() {
     let mut unfinished_transactions = get_unfinished_transactions();
     unfinished_transactions.sort();
+    let mut trs_to_restore: Vec<Box<dyn ITransaction>> = Default::default();
+    let mut state = get_current_state();
     while let Some(mut trs) = unfinished_transactions.pop() {
         trs.define_state();
+        print(trs.get_id().to_string());
         if trs.get_state().eq(&Approved) {
-            trs.execute();
+            state = trs.execute(state).await;
             trs.set_state(Executed);
-            TRANSACTIONS.with(|trss| {
-                let mut transactions = trss.borrow_mut();
+            // trs_to_restore.push(trs);
+            TRANSACTIONS.with(|trsss| {
+                let mut transactions = trsss.borrow_mut();
                 transactions.retain(|existing| existing.get_id() != trs.get_id());
                 transactions.push(trs);
             });
         }
     }
+
+    // if (trs_to_restore.into_iter().any(|t| t.get_state().eq(&Rejected) && t.get_common_ref().batch_uid.is_some())) {
+    //
+    // }
+    // restore_trs(trs_to_restore);
+    restore_state(state);
     TRANSACTIONS.with(|trss| {
         trss.borrow_mut().sort();
     });
 }
 
-pub fn restore_transaction(transaction: Box<dyn TransactionNew>) {
+fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
+    TRANSACTIONS.with(|trss| {
+        let mut transactions = trss.borrow_mut();
+        for trs in trsss {
+            transactions.retain(|existing| existing.get_id() != trs.get_id());
+            transactions.push(trs);
+        }
+    });
+}
+
+pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
+    let mut state = VaultState::default();
+    let transactions = get_all_transactions()
+        .into_iter()
+        .filter(|transaction| {
+            let is_vault_state = transaction.is_vault_state();
+            let is_executed = transaction.get_state().eq(&Executed);
+            match tr_id {
+                None => is_vault_state && is_executed,
+                Some(tr) => is_vault_state && is_executed && transaction.get_id() <= tr,
+            }
+        })
+        .collect::<Vec<Box<dyn ITransaction>>>();
+
+    let mut sorted_transactions = transactions;
+    sorted_transactions.sort();
+    for transaction in &sorted_transactions {
+        state = transaction.execute(state).await;
+    }
+    state
+}
+
+pub fn restore_transaction(transaction: Box<dyn ITransaction>) {
     TRANSACTIONS.with(|trss| {
         let mut transactions = trss.borrow_mut();
         transactions.retain(|existing| existing.get_id() != transaction.get_id());
@@ -48,14 +85,14 @@ pub fn restore_transaction(transaction: Box<dyn TransactionNew>) {
     });
 }
 
-pub fn store_transaction(transaction: Box<dyn TransactionNew>) {
+pub fn store_transaction(transaction: Box<dyn ITransaction>) {
     TRANSACTIONS.with(|utrs| {
         let mut borrowed = utrs.borrow_mut();
         borrowed.push(transaction);
     });
 }
 
-pub fn get_by_id(transaction_id: u64) -> Box<dyn TransactionNew> {
+pub fn get_by_id(transaction_id: u64) -> Box<dyn ITransaction> {
     TRANSACTIONS.with(|trss| {
         let transactions = trss.borrow();
         let trs = transactions.iter().find(|b| b.get_id() == transaction_id);
@@ -67,7 +104,7 @@ pub fn get_by_id(transaction_id: u64) -> Box<dyn TransactionNew> {
     })
 }
 
-pub fn get_unfinished_transactions() -> Vec<Box<dyn TransactionNew>> {
+pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let a = utrs.borrow_mut();
         let trs = TransactionIterator::new(a);
@@ -79,7 +116,7 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn TransactionNew>> {
     });
 }
 
-pub fn get_all_transactions() -> Vec<Box<dyn TransactionNew>> {
+pub fn get_all_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let a = utrs.borrow_mut();
         let trs = TransactionIterator::new(a);
@@ -89,16 +126,16 @@ pub fn get_all_transactions() -> Vec<Box<dyn TransactionNew>> {
 }
 
 pub fn is_blocked<F>(mut f: F) -> bool
-    where
-        F: FnMut(&Box<dyn TransactionNew>) -> bool,
+                     where
+                         F: FnMut(&Box<dyn ITransaction>) -> bool,
 {
     is_blocked_line(f, get_unfinished_transactions())
 }
 
 
-pub fn is_blocked_line<F>(mut f: F, trs: Vec<Box<dyn TransactionNew>>) -> bool
-    where
-        F: FnMut(&Box<dyn TransactionNew>) -> bool,
+pub fn is_blocked_line<F>(mut f: F, trs: Vec<Box<dyn ITransaction>>) -> bool
+                          where
+                              F: FnMut(&Box<dyn ITransaction>) -> bool,
 {
     trs
         .into_iter()
@@ -130,29 +167,22 @@ pub fn stable_save() {
     storage::stable_save((mem, )).unwrap();
 }
 
-pub fn stable_restore() {
+pub async fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    let mut trs: Vec<Box<dyn TransactionNew>> = mo.transactions
+    let mut state = VaultState::default();
+    let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions
         .into_iter().map(|x| x.to_transaction()).collect();
     trs.sort();
     for transaction in &trs {
-        if is_vault_transaction(&transaction) && transaction.get_state().eq(&Executed) {
-            transaction.execute();
+        if transaction.is_vault_state() && transaction.get_state().eq(&Executed) {
+            state = transaction.execute(state).await;
         }
     }
+    restore_state(state);
     TRANSACTIONS.with(|utrs| {
         utrs.borrow_mut();
         utrs.replace(trs)
     });
 }
 
-fn is_vault_transaction(tr: &Box<dyn TransactionNew>) -> bool {
-    let trss = hashset![  Quorum,
-    MemberCreate,
-    MemberUpdateName,
-    MemberUpdateRole,
-    MemberArchive,
-    MemberUnarchive];
-    trss.contains(&tr.get_common_ref().transaction_type)
-}
 

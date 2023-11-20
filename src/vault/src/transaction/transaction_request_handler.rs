@@ -5,55 +5,30 @@ use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::policy_service::Currency;
-use crate::transaction::transaction::TransactionNew;
+use crate::transaction::member::member_archive_transaction::MemberArchiveTransactionBuilder;
+use crate::transaction::member::member_create_transaction::{MemberCreateTransactionBuilder, MemberCreateTransactionRequest};
+use crate::transaction::member::member_unarchive_transaction::MemberUnarchiveTransactionBuilder;
+use crate::transaction::member::member_update_name_transaction::{MemberUpdateNameTransactionBuilder, MemberUpdateNameTransactionRequest};
+use crate::transaction::member::member_update_role_transaction::{MemberUpdateRoleTransactionBuilder, MemberUpdateRoleTransactionRequest};
+use crate::transaction::quorum::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transactions_service::store_transaction;
-use crate::transaction::wallet::wallet_update_transaction::WalletUpdateNameTransactionBuilder;
+use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransactionRequest;
+use crate::transaction::wallet::wallet_update_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
-use crate::vault_service::VaultRole;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct
-QuorumTransactionRequest {
-    pub amount: u8,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct CreateMemberTransactionRequest {
-    pub member: String,
-    pub name: String,
-    pub role: VaultRole,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct UpdateMemberNameTransactionRequest {
-    pub member: String,
-    pub name: String,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct UpdateMemberRoleTransactionRequest {
-    pub member: String,
-    pub role: VaultRole,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct ArchiveMemberTransactionRequest {
+pub struct MemberArchiveTransactionRequest {
     pub member: String,
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct UnArchiveMemberTransactionRequest {
+pub struct MemberUnArchiveTransactionRequest {
     pub member: String,
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct UpdateWalletNameTransactionRequest {
-    pub uid: String,
-    pub name: String,
-}
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct ArchiveWalletTransactionRequest {
@@ -65,77 +40,45 @@ pub struct UnArchiveWalletTransactionRequest {
     pub uid: String,
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct CreateWalletTransactionRequest {
-    pub currency: Currency,
-    pub name: String,
-}
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub enum TransactionRequestType {
-    MemberCreateTransactionRequest(CreateMemberTransactionRequest),
-    MemberUpdateNameTransactionRequest(UpdateMemberNameTransactionRequest),
-    MemberUpdateRoleTransactionRequest(UpdateMemberRoleTransactionRequest),
-    MemberArchiveTransactionRequest(ArchiveMemberTransactionRequest),
-    MemberUnArchiveTransactionRequest(UnArchiveMemberTransactionRequest),
-    WalletUpdateNameTransactionRequest(UpdateWalletNameTransactionRequest),
-    WalletArchiveTransactionRequest(ArchiveWalletTransactionRequest),
-    WalletUnArchiveTransactionRequest(UnArchiveWalletTransactionRequest),
-    WalletCreateTransactionRequest(CreateWalletTransactionRequest),
-    QuorumStateTransaction(QuorumTransactionRequest),
+pub enum TransactionRequest {
+    MemberCreateTransactionRequestV(MemberCreateTransactionRequest),
+    MemberUpdateNameTransactionRequestV(MemberUpdateNameTransactionRequest),
+    MemberUpdateRoleTransactionRequestV(MemberUpdateRoleTransactionRequest),
+    MemberArchiveTransactionRequestV(MemberArchiveTransactionRequest),
+    MemberUnArchiveTransactionRequestV(MemberUnArchiveTransactionRequest),
+    WalletUpdateNameTransactionRequestV(WalletUpdateNameTransactionRequest),
+    WalletCreateTransactionRequestV(WalletCreateTransactionRequest),
+    QuorumUpdateTransactionRequestV(QuorumUpdateTransactionRequest),
 }
 
-pub async fn handle_transaction_request(trr: TransactionRequestType) {
-    let mut trs: Box<dyn TransactionNew> = match trr {
-        // TransactionRequestType::QuorumStateTransaction(x) => {
-        //     QuorumTransactionBuilder::init(x)
-        //         .build()
-        // }
-        // TransactionRequestType::MemberCreateTransactionRequest(request) => {
-        //     let new_member = Member::new(request.member, request.role, request.name);
-        //     MemberTransactionBuilder::init(TrType::MemberCreate, new_member)
-        //         .build()
-        // }
-        // TransactionRequestType::MemberUpdateNameTransactionRequest(request) => {
-        //     let mut member = get_member_by_id(&request.member);
-        //     member.name = request.name;
-        //     MemberTransactionBuilder::init(TrType::MemberUpdateName, member)
-        //         .build()
-        // }
-        // TransactionRequestType::MemberArchiveTransactionRequest(request) => {
-        //     let mut member = get_member_by_id(&request.member);
-        //     member.state = ObjectState::Archived;
-        //     MemberTransactionBuilder::init(TrType::MemberArchive, member)
-        //         .build()
-        // }
-        // TransactionRequestType::MemberUnArchiveTransactionRequest(request) => {
-        //     let mut member = get_member_by_id(&request.member);
-        //     member.state = ObjectState::Active;
-        //     MemberTransactionBuilder::init(TrType::MemberUnArchive, member)
-        //         .build()
-        // }
-        // TransactionRequestType::MemberUpdateRoleTransactionRequest(request) => {
-        //     let mut member = get_member_by_id(&request.member);
-        //     member.role = request.role;
-        //     MemberTransactionBuilder::init(TrType::MemberUpdateRole, member)
-        //         .build()
-        // }
-        TransactionRequestType::WalletUpdateNameTransactionRequest(request) => {
-            WalletUpdateNameTransactionBuilder::init(request.uid, request.name).build()
+pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionCandid {
+    let mut trs: Box<dyn ITransaction> = match trr {
+        TransactionRequest::MemberCreateTransactionRequestV(request) => {
+            MemberCreateTransactionBuilder::init(request).build()
         }
-        // TransactionRequestType::WalletCreateTransactionRequest(request) => {
-        //     let wallet = Wallet {
-        //         uid: generate_address().await, //TODO
-        //         name: request.name,
-        //         currency: Currency::ICP,
-        //         state: Active,
-        //         modified_date: time(),
-        //         created_date: time(),
-        //     };
-        //     WalletTransactionBuilder::init(WalletCreate, wallet).build()
-        // }
-        _ => {
-            trap("".clone())
+        TransactionRequest::MemberUpdateNameTransactionRequestV(r) => {
+            MemberUpdateNameTransactionBuilder::init(r).build()
+        }
+        TransactionRequest::MemberUpdateRoleTransactionRequestV(r) => {
+            MemberUpdateRoleTransactionBuilder::init(r).build()
+        }
+        TransactionRequest::MemberArchiveTransactionRequestV(r) => {
+            MemberArchiveTransactionBuilder::init(r.member).build()
+        }
+        TransactionRequest::MemberUnArchiveTransactionRequestV(r) => {
+            MemberUnarchiveTransactionBuilder::init(r.member).build()
+        }
+        TransactionRequest::QuorumUpdateTransactionRequestV(r) => {
+            QuorumUpdateTransactionBuilder::init(r).build()
+        }
+        TransactionRequest::WalletCreateTransactionRequestV(trs) => {
+            trap("");
+            // QuorumUpdateTransactionBuilder::init(trs).build()
+        }
+        TransactionRequest::WalletUpdateNameTransactionRequestV(request) => {
+            WalletUpdateNameTransactionBuilder::init(request).build()
         }
     };
 
@@ -146,5 +89,6 @@ pub async fn handle_transaction_request(trr: TransactionRequestType) {
     };
     trs.handle_approve(approve);
     trs.define_state();
-    store_transaction(trs);
+    store_transaction(trs.clone());
+    trs.to_candid()
 }

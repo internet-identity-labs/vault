@@ -7,3 +7,5 @@ pub mod wallet;
 pub mod basic_transaction;
 pub mod quorum;
 pub mod member;
+pub mod policy;
+pub mod transfer;

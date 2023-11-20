@@ -648,6 +648,7 @@ dependencies = [
  "ic-certified-map",
  "ic-ledger-types",
  "ic-stable-structures",
+ "lazy_static",
  "maplit",
  "serde",
  "serde_bytes",

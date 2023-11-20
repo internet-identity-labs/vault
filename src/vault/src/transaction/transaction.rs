@@ -5,37 +5,43 @@ use async_trait::async_trait;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::TransactionState::{Approved, Blocked, Pending};
-use crate::transaction::basic_transaction::{Basic};
+use crate::enums::TransactionState::{Approved, Pending};
+use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_archive_transaction::MemberArchiveTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
+use crate::transaction::member::member_unarchive_transaction::MemberUnarchiveTransaction;
 use crate::transaction::member::member_update_name_transaction::MemberUpdateNameTransaction;
 use crate::transaction::member::member_update_role_transaction::MemberUpdateRoleTransaction;
-use crate::transaction::quorum::quorum::{get_quorum, get_vault_admin_block_predicate};
-use crate::transaction::quorum::quorum_transaction::QuorumTransaction;
+use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
+use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
+use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
+use crate::transaction::quorum::quorum::{get_quorum};
+use crate::transaction::quorum::quorum_transaction::QuorumUpdateTransaction;
+use crate::transaction::transaction_builder::get_vault_state_block_predicate;
 use crate::transaction::transactions_service::is_blocked;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;
 
 #[async_trait]
-pub trait TransactionNew: Basic {
+pub trait ITransaction: BasicTransaction {
     fn define_state(&mut self) {
         if !is_blocked(|tr| {
-            return get_vault_admin_block_predicate(tr);
+            return get_vault_state_block_predicate(tr) && !tr.get_id().eq(&self.get_id());
         }) {
-            if get_quorum().quorum <= self.get_common_mut().approves.len() as u64 {
+            if get_quorum().quorum <= self.get_common_mut().approves.len() as u8 {
                 self.set_state(Approved)
             } else {
                 self.set_state(Pending)
             }
         }
     }
-    async fn execute(&self);
+    async fn execute(&self, state: VaultState) -> VaultState;
     fn handle_approve(&mut self, approve: Approve) {
         self.store_approve(approve);
         if self.get_common_mut().state.eq(&Pending) {
-            if get_quorum().quorum <= self.get_common_mut().approves.len() as u64 {
+            if get_quorum().quorum <= self.get_common_mut().approves.len() as u8 {
                 self.set_state(Approved)
             }
         }
@@ -44,34 +50,30 @@ pub trait TransactionNew: Basic {
 }
 
 
-pub trait Candid {
-    fn to_transaction(&self) -> Box<dyn TransactionNew>;
-}
-
-impl Clone for Box<dyn TransactionNew> {
-    fn clone(&self) -> Box<dyn TransactionNew> {
+impl Clone for Box<dyn ITransaction> {
+    fn clone(&self) -> Box<dyn ITransaction> {
         self.as_ref().clone_self()
     }
 }
 
-pub trait TransactionClone: TransactionNew + Clone {}
+pub trait TransactionClone: ITransaction + Clone {}
 
-impl<T> TransactionClone for T where T: TransactionNew + Clone {}
+impl<T> TransactionClone for T where T: ITransaction + Clone {}
 
 pub struct TransactionIterator<'a> {
-    inner: RefMut<'a, Vec<Box<dyn TransactionNew>>>,
+    inner: RefMut<'a, Vec<Box<dyn ITransaction>>>,
     index: usize,
 }
 
 impl<'a> TransactionIterator<'a> {
-    pub fn new(trs: RefMut<'a, Vec<Box<dyn TransactionNew>>>) -> Self {
+    pub fn new(trs: RefMut<'a, Vec<Box<dyn ITransaction>>>) -> Self {
         TransactionIterator { inner: trs, index: 0 }
     }
 }
 
-//TODO use reference
+//TODO use a reference
 impl<'a> Iterator for TransactionIterator<'a> {
-    type Item = Box<dyn TransactionNew>;
+    type Item = Box<dyn ITransaction>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.inner.len() {
@@ -85,9 +87,32 @@ impl<'a> Iterator for TransactionIterator<'a> {
     }
 }
 
+
+impl Eq for dyn ITransaction {}
+
+
+impl PartialEq for dyn ITransaction {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_id() == other.get_id()
+    }
+}
+
+impl Ord for dyn ITransaction {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_id().cmp(&other.get_id())
+    }
+}
+
+impl PartialOrd for dyn ITransaction {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.get_id().cmp(&other.get_id()))
+    }
+}
+
+//todo do we need this one?
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize, Eq, Hash, PartialEq)]
 pub enum TrType {
-    Quorum,
+    QuorumUpdate,
     MemberCreate,
     MemberUpdateName,
     MemberUpdateRole,
@@ -95,47 +120,47 @@ pub enum TrType {
     MemberUnarchive,
     WalletCreate,
     WalletUpdateName,
+    PolicyUpdate,
+    PolicyCreate,
+    PolicyRemove,
+    Transfer
 }
 
-impl Eq for dyn TransactionNew {}
-
-
-impl PartialEq for dyn TransactionNew {
-    fn eq(&self, other: &Self) -> bool {
-        self.get_id() == other.get_id()
-    }
-}
-
-impl Ord for dyn TransactionNew {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.get_id().cmp(&other.get_id())
-    }
-}
-
-impl PartialOrd for dyn TransactionNew {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.get_id().cmp(&other.get_id()))
-    }
-}
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
-    QuorumTransaction(QuorumTransaction),
-    MemberCreateTransaction(MemberCreateTransaction),
-    MemberUpdateNameTransaction(MemberUpdateNameTransaction),
-    MemberUpdateRoleTransaction(MemberUpdateRoleTransaction),
-    MemberArchiveTransaction(MemberArchiveTransaction),
-    WalletCreateTransaction(WalletCreateTransaction),
-    WalletUpdateTransaction(WalletUpdateNameTransaction),
+    QuorumUpdateTransactionV(QuorumUpdateTransaction),
+    MemberCreateTransactionV(MemberCreateTransaction),
+    MemberUpdateNameTransactionV(MemberUpdateNameTransaction),
+    MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
+    MemberArchiveTransactionV(MemberArchiveTransaction),
+    MemberUnarchiveTransactionV(MemberUnarchiveTransaction),
+    WalletCreateTransactionV(WalletCreateTransaction),
+    WalletUpdateTransactionV(WalletUpdateNameTransaction),
+    PolicyCreateTransactionV(PolicyCreateTransaction),
+    PolicyUpdateTransactionV(PolicyUpdateTransaction),
+    PolicyRemoveTransactionV(PolicyRemoveTransaction),
+    // TransferTransaction(TransferTransaction),
 }
 
-//TODO do something here
+pub trait Candid {
+    fn to_transaction(&self) -> Box<dyn ITransaction>;
+}
+
 impl Candid for TransactionCandid {
-    fn to_transaction(&self) -> Box<dyn TransactionNew> {
+    fn to_transaction(&self) -> Box<dyn ITransaction> {
         match self {
-            trs => {
-                Box::new(trs.to_owned())
-            }
+            TransactionCandid::QuorumUpdateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberCreateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberUpdateNameTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberUpdateRoleTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberArchiveTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberUnarchiveTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::WalletCreateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::WalletUpdateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::PolicyCreateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::PolicyRemoveTransactionV(tr) => {Box::new(tr.to_owned())}
         }
     }
 }

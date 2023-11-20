@@ -1,16 +1,11 @@
-use std::cell::RefCell;
-
 use candid::CandidType;
 use ic_cdk::api::time;
 use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::ObjectState;
+use crate::state::{STATE, VaultState};
 use crate::vault_service::VaultRole;
-
-thread_local! {
-    pub static MEMBERS: RefCell<Vec<Member>> = RefCell::new(Default::default());
-}
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Member {
@@ -35,34 +30,24 @@ impl Member {
     }
 }
 
-pub fn get_member_by_id(id: &String) -> Member {
-    MEMBERS.with(|mrs| {
-        match mrs.borrow().iter()
+pub fn get_member_by_id(id: &String, state: &VaultState) -> Member {
+        match state.members.iter()
             .find(|x| x.id.eq(id)) {
             None => { trap("No such member") }
             Some(x) => { x.clone() }
         }
-    })
-}
-
-pub fn store_member(member: Member) {
-    MEMBERS.with(|mrs| {
-        mrs.borrow_mut().push(member);
-    })
 }
 
 pub fn get_members() -> Vec<Member> {
-    MEMBERS.with(|mrs| {
-        mrs.borrow().clone()
+    STATE.with(|mrs| {
+        mrs.borrow().members.clone()
     })
 }
 
-pub fn restore_member(member: Member) {
-    MEMBERS.with(|mrs| {
-        let mut members = mrs.borrow_mut();
-        members.retain(|existing| existing.id != member.id);
-        members.push(member);
-    });
+pub fn restore_member(member: Member, mut state: VaultState) -> VaultState {
+        state.members.retain(|existing| existing.id != member.id);
+        state.members.push(member);
+        state
 }
 
 

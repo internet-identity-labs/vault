@@ -5,47 +5,52 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::impl_basic_for_transaction;
-use crate::transaction::basic_transaction::Basic;
+use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::quorum::quorum::{Quorum, update_quorum};
-use crate::transaction::transaction::{TransactionCandid, TransactionNew, TrType};
+use crate::transaction::quorum::quorum::Quorum;
+use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::transaction::transaction_request_handler::QuorumTransactionRequest;
 
-impl_basic_for_transaction!(QuorumTransaction);
+impl_basic_for_transaction!(QuorumUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub struct QuorumTransaction {
+pub struct QuorumUpdateTransaction {
     pub common: BasicTransactionFields,
     pub transaction_type: TrType,
     pub quorum: u8,
 }
 
-impl QuorumTransaction {
+impl QuorumUpdateTransaction {
     fn new(state: TransactionState, quorum: u8) -> Self {
-        QuorumTransaction {
-            common: BasicTransactionFields::new(state, TrType::Quorum),
-            transaction_type: TrType::Quorum,
+        QuorumUpdateTransaction {
+            common: BasicTransactionFields::new(state, TrType::QuorumUpdate, true),
+            transaction_type: TrType::QuorumUpdate,
             quorum,
         }
     }
 }
 
-impl QuorumTransactionBuilder {
-    pub fn init(trt: QuorumTransactionRequest) -> Self {
-        let trt = trt;
-        return QuorumTransactionBuilder {
-            quorum: trt.amount,
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct
+QuorumUpdateTransactionRequest {
+    pub quorum: u8,
+}
+
+pub struct QuorumUpdateTransactionBuilder {
+    quorum: u8,
+}
+
+impl QuorumUpdateTransactionBuilder {
+    pub fn init(request: QuorumUpdateTransactionRequest) -> Self {
+        return QuorumUpdateTransactionBuilder {
+            quorum: request.quorum
         };
     }
 }
 
-pub struct QuorumTransactionBuilder {
-    quorum: u8,
-}
-
-impl TransactionBuilder for QuorumTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn TransactionNew> {
-        let trs = QuorumTransaction::new(
+impl TransactionBuilder for QuorumUpdateTransactionBuilder {
+    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+        let trs = QuorumUpdateTransaction::new(
             state,
             self.quorum.clone(),
         );
@@ -54,18 +59,18 @@ impl TransactionBuilder for QuorumTransactionBuilder {
 }
 
 #[async_trait]
-impl TransactionNew for QuorumTransaction {
-    async fn execute(&self) {
+impl ITransaction for QuorumUpdateTransaction {
+    async fn execute(&self, mut state: VaultState) -> VaultState {
         let q = Quorum {
             quorum: self.quorum.clone(),
             modified_date: time(),
         };
-        update_quorum(q);
+        state.quorum = q;
+        state
     }
 
 
     fn to_candid(&self) -> TransactionCandid {
-        let trs: QuorumTransaction = self.clone();
-        TransactionCandid::QuorumTransaction(trs)
+        TransactionCandid::QuorumUpdateTransactionV(self.clone())
     }
 }

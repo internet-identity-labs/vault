@@ -1,33 +1,27 @@
-use std::cell::RefCell;
-
 use candid::{CandidType, Principal};
 use ic_cdk::{call, trap};
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::ObjectState;
-use crate::policy_service::Currency;
-
-thread_local! {
-    pub static WALLETS: RefCell<Vec<Wallet>> = RefCell::new(Default::default());
-}
+use crate::enums::{Network, ObjectState};
+use crate::state::VaultState;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Wallet {
     pub uid: String,
     pub name: String,
-    pub currency: Currency,
+    pub network: Network,
     pub state: ObjectState,
     pub modified_date: u64,
     pub created_date: u64,
 }
 
 impl Wallet {
-    pub fn new(uid: String, name: String) -> Self {
+    pub fn new(uid: String, name: String, network: Network) -> Self {
         Wallet {
             uid,
             name,
-            currency: Currency::ICP,
+            network,
             state: ObjectState::Active,
             modified_date: time(),
             created_date: time(),
@@ -35,34 +29,10 @@ impl Wallet {
     }
 }
 
-pub fn get_wallet_by_id(uid: &String) -> Wallet {
-    WALLETS.with(|mrs| {
-        match mrs.borrow().iter()
-            .find(|x| x.uid.eq(uid)) {
-            None => { trap("No such wallet") }
-            Some(x) => { x.clone() }
-        }
-    })
-}
-
-pub fn store_wallet(wallet: Wallet) {
-    WALLETS.with(|mrs| {
-        mrs.borrow_mut().push(wallet);
-    })
-}
-
-pub fn get_wallets() -> Vec<Wallet> {
-    WALLETS.with(|mrs| {
-        mrs.borrow().clone()
-    })
-}
-
-pub fn restore_wallet(member: Wallet) {
-    WALLETS.with(|wts| {
-        let mut wallets = wts.borrow_mut();
-        wallets.retain(|existing| existing.uid != member.uid);
-        wallets.push(member);
-    });
+pub fn restore_wallet(wallet: Wallet, mut state: VaultState) -> VaultState {
+    state.wallets.retain(|existing| existing.uid != wallet.uid);
+    state.wallets.push(wallet);
+    state
 }
 
 

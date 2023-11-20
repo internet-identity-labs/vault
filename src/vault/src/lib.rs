@@ -4,27 +4,17 @@ extern crate maplit;
 
 use std::cell::RefCell;
 
-use candid::{export_service, Principal};
-use ic_cdk::{call, caller, id, print, trap};
-use ic_cdk::api::call::CallResult;
-use ic_cdk::api::management_canister::main::CanisterStatusResponse;
+use candid::export_service;
 use ic_cdk_macros::*;
 
-use crate::enums::{Backup, TransactionState};
-use crate::memory::{Conf, CONF};
-use crate::policy_service::{Policy, PolicyType};
-use crate::request::{CanisterIdRequest, TransactionApproveRequest};
-use crate::transaction::members::{get_members, Member};
-use crate::transaction::quorum;
-use crate::transaction::quorum::Quorum;
-use crate::transaction::transaction::{TransactionCandid, TransactionNew};
+use crate::config::{Conf, CONF};
+use crate::request::TransactionApproveRequest;
+use crate::state::VaultState;
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_approve_handler::handle_approve;
-use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequestType};
-use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save};
-use crate::user_service::{get_or_new_by_caller, User};
-use crate::util::{caller_to_address, to_array};
-use crate::vault_service::VaultRole;
-use crate::wallet_service::Wallet;
+use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
+use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, get_vault_state, stable_restore, stable_save};
+use crate::util::to_array;
 
 mod user_service;
 mod vault_service;
@@ -36,8 +26,9 @@ mod enums;
 mod security_service;
 mod transfer_service;
 mod request;
-mod memory;
+mod config;
 mod transaction;
+mod state;
 
 thread_local! {
     pub static HEART_COUNT: RefCell<u8> = RefCell::new(0);
@@ -54,26 +45,35 @@ fn init(conf: Option<Conf>) {
 }
 
 #[update]
-async fn request_transaction(transaction_request: TransactionRequestType) {
-    handle_transaction_request(transaction_request).await
+async fn request_transaction(transaction_request: Vec<TransactionRequest>) -> Vec<TransactionCandid> {
+    let mut trs: Vec<TransactionCandid> = Default::default();
+    for tr in transaction_request {
+        let a = handle_transaction_request(tr).await;
+        trs.push(a);
+    }
+    trs
 }
 
 #[update]
 async fn execute() {
-    execute_approved_transactions()
+    execute_approved_transactions().await
 }
 
 #[heartbeat]
-fn execute_heartbeat() {
-    HEART_COUNT.with(|qp| {
+async fn execute_heartbeat() {
+    let is_exec = HEART_COUNT.with(|qp| {
         let mut i = qp.borrow_mut();
-        if (*i % 30) == 0 {
-            print(i.to_string());
-            execute_approved_transactions();
-            *i = 0
-        }
+        let should_execute = (*i % 5) == 0;
         *i += 1;
+        if should_execute {
+            *i += 0;
+        }
+        should_execute
     });
+
+    if is_exec {
+        execute_approved_transactions().await;
+    }
 }
 
 #[query]
@@ -86,32 +86,19 @@ async fn get_transactions_all() -> Vec<TransactionCandid> {
 
 
 #[query]
-async fn get_members_all() -> Vec<Member> {
-    get_members()
+async fn get_state(tr_id: Option<u64>) -> VaultState {
+    get_vault_state(tr_id).await
 }
 
 #[update]
-async fn config(conf: Conf) {
-    trap_if_not_authenticated();
-    CONF.with(|c| c.replace(conf));
+async fn approve(request: Vec<TransactionApproveRequest>) -> Vec<TransactionCandid> {
+    let mut approved_trs = Vec::default();
+    for approve in request {
+        let trs = handle_approve(approve.transaction_id, approve.state);
+        approved_trs.push(trs);
+    }
+    approved_trs
 }
-
-#[query]
-async fn get_config() -> Conf {
-    trap_if_not_authenticated();
-    CONF.with(|c| c.borrow().clone())
-}
-
-#[query]
-async fn get_quorum() -> Quorum {
-    quorum::get_quorum()
-}
-
-#[update]
-async fn approve(request: TransactionApproveRequest) -> TransactionCandid {
-    handle_approve(request.transaction_id, request.state)
-}
-
 
 //
 //
@@ -205,32 +192,6 @@ async fn approve(request: TransactionApproveRequest) -> TransactionCandid {
 //     approved_transaction
 // }
 
-#[update]
-async fn sync_controllers() -> Vec<String> {
-    let res: CallResult<(CanisterStatusResponse, )> = call(
-        Principal::management_canister(),
-        "canister_status",
-        (CanisterIdRequest {
-            canister_id: id(),
-        }, ),
-    ).await;
-
-    let controllers = res.unwrap().0.settings.controllers;
-    CONF.with(|c| c.borrow_mut().controllers.replace(controllers.clone()));
-    controllers.iter().map(|x| x.to_text()).collect()
-}
-
-#[query]
-async fn get_all_json(from: u32, to: u32, obj: Backup) -> String {
-    trap_if_not_authenticated();
-    memory::get_all_json(from, to, obj)
-}
-
-#[query]
-async fn count(obj: Backup) -> u64 {
-    trap_if_not_authenticated();
-    memory::count(obj) as u64
-}
 
 #[test]
 fn sub_account_test() {}
@@ -249,26 +210,11 @@ fn pre_upgrade() {
 
 
 #[post_upgrade]
-pub fn post_upgrade() {
-    stable_restore();
+pub async fn post_upgrade() {
+    stable_restore().await
 }
 
 #[update]
 async fn get_trusted_origins() -> Vec<String> {
     CONF.with(|c| c.borrow().clone().origins.unwrap())
-}
-
-fn trap_if_not_authenticated() {
-    let princ = caller();
-    match CONF.with(|c| c.borrow_mut().controllers.clone())
-    {
-        None => {
-            trap("Unauthorised")
-        }
-        Some(controllers) => {
-            if !controllers.contains(&princ) {
-                trap("Unauthorised")
-            }
-        }
-    }
 }
