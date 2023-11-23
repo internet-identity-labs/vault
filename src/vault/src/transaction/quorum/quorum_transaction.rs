@@ -66,7 +66,10 @@ impl ITransaction for QuorumUpdateTransaction {
         if state.members.iter()
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
-            self.common.state = Rejected;
+            let aaa = state.members.iter()
+                .filter(|m| m.role.eq(&Admin))
+                .count();
+            self.set_state(Rejected);
             state
         } else {
             let q = Quorum {

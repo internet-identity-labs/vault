@@ -35,18 +35,22 @@ describe("Member Transactions", () => {
         DFX.USE_TEST_ADMIN();
         // await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
-        const admin = getIdentity("87654321876543218765432187654321");
+
         const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin, idlFactory);
+        admin_actor_1 = await getActor(canister_id, admin_identity, idlFactory);
         member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager();
         await manager.init(canister_id, admin_identity, true);
+        await requestCreateMemberTransaction(manager, principalToAddress(admin_identity.getPrincipal() as any), "Admin", VaultRole.ADMIN)
+        await manager.execute()
     });
 
     after(() => {
         DFX.STOP();
     });
+
+    let adminAddress = principalToAddress(admin_identity.getPrincipal() as any);
 
     let memberAddress = "testMemberAddress_1";
     let memberAddress2 = "testMemberAddress_2";
@@ -70,9 +74,8 @@ describe("Member Transactions", () => {
 
         await manager.execute();
         let state = await manager.redefineState();
-        let member = state.members.find(m => m.userId)
+        let member = state.members.find(m => m.userId === memberAddress)
 
-        expect(member.userId).eq(memberAddress)
         expect(member.name).eq(memberName)
         expect(member.role).eq(VaultRole.MEMBER)
 
@@ -96,7 +99,7 @@ describe("Member Transactions", () => {
 
         let state = await manager.redefineState();
         let members = state.members.filter(m => m.userId).length
-        expect(members).eq(1)
+        expect(members).eq(2)
     });
 
     it("CreateMemberTransaction Blocked, then execute and verify second member", async function () {
@@ -114,7 +117,7 @@ describe("Member Transactions", () => {
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
         let state = await manager.redefineState();
         let members = state.members.length
-        expect(members).eq(1)
+        expect(members).eq(2)
 
         await manager.execute();
         tr = await getTransactionByIdFromGetAllTrs(manager, approvedButNotExecuted[0].id);
@@ -124,7 +127,7 @@ describe("Member Transactions", () => {
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
         state = await manager.redefineState();
         members = state.members.filter(m => m.userId).length
-        expect(members).eq(2)
+        expect(members).eq(3)
 
         let member = state.members.find(m => m.userId === memberAddress2)
 
@@ -195,59 +198,59 @@ describe("Member Transactions", () => {
         verifyUpdateMemberRoleTransaction(expectedUpdTrs, tr)
     });
 
-    it("UpdateMemberRoleTransaction rejected because of less than 1 admin", async function () {
-        let updateNameTrResponse: Array<Transaction> = await requestUpdateMemberRoleTransaction(manager, memberAddress, VaultRole.MEMBER);
-        let trId = updateNameTrResponse[0].id
-        await manager.execute()
-        let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
-        let expectedUpdTrs = buildExpectedUpdateRoleTransaction(tr, TransactionState.Rejected, VaultRole.MEMBER)
-        expectedUpdTrs.memberId = memberAddress
-        verifyUpdateMemberRoleTransaction(expectedUpdTrs, tr)
-    });
-
-
     it("RemoveMember approved + executed", async function () {
         let state = await manager.redefineState();
         let member = state.members.find(m => m.userId === memberAddress2)
         expect(member).not.eq(undefined)
 
-        let updateNameTrResponse: Array<Transaction> = await requestRemoveMemberTransaction(manager, memberAddress2);
+        let updateNameTrResponse: Array<Transaction> = await requestRemoveMemberTransaction(manager, memberAddress);
         let trId = updateNameTrResponse[0].id
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
 
         let expectedUpdTrs = buildExpectedRemoveMemberTransaction(tr, TransactionState.Approved)
-        expectedUpdTrs.memberId = memberAddress2;
+        expectedUpdTrs.memberId = memberAddress;
         verifyRemoveMemberTransaction(expectedUpdTrs, tr)
 
         await manager.execute()
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId);
         expectedUpdTrs = buildExpectedRemoveMemberTransaction(tr, TransactionState.Executed)
-        expectedUpdTrs.memberId = memberAddress2;
-        verifyRemoveMemberTransaction(expectedUpdTrs, tr)
-
-        state = await manager.redefineState();
-        member = state.members.find(m => m.userId === memberAddress2)
-        expect(member).eq(undefined)
-    });
-
-
-    it("RemoveMember rejected because 1 admin", async function () {
-        let state = await manager.redefineState();
-        let member = state.members.find(m => m.userId === memberAddress)
-        expect(member.role).eq(VaultRole.ADMIN)
-
-        let updateNameTrResponse: Array<Transaction> = await requestRemoveMemberTransaction(manager, memberAddress);
-        let trId = updateNameTrResponse[0].id
-        await manager.execute()
-
-        let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
-        let expectedUpdTrs = buildExpectedRemoveMemberTransaction(tr, TransactionState.Rejected)
         expectedUpdTrs.memberId = memberAddress;
         verifyRemoveMemberTransaction(expectedUpdTrs, tr)
 
         state = await manager.redefineState();
         member = state.members.find(m => m.userId === memberAddress)
+        expect(member).eq(undefined)
+    });
+
+
+    it("UpdateMemberRoleTransaction rejected because of less than 1 admin", async function () {
+        let updateNameTrResponse: Array<Transaction> = await requestUpdateMemberRoleTransaction(manager, adminAddress, VaultRole.MEMBER);
+        let trId = updateNameTrResponse[0].id
+        await manager.execute()
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
+        let expectedUpdTrs = buildExpectedUpdateRoleTransaction(tr, TransactionState.Rejected, VaultRole.MEMBER)
+        expectedUpdTrs.memberId = adminAddress
+        verifyUpdateMemberRoleTransaction(expectedUpdTrs, tr)
+    });
+
+
+    it("RemoveMember rejected because 1 admin", async function () {
+        let state = await manager.redefineState();
+        let member = state.members.find(m => m.userId === adminAddress)
+        expect(member.role).eq(VaultRole.ADMIN)
+
+        let updateNameTrResponse: Array<Transaction> = await requestRemoveMemberTransaction(manager, adminAddress);
+        let trId = updateNameTrResponse[0].id
+        await manager.execute()
+
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
+        let expectedUpdTrs = buildExpectedRemoveMemberTransaction(tr, TransactionState.Rejected)
+        expectedUpdTrs.memberId = adminAddress;
+        verifyRemoveMemberTransaction(expectedUpdTrs, tr)
+
+        state = await manager.redefineState();
+        member = state.members.find(m => m.userId === adminAddress)
         expect(member.role).eq(VaultRole.ADMIN)
     });
 

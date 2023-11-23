@@ -93,9 +93,7 @@ impl<'a> Iterator for TransactionIterator<'a> {
     }
 }
 
-
 impl Eq for dyn ITransaction {}
-
 
 impl PartialEq for dyn ITransaction {
     fn eq(&self, other: &Self) -> bool {
