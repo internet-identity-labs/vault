@@ -4,7 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::Executed;
+use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -12,6 +12,7 @@ use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::quorum::quorum::Quorum;
 use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
+use crate::vault_service::VaultRole::Admin;
 
 impl_basic_for_transaction!(QuorumUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
@@ -62,13 +63,20 @@ impl TransactionBuilder for QuorumUpdateTransactionBuilder {
 #[async_trait]
 impl ITransaction for QuorumUpdateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
-        let q = Quorum {
-            quorum: self.quorum.clone(),
-            modified_date: time(),
-        };
-        state.quorum = q;
-        self.set_state(Executed);
-        state
+        if state.members.iter()
+            .filter(|m| m.role.eq(&Admin))
+            .count() < self.quorum as usize {
+            self.common.state = Rejected;
+            state
+        } else {
+            let q = Quorum {
+                quorum: self.quorum.clone(),
+                modified_date: time(),
+            };
+            state.quorum = q;
+            self.set_state(Executed);
+            state
+        }
     }
 
 

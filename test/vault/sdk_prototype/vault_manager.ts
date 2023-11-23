@@ -3,6 +3,7 @@ import {
     Member,
     MemberCreateTransaction as MemberCreateTransactionCandid,
     MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
+    MemberRemoveTransaction as MemberRemoveTransactionCandid,
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
     ObjectState as ObjectStateCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
@@ -103,9 +104,8 @@ export enum TransactionType {
     WalletUpdateName = 'WalletUpdateName',
     MemberCreate = 'MemberCreate',
     PolicyRemove = 'PolicyRemove',
-    MemberUnarchive = 'MemberUnarchive',
     WalletCreate = 'WalletCreate',
-    MemberArchive = 'MemberArchive',
+    MemberRemove = 'MemberRemove',
     PolicyCreate = 'PolicyCreate',
     PolicyUpdate = 'PolicyUpdate',
     MemberUpdateName = 'MemberUpdateName',
@@ -174,21 +174,25 @@ export interface Transaction {
 }
 
 export interface MemberCreateTransaction extends Transaction {
-    member_id: string;
+    memberId: string;
     name: string;
     role: VaultRole;
 }
 
 
 export interface MemberUpdateNameTransaction extends Transaction {
-    member_id: string;
+    memberId: string;
     name: string;
 }
 
 
 export interface MemberUpdateRoleTransaction extends Transaction {
-    member_id: string;
+    memberId: string;
     role: VaultRole;
+}
+
+export interface MemberRemoveTransaction extends Transaction {
+    memberId: string;
 }
 
 export interface QuorumUpdateTransaction extends Transaction {
@@ -263,7 +267,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
     if (hasOwnProperty(trs, "MemberCreateTransactionV")) {
         let mmm = trs.MemberCreateTransactionV as MemberCreateTransactionCandid
         let t: MemberCreateTransaction = {
-            member_id: mmm.member_id,
+            memberId: mmm.member_id,
             name: mmm.name,
             role: candidToRole(mmm.role),
             approves: mmm.common.approves.map(candidToApprove),
@@ -282,7 +286,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
     if (hasOwnProperty(trs, "MemberUpdateNameTransactionV")) {
         let mmm = trs.MemberUpdateNameTransactionV as MemberUpdateNameTransactionCandid
         let t: MemberUpdateNameTransaction = {
-            member_id: mmm.member_id,
+            memberId: mmm.member_id,
             name: mmm.name,
             approves: mmm.common.approves.map(candidToApprove),
             batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
@@ -300,8 +304,25 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
     if (hasOwnProperty(trs, "MemberUpdateRoleTransactionV")) {
         let mmm = trs.MemberUpdateRoleTransactionV as MemberUpdateRoleTransactionCandid
         let t: MemberUpdateRoleTransaction = {
-            member_id: mmm.member_id,
+            memberId: mmm.member_id,
             role: candidToRole(mmm.role),
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+        }
+         return t;
+    }
+    if (hasOwnProperty(trs, "MemberRemoveTransactionV")) {
+        let mmm = trs.MemberRemoveTransactionV as MemberRemoveTransactionCandid
+        let t: MemberRemoveTransaction = {
+            memberId: mmm.member_id,
             approves: mmm.common.approves.map(candidToApprove),
             batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
             createdDate: mmm.common.created_date,
@@ -424,6 +445,22 @@ export class MemberUpdateRoleTransactionRequest implements TransactionRequest {
         return {
             MemberUpdateRoleTransactionRequestV: {
                 member_id: this.member_id, role: roleToCandid(this.role)
+            }
+        }
+    }
+}
+
+export class MemberRemoveTransactionRequest implements TransactionRequest {
+    member_id: string
+
+    constructor(member_id: string) {
+        this.member_id = member_id
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            MemberRemoveTransactionRequestV: {
+                member_id: this.member_id
             }
         }
     }
