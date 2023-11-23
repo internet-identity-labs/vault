@@ -36,15 +36,6 @@ type Member = record {
     created_date : nat64;
 };
 
-type MemberArchiveTransaction = record {
-    id : text;
-    common : BasicTransactionFields;
-};
-
-type MemberArchiveTransactionRequest = record {
-    member : text
-};
-
 type MemberCreateTransaction = record {
     name : text;
     role : VaultRole;
@@ -58,9 +49,13 @@ type MemberCreateTransactionRequest = record {
     member_id : text;
 };
 
-type MemberUnarchiveTransaction = record {
+type MemberRemoveTransaction = record {
     member_id : text;
     common : BasicTransactionFields;
+};
+
+type MemberRemoveTransactionRequest = record {
+    member_id : text
 };
 
 type MemberUpdateNameTransaction = record {
@@ -148,7 +143,7 @@ type TrType = variant {
     PolicyRemove;
     MemberUnarchive;
     WalletCreate;
-    MemberArchive;
+    MemberRemove;
     PolicyCreate;
     PolicyUpdate;
     MemberUpdateName;
@@ -169,20 +164,18 @@ type TransactionCandid = variant {
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     WalletUpdateTransactionV : WalletUpdateNameTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
-    MemberArchiveTransactionV : MemberArchiveTransaction;
-    MemberUnarchiveTransactionV : MemberUnarchiveTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
+    MemberRemoveTransactionV : MemberRemoveTransaction;
 };
 
 type TransactionRequest = variant {
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
-    MemberUnArchiveTransactionRequestV : MemberArchiveTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
+    MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
-    MemberArchiveTransactionRequestV : MemberArchiveTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
 };
@@ -239,7 +232,9 @@ type WalletUpdateNameTransaction = record {
 type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text
-};service : (opt Conf) -> {
+};
+
+service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;

@@ -6,66 +6,58 @@ use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::member::members::{restore_member};
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::vault_service::VaultRole;
-use crate::transaction::basic_transaction::{BasicTransaction};
 use crate::vault_service::VaultRole::Admin;
 
-impl_basic_for_transaction!(MemberUpdateRoleTransaction);
+impl_basic_for_transaction!(MemberRemoveTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub struct MemberUpdateRoleTransaction {
+pub struct MemberRemoveTransaction {
     pub common: BasicTransactionFields,
     pub member_id: String,
-    pub role: VaultRole,
 }
 
-impl MemberUpdateRoleTransaction {
-    fn new(state: TransactionState, member_id: String, role: VaultRole) -> Self {
-        MemberUpdateRoleTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberUpdateRole, true),
-            member_id,
-            role,
+impl MemberRemoveTransaction {
+    fn new(state: TransactionState, id: String) -> Self {
+        MemberRemoveTransaction {
+            common: BasicTransactionFields::new(state, TrType::MemberRemove, true),
+            member_id: id,
         }
     }
 }
 
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct MemberUpdateRoleTransactionRequest {
-    pub member_id: String,
-    pub role: VaultRole,
-}
-
-pub struct MemberUpdateRoleTransactionBuilder {
-    pub member_id: String,
-    pub role: VaultRole,
-}
-
-impl MemberUpdateRoleTransactionBuilder {
-    pub fn init(request: MemberUpdateRoleTransactionRequest) -> Self {
-        return MemberUpdateRoleTransactionBuilder {
+impl MemberRemoveTransactionBuilder {
+    pub fn init(request: MemberRemoveTransactionRequest) -> Self {
+        return MemberRemoveTransactionBuilder {
             member_id: request.member_id,
-            role: request.role,
         };
     }
 }
 
-impl TransactionBuilder for MemberUpdateRoleTransactionBuilder {
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct MemberRemoveTransactionRequest {
+    pub member_id: String,
+}
+
+pub struct MemberRemoveTransactionBuilder {
+    pub member_id: String,
+}
+
+impl TransactionBuilder for MemberRemoveTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
-        let trs = MemberUpdateRoleTransaction::new(
+        let trs = MemberRemoveTransaction::new(
             state,
             self.member_id.clone(),
-            self.role.clone(),
         );
         Box::new(trs)
     }
 }
 
 #[async_trait]
-impl ITransaction for MemberUpdateRoleTransaction {
-
+impl ITransaction for MemberRemoveTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
         match state.members.iter()
             .find(|x| x.member_id.eq(&self.member_id)) {
@@ -74,11 +66,9 @@ impl ITransaction for MemberUpdateRoleTransaction {
                 self.common.memo = Some("No such member".to_string());
                 state
             }
-            Some(m) => {
+            Some(_) => {
                 let mut state_sandbox = state.clone();
-                let mut member = m.clone();
-                member.role = self.role.clone();
-                state_sandbox = restore_member(member, state_sandbox);
+                state_sandbox.members.retain(|existing| existing.member_id != self.member_id);
                 if state_sandbox.members.iter()
                     .filter(|m| m.role.eq(&Admin))
                     .count() < state.quorum.quorum as usize {
@@ -93,10 +83,9 @@ impl ITransaction for MemberUpdateRoleTransaction {
     }
 
     fn to_candid(&self) -> TransactionCandid {
-        let trs: MemberUpdateRoleTransaction = self.clone();
-        TransactionCandid::MemberUpdateRoleTransactionV(trs)
+        let trs: MemberRemoveTransaction = self.clone();
+        TransactionCandid::MemberRemoveTransactionV(trs)
     }
-
 }
 
 

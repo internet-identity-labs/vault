@@ -5,9 +5,8 @@ use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::transaction::member::member_archive_transaction::MemberArchiveTransactionBuilder;
+use crate::transaction::member::member_remove_transaction::{MemberRemoveTransactionBuilder, MemberRemoveTransactionRequest};
 use crate::transaction::member::member_create_transaction::{MemberCreateTransactionBuilder, MemberCreateTransactionRequest};
-use crate::transaction::member::member_unarchive_transaction::MemberUnarchiveTransactionBuilder;
 use crate::transaction::member::member_update_name_transaction::{MemberUpdateNameTransactionBuilder, MemberUpdateNameTransactionRequest};
 use crate::transaction::member::member_update_role_transaction::{MemberUpdateRoleTransactionBuilder, MemberUpdateRoleTransactionRequest};
 use crate::transaction::quorum::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
@@ -19,15 +18,6 @@ use crate::transaction::wallet::wallet_update_transaction::{WalletUpdateNameTran
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct MemberArchiveTransactionRequest {
-    pub member: String,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct MemberUnArchiveTransactionRequest {
-    pub member: String,
-}
 
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
@@ -46,8 +36,7 @@ pub enum TransactionRequest {
     MemberCreateTransactionRequestV(MemberCreateTransactionRequest),
     MemberUpdateNameTransactionRequestV(MemberUpdateNameTransactionRequest),
     MemberUpdateRoleTransactionRequestV(MemberUpdateRoleTransactionRequest),
-    MemberArchiveTransactionRequestV(MemberArchiveTransactionRequest),
-    MemberUnArchiveTransactionRequestV(MemberUnArchiveTransactionRequest),
+    MemberRemoveTransactionRequestV(MemberRemoveTransactionRequest),
     WalletUpdateNameTransactionRequestV(WalletUpdateNameTransactionRequest),
     WalletCreateTransactionRequestV(WalletCreateTransactionRequest),
     QuorumUpdateTransactionRequestV(QuorumUpdateTransactionRequest),
@@ -64,12 +53,6 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         TransactionRequest::MemberUpdateRoleTransactionRequestV(r) => {
             MemberUpdateRoleTransactionBuilder::init(r).build()
         }
-        TransactionRequest::MemberArchiveTransactionRequestV(r) => {
-            MemberArchiveTransactionBuilder::init(r.member).build()
-        }
-        TransactionRequest::MemberUnArchiveTransactionRequestV(r) => {
-            MemberUnarchiveTransactionBuilder::init(r.member).build()
-        }
         TransactionRequest::QuorumUpdateTransactionRequestV(r) => {
             QuorumUpdateTransactionBuilder::init(r).build()
         }
@@ -79,6 +62,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::WalletUpdateNameTransactionRequestV(request) => {
             WalletUpdateNameTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::MemberRemoveTransactionRequestV(request) => {
+            MemberRemoveTransactionBuilder::init(request).build()
         }
     };
 

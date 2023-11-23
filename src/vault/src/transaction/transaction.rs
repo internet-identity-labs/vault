@@ -8,15 +8,14 @@ use serde::{Deserialize, Serialize};
 use crate::enums::TransactionState::{Approved, Pending};
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
-use crate::transaction::member::member_archive_transaction::MemberArchiveTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
-use crate::transaction::member::member_unarchive_transaction::MemberUnarchiveTransaction;
+use crate::transaction::member::member_remove_transaction::MemberRemoveTransaction;
 use crate::transaction::member::member_update_name_transaction::MemberUpdateNameTransaction;
 use crate::transaction::member::member_update_role_transaction::MemberUpdateRoleTransaction;
 use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
 use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
-use crate::transaction::quorum::quorum::{get_quorum};
+use crate::transaction::quorum::quorum::get_quorum;
 use crate::transaction::quorum::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::transaction_builder::get_vault_state_block_predicate;
 use crate::transaction::transactions_service::is_blocked;
@@ -123,14 +122,13 @@ pub enum TrType {
     MemberCreate,
     MemberUpdateName,
     MemberUpdateRole,
-    MemberArchive,
-    MemberUnarchive,
+    MemberRemove,
     WalletCreate,
     WalletUpdateName,
     PolicyUpdate,
     PolicyCreate,
     PolicyRemove,
-    Transfer
+    Transfer,
 }
 
 
@@ -140,8 +138,7 @@ pub enum TransactionCandid {
     MemberCreateTransactionV(MemberCreateTransaction),
     MemberUpdateNameTransactionV(MemberUpdateNameTransaction),
     MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
-    MemberArchiveTransactionV(MemberArchiveTransaction),
-    MemberUnarchiveTransactionV(MemberUnarchiveTransaction),
+    MemberRemoveTransactionV(MemberRemoveTransaction),
     WalletCreateTransactionV(WalletCreateTransaction),
     WalletUpdateTransactionV(WalletUpdateNameTransaction),
     PolicyCreateTransactionV(PolicyCreateTransaction),
@@ -161,13 +158,12 @@ impl Candid for TransactionCandid {
             TransactionCandid::MemberCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::MemberUpdateNameTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::MemberUpdateRoleTransactionV(tr) => Box::new(tr.to_owned()),
-            TransactionCandid::MemberArchiveTransactionV(tr) => Box::new(tr.to_owned()),
-            TransactionCandid::MemberUnarchiveTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::MemberRemoveTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::WalletCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::WalletUpdateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),
-            TransactionCandid::PolicyRemoveTransactionV(tr) => {Box::new(tr.to_owned())}
+            TransactionCandid::PolicyRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

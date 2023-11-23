@@ -32,11 +32,6 @@ export interface Member {
     'member_id' : string,
     'created_date' : bigint,
 }
-export interface MemberArchiveTransaction {
-    'id' : string,
-    'common' : BasicTransactionFields,
-}
-export interface MemberArchiveTransactionRequest { 'member' : string }
 export interface MemberCreateTransaction {
     'name' : string,
     'role' : VaultRole,
@@ -48,10 +43,11 @@ export interface MemberCreateTransactionRequest {
     'role' : VaultRole,
     'member_id' : string,
 }
-export interface MemberUnarchiveTransaction {
+export interface MemberRemoveTransaction {
     'member_id' : string,
     'common' : BasicTransactionFields,
 }
+export interface MemberRemoveTransactionRequest { 'member_id' : string }
 export interface MemberUpdateNameTransaction {
     'name' : string,
     'member_id' : string,
@@ -112,9 +108,8 @@ export interface QuorumUpdateTransactionRequest { 'quorum' : number }
 export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
-    { 'MemberUnarchive' : null } |
     { 'WalletCreate' : null } |
-    { 'MemberArchive' : null } |
+    { 'MemberRemove' : null } |
     { 'PolicyCreate' : null } |
     { 'PolicyUpdate' : null } |
     { 'MemberUpdateName' : null } |
@@ -133,21 +128,19 @@ export type TransactionCandid = {
     { 'PolicyRemoveTransactionV' : PolicyRemoveTransaction } |
     { 'WalletUpdateTransactionV' : WalletUpdateNameTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
-    { 'MemberArchiveTransactionV' : MemberArchiveTransaction } |
-    { 'MemberUnarchiveTransactionV' : MemberUnarchiveTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
-    { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction };
+    { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
+    { 'MemberRemoveTransactionV' : MemberRemoveTransaction };
 export type TransactionRequest = {
     'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest
 } |
     {
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest
     } |
-    { 'MemberUnArchiveTransactionRequestV' : MemberArchiveTransactionRequest } |
     { 'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest } |
+    { 'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest } |
     { 'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest } |
-    { 'MemberArchiveTransactionRequestV' : MemberArchiveTransactionRequest } |
     {
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest
     } |
