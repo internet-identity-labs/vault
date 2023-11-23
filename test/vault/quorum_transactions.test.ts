@@ -41,14 +41,27 @@ describe("Quorum Transactions", () => {
         member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager();
         await manager.init(canister_id, admin_identity, true);
+        await requestCreateMemberTransaction(manager, principalToAddress(admin.getPrincipal() as any), "Admin", VaultRole.ADMIN)
+        await manager.execute()
     });
 
     after(() => {
         DFX.STOP();
     });
 
+    it("UpdateQuorum ADMIN rejected because of amount of admins less than quorum", async function () {
+        let trReqResp: Array<Transaction> = await requestUpdateQuorumTransaction(manager, 2)
+        let trId = trReqResp[0].id
+        await manager.execute();
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
+        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(tr, TransactionState.Rejected, 2)
+        verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
+        let state = await manager.redefineState();
+        expect(state.quorum.quorum).eq(1)
+    });
+
     it("UpdateQuorum ADMIN approved + executed", async function () {
-        await requestCreateMemberTransaction(manager, "memberAddress", "memberName", VaultRole.ADMIN)
+        await requestCreateMemberTransaction(manager, "memberAddress2", "memberName", VaultRole.ADMIN)
         await manager.execute()
         let trReqResp: Array<Transaction> = await requestUpdateQuorumTransaction(manager, 2)
         let trId = trReqResp[0].id
@@ -86,12 +99,10 @@ describe("Quorum Transactions", () => {
 
 })
 
-
 async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
     let memberR = new QuorumTransactionRequest(quorum);
     return await manager.requestTransaction([memberR])
 }
-
 
 function verifyQuorumUpdateTransaction(expected: QuorumUpdateTransaction, actual: QuorumUpdateTransaction) {
     expect(expected.quorum).eq(actual.quorum)
