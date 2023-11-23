@@ -59,22 +59,22 @@ async fn execute() {
     execute_approved_transactions().await
 }
 
-#[heartbeat]
-async fn execute_heartbeat() {
-    let is_exec = HEART_COUNT.with(|qp| {
-        let mut i = qp.borrow_mut();
-        let should_execute = (*i % 5) == 0;
-        *i += 1;
-        if should_execute {
-            *i += 0;
-        }
-        should_execute
-    });
-
-    if is_exec {
-        execute_approved_transactions().await;
-    }
-}
+// #[heartbeat]
+// async fn execute_heartbeat() {
+//     let is_exec = HEART_COUNT.with(|qp| {
+//         let mut i = qp.borrow_mut();
+//         let should_execute = (*i % 5) == 0;
+//         *i += 1;
+//         if should_execute {
+//             *i += 0;
+//         }
+//         should_execute
+//     });
+//
+//     if is_exec {
+//         execute_approved_transactions().await;
+//     }
+// }
 
 #[query]
 async fn get_transactions_all() -> Vec<TransactionCandid> {

@@ -4,6 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
+use crate::enums::TransactionState::Executed;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -60,12 +61,13 @@ impl TransactionBuilder for QuorumUpdateTransactionBuilder {
 
 #[async_trait]
 impl ITransaction for QuorumUpdateTransaction {
-    async fn execute(&self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, mut state: VaultState) -> VaultState {
         let q = Quorum {
             quorum: self.quorum.clone(),
             modified_date: time(),
         };
         state.quorum = q;
+        self.set_state(Executed);
         state
     }
 

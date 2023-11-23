@@ -9,6 +9,7 @@ export interface Approve {
 export interface BasicTransactionFields {
     'id' : bigint,
     'transaction_type' : TrType,
+    'threshold' : [] | [number],
     'initiator' : string,
     'modified_date' : bigint,
     'memo' : [] | [string],
@@ -24,11 +25,11 @@ export interface Conf {
 }
 export type Currency = { 'ICP' : null };
 export interface Member {
-    'id' : string,
     'modified_date' : bigint,
     'name' : string,
     'role' : VaultRole,
     'state' : ObjectState,
+    'member_id' : string,
     'created_date' : bigint,
 }
 export interface MemberArchiveTransaction {
@@ -37,33 +38,37 @@ export interface MemberArchiveTransaction {
 }
 export interface MemberArchiveTransactionRequest { 'member' : string }
 export interface MemberCreateTransaction {
-    'id' : string,
     'name' : string,
     'role' : VaultRole,
+    'member_id' : string,
     'common' : BasicTransactionFields,
 }
 export interface MemberCreateTransactionRequest {
-    'member' : string,
     'name' : string,
     'role' : VaultRole,
+    'member_id' : string,
+}
+export interface MemberUnarchiveTransaction {
+    'member_id' : string,
+    'common' : BasicTransactionFields,
 }
 export interface MemberUpdateNameTransaction {
-    'id' : string,
     'name' : string,
+    'member_id' : string,
     'common' : BasicTransactionFields,
 }
 export interface MemberUpdateNameTransactionRequest {
-    'member' : string,
     'name' : string,
+    'member_id' : string,
 }
 export interface MemberUpdateRoleTransaction {
-    'id' : string,
     'role' : VaultRole,
+    'member_id' : string,
     'common' : BasicTransactionFields,
 }
 export interface MemberUpdateRoleTransactionRequest {
-    'member' : string,
     'role' : VaultRole,
+    'member_id' : string,
 }
 export type Network = { 'IC' : null } |
     { 'BTC' : null } |
@@ -129,7 +134,7 @@ export type TransactionCandid = {
     { 'WalletUpdateTransactionV' : WalletUpdateNameTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
     { 'MemberArchiveTransactionV' : MemberArchiveTransaction } |
-    { 'MemberUnarchiveTransactionV' : MemberArchiveTransaction } |
+    { 'MemberUnarchiveTransactionV' : MemberUnarchiveTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction };

@@ -38,6 +38,7 @@ export const idlFactory = ({ IDL }) => {
     const BasicTransactionFields = IDL.Record({
         'id' : IDL.Nat64,
         'transaction_type' : TrType,
+        'threshold' : IDL.Opt(IDL.Nat8),
         'initiator' : IDL.Text,
         'modified_date' : IDL.Nat64,
         'memo' : IDL.Opt(IDL.Text),
@@ -64,8 +65,8 @@ export const idlFactory = ({ IDL }) => {
     });
     const VaultRole = IDL.Variant({ 'Member' : IDL.Null, 'Admin' : IDL.Null });
     const MemberUpdateRoleTransaction = IDL.Record({
-        'id' : IDL.Text,
         'role' : VaultRole,
+        'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
     const PolicyRemoveTransaction = IDL.Record({
@@ -87,15 +88,19 @@ export const idlFactory = ({ IDL }) => {
         'id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
+    const MemberUnarchiveTransaction = IDL.Record({
+        'member_id' : IDL.Text,
+        'common' : BasicTransactionFields,
+    });
     const MemberCreateTransaction = IDL.Record({
-        'id' : IDL.Text,
         'name' : IDL.Text,
         'role' : VaultRole,
+        'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
     const MemberUpdateNameTransaction = IDL.Record({
-        'id' : IDL.Text,
         'name' : IDL.Text,
+        'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
     const QuorumUpdateTransaction = IDL.Record({
@@ -111,7 +116,7 @@ export const idlFactory = ({ IDL }) => {
         'WalletUpdateTransactionV' : WalletUpdateNameTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
         'MemberArchiveTransactionV' : MemberArchiveTransaction,
-        'MemberUnarchiveTransactionV' : MemberArchiveTransaction,
+        'MemberUnarchiveTransactionV' : MemberUnarchiveTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
@@ -121,11 +126,11 @@ export const idlFactory = ({ IDL }) => {
         'Archived' : IDL.Null,
     });
     const Member = IDL.Record({
-        'id' : IDL.Text,
         'modified_date' : IDL.Nat64,
         'name' : IDL.Text,
         'role' : VaultRole,
         'state' : ObjectState,
+        'member_id' : IDL.Text,
         'created_date' : IDL.Nat64,
     });
     const Wallet = IDL.Record({
@@ -157,8 +162,8 @@ export const idlFactory = ({ IDL }) => {
     });
     const QuorumUpdateTransactionRequest = IDL.Record({ 'quorum' : IDL.Nat8 });
     const MemberUpdateNameTransactionRequest = IDL.Record({
-        'member' : IDL.Text,
         'name' : IDL.Text,
+        'member_id' : IDL.Text,
     });
     const MemberArchiveTransactionRequest = IDL.Record({ 'member' : IDL.Text });
     const WalletCreateTransactionRequest = IDL.Record({
@@ -167,13 +172,13 @@ export const idlFactory = ({ IDL }) => {
         'network' : Network,
     });
     const MemberCreateTransactionRequest = IDL.Record({
-        'member' : IDL.Text,
         'name' : IDL.Text,
         'role' : VaultRole,
+        'member_id' : IDL.Text,
     });
     const MemberUpdateRoleTransactionRequest = IDL.Record({
-        'member' : IDL.Text,
         'role' : VaultRole,
+        'member_id' : IDL.Text,
     });
     const WalletUpdateNameTransactionRequest = IDL.Record({
         'uid' : IDL.Text,

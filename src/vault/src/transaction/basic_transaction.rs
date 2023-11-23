@@ -21,7 +21,8 @@ pub struct BasicTransactionFields {
     pub memo: Option<String>,
     pub transaction_type: TrType,
     pub is_vault_state: bool,
-    pub batch_uid: Option<String>
+    pub batch_uid: Option<String>,
+    pub threshold: Option<u8>
 }
 
 impl BasicTransactionFields {
@@ -39,6 +40,7 @@ impl BasicTransactionFields {
             memo: None,
             transaction_type: tr_type,
             batch_uid: None,
+            threshold: None
         }
     }
 }
@@ -50,6 +52,15 @@ pub trait BasicTransaction  {
     fn clone_self(&self) -> Box<dyn ITransaction>;
     fn get_id(&self) -> u64 {
         self.get_common_ref().id
+    }
+    fn get_batch_uid(&self) -> Option<String> {
+        self.get_common_ref().batch_uid.clone()
+    }
+    fn get_threshold(&self) -> Option<u8> {
+        self.get_common_ref().threshold
+    }
+    fn set_threshold(&mut self, threshold: u8) {
+        self.get_common_mut().threshold = Some(threshold);
     }
     fn get_state(&self) -> &TransactionState {
         &self.get_common_ref().state

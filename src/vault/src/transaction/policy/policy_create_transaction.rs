@@ -38,7 +38,7 @@ impl PolicyCreateTransaction {
 
 #[async_trait]
 impl ITransaction for PolicyCreateTransaction {
-    async fn execute(&self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, mut state: VaultState) -> VaultState {
         let p = Policy::new(self.uid.clone(), self.currency.clone(),
                             self.amount_threshold, self.member_threshold, self.wallets.clone());
         state.policies.push(p);

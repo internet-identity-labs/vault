@@ -33,7 +33,7 @@ impl WalletCreateTransaction {
 
 #[async_trait]
 impl ITransaction for WalletCreateTransaction {
-    async fn execute(&self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, mut state: VaultState) -> VaultState {
         let w = Wallet::new(self.uid.clone(), self.name.clone(), self.network.clone());
         state.wallets.push(w);
         state

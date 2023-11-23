@@ -42,7 +42,7 @@
 //
 // #[async_trait]
 // impl TransactionNew for TransferTransaction {
-//     async fn execute(&self, mut state: VaultState) -> VaultState {
+//     async fn execute(&mut self, mut state: VaultState) -> VaultState {
 //         //todo transfer
 //         state
 //     }

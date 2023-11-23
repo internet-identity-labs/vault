@@ -9,7 +9,7 @@ use crate::vault_service::VaultRole;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Member {
-    pub id: String,
+    pub member_id: String,
     pub role: VaultRole,
     pub name: String,
     pub state: ObjectState,
@@ -20,7 +20,7 @@ pub struct Member {
 impl Member {
     pub fn new(id: String, role: VaultRole, name: String) -> Self {
         Member {
-            id,
+            member_id: id,
             role,
             name,
             state: ObjectState::Active,
@@ -30,13 +30,6 @@ impl Member {
     }
 }
 
-pub fn get_member_by_id(id: &String, state: &VaultState) -> Member {
-        match state.members.iter()
-            .find(|x| x.id.eq(id)) {
-            None => { trap("No such member") }
-            Some(x) => { x.clone() }
-        }
-}
 
 pub fn get_members() -> Vec<Member> {
     STATE.with(|mrs| {
@@ -45,7 +38,7 @@ pub fn get_members() -> Vec<Member> {
 }
 
 pub fn restore_member(member: Member, mut state: VaultState) -> VaultState {
-        state.members.retain(|existing| existing.id != member.id);
+        state.members.retain(|existing| existing.member_id != member.member_id);
         state.members.push(member);
         state
 }

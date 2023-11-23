@@ -30,14 +30,21 @@ pub trait ITransaction: BasicTransaction {
         if !is_blocked(|tr| {
             return get_vault_state_block_predicate(tr) && !tr.get_id().eq(&self.get_id());
         }) {
-            if get_quorum().quorum <= self.get_common_mut().approves.len() as u8 {
+            let threshold = self.define_threshold();
+            if threshold <= self.get_common_mut().approves.len() as u8 {
                 self.set_state(Approved)
             } else {
                 self.set_state(Pending)
             }
         }
     }
-    async fn execute(&self, state: VaultState) -> VaultState;
+    fn define_threshold(&mut self) -> u8 {
+        if self.get_threshold().is_none() {
+            self.set_threshold(get_quorum().quorum)
+        }
+        self.get_threshold().unwrap()
+    }
+    async fn execute(&mut self, state: VaultState) -> VaultState;
     fn handle_approve(&mut self, approve: Approve) {
         self.store_approve(approve);
         if self.get_common_mut().state.eq(&Pending) {
@@ -99,13 +106,13 @@ impl PartialEq for dyn ITransaction {
 
 impl Ord for dyn ITransaction {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.get_id().cmp(&other.get_id())
+        other.get_id().cmp(&self.get_id())
     }
 }
 
 impl PartialOrd for dyn ITransaction {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.get_id().cmp(&other.get_id()))
+        Some(other.get_id().cmp(&self.get_id()))
     }
 }
 
