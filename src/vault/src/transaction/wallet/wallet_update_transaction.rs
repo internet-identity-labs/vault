@@ -32,7 +32,7 @@ impl WalletUpdateNameTransaction {
 
 #[async_trait]
 impl ITransaction for WalletUpdateNameTransaction {
-    async fn execute(&self, state: VaultState) -> VaultState {
+    async fn execute(&mut self, state: VaultState) -> VaultState {
         let mut wallet = state.wallets.iter()
             .find(|w| w.uid.eq(&self.uid))
             .unwrap().clone();

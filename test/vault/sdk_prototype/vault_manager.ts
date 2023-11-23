@@ -2,6 +2,8 @@ import {
     Approve as ApproveCandid,
     Member,
     MemberCreateTransaction as MemberCreateTransactionCandid,
+    MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
+    MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
     ObjectState as ObjectStateCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
     TransactionApproveRequest,
@@ -27,6 +29,8 @@ export interface VaultManagerI {
     requestTransaction(requests: Array<TransactionRequest>): Promise<Array<Transaction>>
 
     approveTransaction(approve: Array<ApproveRequest>): Promise<Array<Transaction>>
+
+    execute();
 }
 
 
@@ -88,6 +92,10 @@ export class VaultManager implements VaultManagerI {
         }
         return Actor.createActor(idl, {agent, canisterId: imCanisterId});
     };
+
+    async execute() {
+        await this.actor.execute()
+    }
 
 }
 
@@ -161,12 +169,25 @@ export interface Transaction {
     approves: Approve[];
     isVaultState: boolean;
     createdDate: bigint;
-    batchIid: string;
+    batchUid: string;
+    threshold: number | undefined
 }
 
 export interface MemberCreateTransaction extends Transaction {
-    member: string;
+    member_id: string;
     name: string;
+    role: VaultRole;
+}
+
+
+export interface MemberUpdateNameTransaction extends Transaction {
+    member_id: string;
+    name: string;
+}
+
+
+export interface MemberUpdateRoleTransaction extends Transaction {
+    member_id: string;
     role: VaultRole;
 }
 
@@ -194,7 +215,7 @@ function mapMember(mr: Member): VaultMember {
         name: mr.name,
         role: candidToRole(mr.role),
         state: candidToObjectState(mr.state),
-        userId: mr.id
+        userId: mr.member_id
     }
 }
 
@@ -226,7 +247,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
         let mmm = trs.QuorumUpdateTransactionV as QuorumUpdateTransactionCandid
         let t: QuorumUpdateTransaction = {
             approves: mmm.common.approves.map(candidToApprove),
-            batchIid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
             createdDate: mmm.common.created_date,
             id: mmm.common.id,
             initiator: mmm.common.initiator,
@@ -234,25 +255,63 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             modifiedDate: mmm.common.modified_date,
             quorum: mmm.quorum,
             state: candidToTransactionState(mmm.common.state),
-            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type)
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
         return t;
     }
     if (hasOwnProperty(trs, "MemberCreateTransactionV")) {
         let mmm = trs.MemberCreateTransactionV as MemberCreateTransactionCandid
         let t: MemberCreateTransaction = {
-            member: mmm.id,
+            member_id: mmm.member_id,
             name: mmm.name,
             role: candidToRole(mmm.role),
             approves: mmm.common.approves.map(candidToApprove),
-            batchIid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
             createdDate: mmm.common.created_date,
             id: mmm.common.id,
             initiator: mmm.common.initiator,
             isVaultState: mmm.common.is_vault_state,
             modifiedDate: mmm.common.modified_date,
             state: candidToTransactionState(mmm.common.state),
-            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type)
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+        }
+         return t;
+    }
+    if (hasOwnProperty(trs, "MemberUpdateNameTransactionV")) {
+        let mmm = trs.MemberUpdateNameTransactionV as MemberUpdateNameTransactionCandid
+        let t: MemberUpdateNameTransaction = {
+            member_id: mmm.member_id,
+            name: mmm.name,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+        }
+         return t;
+    }
+    if (hasOwnProperty(trs, "MemberUpdateRoleTransactionV")) {
+        let mmm = trs.MemberUpdateRoleTransactionV as MemberUpdateRoleTransactionCandid
+        let t: MemberUpdateRoleTransaction = {
+            member_id: mmm.member_id,
+            role: candidToRole(mmm.role),
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
          return t;
     }
@@ -312,13 +371,13 @@ export class QuorumTransactionRequest implements TransactionRequest {
 }
 
 export class MemberCreateTransactionRequest implements TransactionRequest {
-    member: string
+    member_id: string
     name: string
     role: VaultRole
 
 
     constructor(member: string, name: string, role: VaultRole) {
-        this.member = member
+        this.member_id = member
         this.name = name
         this.role = role
     }
@@ -326,7 +385,45 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
     toCandid(): TransactionRequestCandid {
         return {
             MemberCreateTransactionRequestV: {
-                member: this.member, name: this.name, role: roleToCandid(this.role)
+                member_id: this.member_id, name: this.name, role: roleToCandid(this.role)
+            }
+        }
+    }
+}
+
+export class MemberUpdateNameTransactionRequest implements TransactionRequest {
+    member_id: string
+    name: string
+
+
+    constructor(member: string, name: string) {
+        this.member_id = member
+        this.name = name
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            MemberUpdateNameTransactionRequestV: {
+                member_id: this.member_id, name: this.name
+            }
+        }
+    }
+}
+
+export class MemberUpdateRoleTransactionRequest implements TransactionRequest {
+    member_id: string
+    role: VaultRole
+
+
+    constructor(member_id: string, role: VaultRole) {
+        this.member_id = member_id
+        this.role = role
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            MemberUpdateRoleTransactionRequestV: {
+                member_id: this.member_id, role: roleToCandid(this.role)
             }
         }
     }

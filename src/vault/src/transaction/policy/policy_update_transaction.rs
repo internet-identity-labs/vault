@@ -34,7 +34,7 @@ impl PolicyUpdateTransaction {
 
 #[async_trait]
 impl ITransaction for PolicyUpdateTransaction {
-    async fn execute(&self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, mut state: VaultState) -> VaultState {
         let mut p = state.policies.iter()
             .find(|p| p.uid.eq(&self.uid)).unwrap().clone();
         p.amount_threshold = self.amount_threshold.clone();

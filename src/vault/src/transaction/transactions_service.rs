@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::VecDeque;
 
 use candid::CandidType;
 use candid::types::Serializer;
@@ -17,15 +18,26 @@ thread_local! {
 pub async fn execute_approved_transactions() {
     let mut unfinished_transactions = get_unfinished_transactions();
     unfinished_transactions.sort();
-    let mut trs_to_restore: Vec<Box<dyn ITransaction>> = Default::default();
+    let mut trs_to_restore: VecDeque<Box<dyn ITransaction>> = Default::default();
     let mut state = get_current_state();
     while let Some(mut trs) = unfinished_transactions.pop() {
         trs.define_state();
         print(trs.get_id().to_string());
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
-            trs.set_state(Executed);
+            // if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
+            //     let a: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
+            //         .into_iter()
+            //         .filter(|t| t.get_batch_uid().is_some())
+            //         .map(|mut t| {
+            //             t.set_state(Rejected);
+            //             t
+            //         })
+            //         .collect();
+            // }
             // trs_to_restore.push(trs);
+            // unfinished_transactions.retain(|existing| existing.get_id() != trs.get_id());
+            // unfinished_transactions.push(trs);
             TRANSACTIONS.with(|trsss| {
                 let mut transactions = trsss.borrow_mut();
                 transactions.retain(|existing| existing.get_id() != trs.get_id());
@@ -56,7 +68,9 @@ fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
 
 pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
     let mut state = VaultState::default();
-    let transactions = get_all_transactions()
+    let mut transactions = get_all_transactions();
+    transactions.sort();
+    let mut sorted_trs = transactions
         .into_iter()
         .filter(|transaction| {
             let is_vault_state = transaction.is_vault_state();
@@ -68,10 +82,8 @@ pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
         })
         .collect::<Vec<Box<dyn ITransaction>>>();
 
-    let mut sorted_transactions = transactions;
-    sorted_transactions.sort();
-    for transaction in &sorted_transactions {
-        state = transaction.execute(state).await;
+    while let Some(mut trs) = sorted_trs.pop() {        //TODO
+        state = trs.execute(state).await;
     }
     state
 }
@@ -175,7 +187,8 @@ pub async fn stable_restore() {
     trs.sort();
     for transaction in &trs {
         if transaction.is_vault_state() && transaction.get_state().eq(&Executed) {
-            state = transaction.execute(state).await;
+            //TODO
+            state = transaction.clone().execute(state).await;
         }
     }
     restore_state(state);

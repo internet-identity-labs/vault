@@ -50,7 +50,7 @@ impl TransactionBuilder for PolicyRemoveTransaction {
 
 #[async_trait]
 impl ITransaction for PolicyRemoveTransaction {
-    async fn execute(&self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, mut state: VaultState) -> VaultState {
         state.policies.retain(|p| p.uid.eq(&self.uid));
         state
     }
