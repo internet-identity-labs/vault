@@ -20,7 +20,7 @@ use crate::transaction::quorum::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::transaction_builder::get_vault_state_block_predicate;
 use crate::transaction::transactions_service::is_blocked;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
-use crate::transaction::wallet::wallet_update_transaction::WalletUpdateNameTransaction;
+use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;
 
 #[async_trait]
@@ -138,7 +138,7 @@ pub enum TransactionCandid {
     MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
     MemberRemoveTransactionV(MemberRemoveTransaction),
     WalletCreateTransactionV(WalletCreateTransaction),
-    WalletUpdateTransactionV(WalletUpdateNameTransaction),
+    WalletUpdateNameTransactionV(WalletUpdateNameTransaction),
     PolicyCreateTransactionV(PolicyCreateTransaction),
     PolicyUpdateTransactionV(PolicyUpdateTransaction),
     PolicyRemoveTransactionV(PolicyRemoveTransaction),
@@ -158,7 +158,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::MemberUpdateRoleTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::MemberRemoveTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::WalletCreateTransactionV(tr) => Box::new(tr.to_owned()),
-            TransactionCandid::WalletUpdateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::WalletUpdateNameTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }

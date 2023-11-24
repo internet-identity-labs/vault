@@ -3,11 +3,12 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Network, TransactionState};
+use crate::enums::TransactionState::Executed;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::wallet::wallet::Wallet;
 
@@ -34,8 +35,11 @@ impl WalletCreateTransaction {
 #[async_trait]
 impl ITransaction for WalletCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
-        let w = Wallet::new(self.uid.clone(), self.name.clone(), self.network.clone());
+        let w = Wallet::new(self.uid.clone(),
+                            self.name.clone(),
+                            self.network.clone());
         state.wallets.push(w);
+        self.set_state(Executed);
         state
     }
 
@@ -48,19 +52,22 @@ impl ITransaction for WalletCreateTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct WalletCreateTransactionRequest {
-    pub uid: String,
     pub network: Network,
     pub name: String,
 }
 
 pub struct WalletCreateTransactionBuilder {
-    request: WalletCreateTransactionRequest
+    pub network: Network,
+    pub name: String,
+    pub uid: String,
 }
 
 impl WalletCreateTransactionBuilder {
-    pub fn init(request: WalletCreateTransactionRequest) -> Self {
+    pub fn init(request: WalletCreateTransactionRequest, generated_random_address: String) -> Self {
         return WalletCreateTransactionBuilder {
-            request
+            network: request.network,
+            name: request.name,
+            uid: generated_random_address,
         };
     }
 }
@@ -69,9 +76,9 @@ impl WalletCreateTransactionBuilder {
 impl TransactionBuilder for WalletCreateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletCreateTransaction::new(state,
-                                               self.request.uid.clone(),
-                                               self.request.name.clone(),
-                                               self.request.network.clone());
+                                               self.uid.clone(),
+                                               self.name.clone(),
+                                               self.network.clone());
         Box::new(trs)
     }
 }

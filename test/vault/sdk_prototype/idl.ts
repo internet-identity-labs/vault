@@ -20,9 +20,9 @@ export const idlFactory = ({ IDL }) => {
         'WalletUpdateName' : IDL.Null,
         'MemberCreate' : IDL.Null,
         'PolicyRemove' : IDL.Null,
-        'MemberRemove' : IDL.Null,
         'WalletCreate' : IDL.Null,
         'PolicyCreate' : IDL.Null,
+        'MemberRemove' : IDL.Null,
         'PolicyUpdate' : IDL.Null,
         'MemberUpdateName' : IDL.Null,
         'MemberUpdateRole' : IDL.Null,
@@ -72,11 +72,6 @@ export const idlFactory = ({ IDL }) => {
         'uid' : IDL.Text,
         'common' : BasicTransactionFields,
     });
-    const WalletUpdateNameTransaction = IDL.Record({
-        'uid' : IDL.Text,
-        'name' : IDL.Text,
-        'common' : BasicTransactionFields,
-    });
     const PolicyUpdateTransaction = IDL.Record({
         'uid' : IDL.Text,
         'member_threshold' : IDL.Nat8,
@@ -99,6 +94,11 @@ export const idlFactory = ({ IDL }) => {
         'common' : BasicTransactionFields,
         'quorum' : IDL.Nat8,
     });
+    const WalletUpdateNameTransaction = IDL.Record({
+        'uid' : IDL.Text,
+        'name' : IDL.Text,
+        'common' : BasicTransactionFields,
+    });
     const MemberRemoveTransaction = IDL.Record({
         'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
@@ -108,11 +108,11 @@ export const idlFactory = ({ IDL }) => {
         'PolicyCreateTransactionV' : PolicyCreateTransaction,
         'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction,
         'PolicyRemoveTransactionV' : PolicyRemoveTransaction,
-        'WalletUpdateTransactionV' : WalletUpdateNameTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
+        'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction,
         'MemberRemoveTransactionV' : MemberRemoveTransaction,
     });
     const ObjectState = IDL.Variant({
@@ -160,7 +160,6 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
     });
     const WalletCreateTransactionRequest = IDL.Record({
-        'uid' : IDL.Text,
         'name' : IDL.Text,
         'network' : Network,
     });

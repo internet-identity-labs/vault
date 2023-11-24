@@ -4,11 +4,12 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
+use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::wallet::wallet::restore_wallet;
 
@@ -33,17 +34,26 @@ impl WalletUpdateNameTransaction {
 #[async_trait]
 impl ITransaction for WalletUpdateNameTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
-        let mut wallet = state.wallets.iter()
-            .find(|w| w.uid.eq(&self.uid))
-            .unwrap().clone();
-        wallet.modified_date = time();
-        wallet.name = self.name.clone();
-        restore_wallet(wallet, state)
+        match state.wallets.iter()
+            .find(|w| w.uid.eq(&self.uid)) {
+            None => {
+                self.set_state(Rejected);
+                self.common.memo = Some("No such wallet".to_string());
+                state
+            }
+            Some(w) => {
+                let mut wallet = w.clone();
+                wallet.modified_date = time();
+                wallet.name = self.name.clone();
+                self.set_state(Executed);
+                restore_wallet(wallet, state)
+            }
+        }
     }
 
     fn to_candid(&self) -> TransactionCandid {
         let trs: WalletUpdateNameTransaction = self.clone();
-        TransactionCandid::WalletUpdateTransactionV(trs)
+        TransactionCandid::WalletUpdateNameTransactionV(trs)
     }
 }
 
@@ -54,13 +64,15 @@ pub struct WalletUpdateNameTransactionRequest {
 }
 
 pub struct WalletUpdateNameTransactionBuilder {
-    request: WalletUpdateNameTransactionRequest
+    name: String,
+    uid: String,
 }
 
 impl WalletUpdateNameTransactionBuilder {
     pub fn init(request: WalletUpdateNameTransactionRequest) -> Self {
         return WalletUpdateNameTransactionBuilder {
-            request
+            name: request.name,
+            uid: request.uid,
         };
     }
 }
@@ -68,9 +80,9 @@ impl WalletUpdateNameTransactionBuilder {
 impl TransactionBuilder for WalletUpdateNameTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletUpdateNameTransaction::new(state,
-                                                   self.request.uid.clone(),
+                                                   self.uid.clone(),
                                                    TrType::WalletUpdateName,
-                                                   self.request.name.clone());
+                                                   self.name.clone());
         Box::new(trs)
     }
 }
