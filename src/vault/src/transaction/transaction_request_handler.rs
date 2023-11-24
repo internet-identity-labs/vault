@@ -13,22 +13,11 @@ use crate::transaction::quorum::quorum_transaction::{QuorumUpdateTransactionBuil
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transactions_service::store_transaction;
-use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransactionRequest;
-use crate::transaction::wallet::wallet_update_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
+use crate::transaction::wallet::wallet::generate_address;
+use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
+use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
-
-
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct ArchiveWalletTransactionRequest {
-    pub uid: String,
-}
-
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct UnArchiveWalletTransactionRequest {
-    pub uid: String,
-}
 
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
@@ -57,8 +46,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
             QuorumUpdateTransactionBuilder::init(r).build()
         }
         TransactionRequest::WalletCreateTransactionRequestV(trs) => {
-            trap("");
-            // QuorumUpdateTransactionBuilder::init(trs).build()
+            //only one async call in builders - no reason to make trait async ???
+            let generated_random_address = generate_address().await;
+            WalletCreateTransactionBuilder::init(trs, generated_random_address).build()
         }
         TransactionRequest::WalletUpdateNameTransactionRequestV(request) => {
             WalletUpdateNameTransactionBuilder::init(request).build()

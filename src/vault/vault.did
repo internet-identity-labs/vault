@@ -141,10 +141,9 @@ type TrType = variant {
     WalletUpdateName;
     MemberCreate;
     PolicyRemove;
-    MemberUnarchive;
     WalletCreate;
-    MemberRemove;
     PolicyCreate;
+    MemberRemove;
     PolicyUpdate;
     MemberUpdateName;
     MemberUpdateRole;
@@ -162,11 +161,11 @@ type TransactionCandid = variant {
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
-    WalletUpdateTransactionV : WalletUpdateNameTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
+    WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
     MemberRemoveTransactionV : MemberRemoveTransaction;
 };
 
@@ -218,9 +217,8 @@ type WalletCreateTransaction = record {
 };
 
 type WalletCreateTransactionRequest = record {
-    uid : text;
     name : text;
-    network : Network;
+    network : Network
 };
 
 type WalletUpdateNameTransaction = record {
@@ -232,9 +230,7 @@ type WalletUpdateNameTransaction = record {
 type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text
-};
-
-service : (opt Conf) -> {
+};service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;

@@ -109,8 +109,8 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
     { 'WalletCreate' : null } |
-    { 'MemberRemove' : null } |
     { 'PolicyCreate' : null } |
+    { 'MemberRemove' : null } |
     { 'PolicyUpdate' : null } |
     { 'MemberUpdateName' : null } |
     { 'MemberUpdateRole' : null } |
@@ -126,11 +126,11 @@ export type TransactionCandid = {
     { 'PolicyCreateTransactionV' : PolicyCreateTransaction } |
     { 'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction } |
     { 'PolicyRemoveTransactionV' : PolicyRemoveTransaction } |
-    { 'WalletUpdateTransactionV' : WalletUpdateNameTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
+    { 'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction } |
     { 'MemberRemoveTransactionV' : MemberRemoveTransaction };
 export type TransactionRequest = {
     'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest
@@ -176,7 +176,6 @@ export interface WalletCreateTransaction {
     'common' : BasicTransactionFields,
 }
 export interface WalletCreateTransactionRequest {
-    'uid' : string,
     'name' : string,
     'network' : Network,
 }

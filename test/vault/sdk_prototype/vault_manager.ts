@@ -2,9 +2,12 @@ import {
     Approve as ApproveCandid,
     Member,
     MemberCreateTransaction as MemberCreateTransactionCandid,
-    MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
     MemberRemoveTransaction as MemberRemoveTransactionCandid,
+    MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
+    WalletCreateTransaction as WalletCreateTransactionCandid,
+    WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid,
+    Network as NetworkCandid,
     ObjectState as ObjectStateCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
     TransactionApproveRequest,
@@ -13,7 +16,7 @@ import {
     TransactionState as TransactionStateCandid,
     TrType,
     VaultRole as VaultRoleCandid,
-    VaultState
+    VaultState, Wallet as WalletCandid
 } from "./service_vault";
 import {idlFactory} from "./idl";
 
@@ -118,6 +121,10 @@ export enum Currency {
     ICP = "ICP",
 }
 
+export enum Network {
+    IC = "IC",
+}
+
 export enum TransactionState {
     Approved = "Approved",
     Pending = "Pending",
@@ -152,10 +159,18 @@ export interface VaultMember {
     createdDate: bigint
 }
 
+export interface Wallet {
+    'uid' : string,
+    'modifiedDate' : bigint,
+    'name' : string,
+    'network' : Network,
+    'createdDate' : bigint,
+}
 
 export class Vault {
     members: Array<VaultMember>
     quorum: Quorum
+    wallets: Array<Wallet>
 }
 
 
@@ -199,14 +214,26 @@ export interface QuorumUpdateTransaction extends Transaction {
     quorum: number
 }
 
+export interface WalletCreateTransaction extends Transaction {
+    name: string,
+    network: Network,
+    uid: string
+}
+
+export interface WalletUpdateNameTransaction extends Transaction {
+    name: string,
+    uid: string
+}
+
 function vaultCandidToVault(vaultCandid: VaultState): Vault {
     let members: Array<VaultMember> = vaultCandid.members.map(mapMember)
     let quorum: Quorum = {
         modifiedDate: vaultCandid.quorum.modified_date,
         quorum: vaultCandid.quorum.quorum
     }
+    let wallets: Array<Wallet> = vaultCandid.wallets.map(mapWallet)
     let v: Vault = {
-        members: members, quorum: quorum
+        members: members, quorum: quorum, wallets
     }
     return v
 }
@@ -220,6 +247,17 @@ function mapMember(mr: Member): VaultMember {
         role: candidToRole(mr.role),
         state: candidToObjectState(mr.state),
         userId: mr.member_id
+    }
+}
+
+
+
+function mapWallet(mr: WalletCandid): Wallet {
+    return {
+        network: mapNetworkFromCandid(mr.network), uid: mr.uid,
+        createdDate: mr.created_date,
+        modifiedDate: mr.modified_date,
+        name: mr.name
     }
 }
 
@@ -281,7 +319,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
-         return t;
+        return t;
     }
     if (hasOwnProperty(trs, "MemberUpdateNameTransactionV")) {
         let mmm = trs.MemberUpdateNameTransactionV as MemberUpdateNameTransactionCandid
@@ -299,7 +337,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
-         return t;
+        return t;
     }
     if (hasOwnProperty(trs, "MemberUpdateRoleTransactionV")) {
         let mmm = trs.MemberUpdateRoleTransactionV as MemberUpdateRoleTransactionCandid
@@ -317,7 +355,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
-         return t;
+        return t;
     }
     if (hasOwnProperty(trs, "MemberRemoveTransactionV")) {
         let mmm = trs.MemberRemoveTransactionV as MemberRemoveTransactionCandid
@@ -334,7 +372,44 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
         }
-         return t;
+        return t;
+    }
+    if (hasOwnProperty(trs, "WalletCreateTransactionV")) {
+        let mmm = trs.WalletCreateTransactionV as WalletCreateTransactionCandid
+        let t: WalletCreateTransaction = {
+            name: mmm.name,
+            uid: mmm.uid,
+            network:mapNetworkFromCandid(mmm.network),
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "WalletUpdateNameTransactionV")) {
+        let mmm = trs.WalletUpdateNameTransactionV as WalletUpdateNameTransactionCandid
+        let t: WalletUpdateNameTransaction = {
+            name: mmm.name,
+            uid: mmm.uid,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
     }
     throw Error("Unexpected enum value")
 }
@@ -356,6 +431,17 @@ export function mapTrTypeToTransactionType(trType: TrType): TransactionType {
     for (const key of transactionTypeKeys) {
         if (hasOwnProperty(trType, key)) {
             return TransactionType[key];
+        }
+    }
+    throw Error();
+}
+
+
+export function mapNetworkFromCandid(n: NetworkCandid): Network {
+    const networks = Object.values(Network);
+    for (const key of networks) {
+        if (hasOwnProperty(n, key)) {
+            return Network[key];
         }
     }
     throw Error();
@@ -407,6 +493,43 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
         return {
             MemberCreateTransactionRequestV: {
                 member_id: this.member_id, name: this.name, role: roleToCandid(this.role)
+            }
+        }
+    }
+}
+
+export class WalletCreateTransactionRequest implements TransactionRequest {
+    network: Network
+    name: string
+
+    constructor(name: string, network: Network) {
+        this.network = network
+        this.name = name
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            WalletCreateTransactionRequestV: {
+                name: this.name,
+                network: networkToCandid(this.network),
+            }
+        }
+    }
+}
+export class WalletUpdateNameTransactionRequest implements TransactionRequest {
+    uid: string
+    name: string
+
+    constructor(name: string, uid: string) {
+        this.uid = uid
+        this.name = name
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            WalletUpdateNameTransactionRequestV: {
+                name: this.name,
+                uid: this.uid,
             }
         }
     }
@@ -473,6 +596,13 @@ export function roleToCandid(response: VaultRole): VaultRoleCandid {
     }
     if (response === VaultRole.MEMBER) {
         return {Member: null} as VaultRoleCandid
+    }
+    throw Error("Unexpected enum value")
+}
+
+export function networkToCandid(network: Network): NetworkCandid {
+    if (network === Network.IC) {
+        return {IC: null} as NetworkCandid
     }
     throw Error("Unexpected enum value")
 }
