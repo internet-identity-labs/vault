@@ -88,15 +88,27 @@ export interface PolicyCreateTransaction {
     'currency' : Currency,
     'common' : BasicTransactionFields,
 }
+export interface PolicyCreateTransactionRequest {
+    'member_threshold' : number,
+    'amount_threshold' : bigint,
+    'wallets' : Array<string>,
+    'currency' : Currency,
+}
 export interface PolicyRemoveTransaction {
     'uid' : string,
     'common' : BasicTransactionFields,
 }
+export interface PolicyRemoveTransactionRequest { 'uid' : string }
 export interface PolicyUpdateTransaction {
     'uid' : string,
     'member_threshold' : number,
     'amount_threshold' : bigint,
     'common' : BasicTransactionFields,
+}
+export interface PolicyUpdateTransactionRequest {
+    'uid' : string,
+    'member_threshold' : number,
+    'amount_threshold' : bigint,
 }
 export interface Quorum { 'modified_date' : bigint, 'quorum' : number }
 export interface QuorumUpdateTransaction {
@@ -146,7 +158,10 @@ export type TransactionRequest = {
     } |
     {
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest
-    };
+    } |
+    { 'PolicyUpdateTransactionRequestV' : PolicyUpdateTransactionRequest } |
+    { 'PolicyRemoveTransactionRequestV' : PolicyRemoveTransactionRequest } |
+    { 'PolicyCreateTransactionRequestV' : PolicyCreateTransactionRequest };
 export type TransactionState = { 'Blocked' : null } |
     { 'Approved' : null } |
     { 'Rejected' : null } |

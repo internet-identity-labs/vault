@@ -1,14 +1,16 @@
 use candid::CandidType;
 use candid::types::Serializer;
 use ic_cdk::api::time;
-use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::transaction::member::member_remove_transaction::{MemberRemoveTransactionBuilder, MemberRemoveTransactionRequest};
 use crate::transaction::member::member_create_transaction::{MemberCreateTransactionBuilder, MemberCreateTransactionRequest};
+use crate::transaction::member::member_remove_transaction::{MemberRemoveTransactionBuilder, MemberRemoveTransactionRequest};
 use crate::transaction::member::member_update_name_transaction::{MemberUpdateNameTransactionBuilder, MemberUpdateNameTransactionRequest};
 use crate::transaction::member::member_update_role_transaction::{MemberUpdateRoleTransactionBuilder, MemberUpdateRoleTransactionRequest};
+use crate::transaction::policy::policy_create_transaction::{PolicyCreateTransactionBuilder, PolicyCreateTransactionRequest};
+use crate::transaction::policy::policy_remove_transaction::{PolicyRemoveTransactionBuilder, PolicyRemoveTransactionRequest};
+use crate::transaction::policy::policy_update_transaction::{PolicyUpdateTransactionBuilder, PolicyUpdateTransactionRequest};
 use crate::transaction::quorum::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
@@ -19,7 +21,6 @@ use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNam
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 
-
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionRequest {
     MemberCreateTransactionRequestV(MemberCreateTransactionRequest),
@@ -29,6 +30,9 @@ pub enum TransactionRequest {
     WalletUpdateNameTransactionRequestV(WalletUpdateNameTransactionRequest),
     WalletCreateTransactionRequestV(WalletCreateTransactionRequest),
     QuorumUpdateTransactionRequestV(QuorumUpdateTransactionRequest),
+    PolicyCreateTransactionRequestV(PolicyCreateTransactionRequest),
+    PolicyUpdateTransactionRequestV(PolicyUpdateTransactionRequest),
+    PolicyRemoveTransactionRequestV(PolicyRemoveTransactionRequest),
 }
 
 pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionCandid {
@@ -55,6 +59,16 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::MemberRemoveTransactionRequestV(request) => {
             MemberRemoveTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::PolicyCreateTransactionRequestV(request) => {
+            let generated_random_uid = generate_address().await;
+            PolicyCreateTransactionBuilder::init(request, generated_random_uid).build()
+        }
+        TransactionRequest::PolicyUpdateTransactionRequestV(request) => {
+            PolicyUpdateTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::PolicyRemoveTransactionRequestV(request) => {
+            PolicyRemoveTransactionBuilder::init(request).build()
         }
     };
 

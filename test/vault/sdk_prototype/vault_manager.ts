@@ -5,10 +5,11 @@ import {
     MemberRemoveTransaction as MemberRemoveTransactionCandid,
     MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
-    WalletCreateTransaction as WalletCreateTransactionCandid,
-    WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid,
     Network as NetworkCandid,
     ObjectState as ObjectStateCandid,
+    PolicyCreateTransaction as PolicyCreateTransactionCandid,
+    PolicyUpdateTransaction as PolicyUpdateTransactionCandid,
+    PolicyRemoveTransaction as PolicyRemoveTransactionCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
     TransactionApproveRequest,
     TransactionCandid,
@@ -16,7 +17,11 @@ import {
     TransactionState as TransactionStateCandid,
     TrType,
     VaultRole as VaultRoleCandid,
-    VaultState, Wallet as WalletCandid
+    VaultState,
+    Wallet as WalletCandid,
+    Policy as PolicyCandid,
+    WalletCreateTransaction as WalletCreateTransactionCandid,
+    WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid
 } from "./service_vault";
 import {idlFactory} from "./idl";
 
@@ -160,17 +165,28 @@ export interface VaultMember {
 }
 
 export interface Wallet {
+    'uid': string,
+    'modifiedDate': bigint,
+    'name': string,
+    'network': Network,
+    'createdDate': bigint,
+}
+
+export interface Policy {
     'uid' : string,
-    'modifiedDate' : bigint,
-    'name' : string,
-    'network' : Network,
-    'createdDate' : bigint,
+    'member_threshold' : number,
+    'modified_date' : bigint,
+    'amount_threshold' : bigint,
+    'wallets' : Array<string>,
+    'currency' : Currency,
+    'created_date' : bigint,
 }
 
 export class Vault {
     members: Array<VaultMember>
     quorum: Quorum
     wallets: Array<Wallet>
+    policies: Array<Policy>
 }
 
 
@@ -220,6 +236,24 @@ export interface WalletCreateTransaction extends Transaction {
     uid: string
 }
 
+export interface PolicyCreateTransaction extends Transaction {
+    uid: string,
+    member_threshold: number,
+    amount_threshold: bigint,
+    wallets: Array<string>,
+    currency: Currency,
+}
+
+export interface PolicyUpdateTransaction extends Transaction {
+    uid: string,
+    member_threshold: number,
+    amount_threshold: bigint,
+}
+
+export interface PolicyRemoveTransaction extends Transaction {
+    uid: string,
+}
+
 export interface WalletUpdateNameTransaction extends Transaction {
     name: string,
     uid: string
@@ -232,8 +266,10 @@ function vaultCandidToVault(vaultCandid: VaultState): Vault {
         quorum: vaultCandid.quorum.quorum
     }
     let wallets: Array<Wallet> = vaultCandid.wallets.map(mapWallet)
+    let policies: Array<Policy> = vaultCandid.policies.map(mapPolicy)
+
     let v: Vault = {
-        members: members, quorum: quorum, wallets
+        members: members, quorum: quorum, wallets, policies
     }
     return v
 }
@@ -251,13 +287,25 @@ function mapMember(mr: Member): VaultMember {
 }
 
 
-
 function mapWallet(mr: WalletCandid): Wallet {
     return {
         network: mapNetworkFromCandid(mr.network), uid: mr.uid,
         createdDate: mr.created_date,
         modifiedDate: mr.modified_date,
         name: mr.name
+    }
+}
+
+
+function mapPolicy(mr: PolicyCandid): Policy {
+    return {
+        amount_threshold: mr.amount_threshold,
+        created_date: mr.created_date,
+        currency: Currency.ICP, //TODO
+        member_threshold: mr.member_threshold,
+        modified_date: mr.modified_date,
+        uid: mr.uid,
+        wallets: mr.wallets
     }
 }
 
@@ -379,7 +427,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
         let t: WalletCreateTransaction = {
             name: mmm.name,
             uid: mmm.uid,
-            network:mapNetworkFromCandid(mmm.network),
+            network: mapNetworkFromCandid(mmm.network),
             approves: mmm.common.approves.map(candidToApprove),
             batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
             createdDate: mmm.common.created_date,
@@ -397,6 +445,63 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
         let mmm = trs.WalletUpdateNameTransactionV as WalletUpdateNameTransactionCandid
         let t: WalletUpdateNameTransaction = {
             name: mmm.name,
+            uid: mmm.uid,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "PolicyCreateTransactionV")) {
+        let mmm = trs.PolicyCreateTransactionV as PolicyCreateTransactionCandid
+        let t: PolicyCreateTransaction = {
+            amount_threshold: mmm.amount_threshold,
+            currency: Currency.ICP, //TODO
+            member_threshold: mmm.member_threshold,
+            wallets: mmm.wallets,
+            uid: mmm.uid,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "PolicyUpdateTransactionV")) {
+        let mmm = trs.PolicyUpdateTransactionV as PolicyUpdateTransactionCandid
+        let t: PolicyUpdateTransaction = {
+            amount_threshold: mmm.amount_threshold,
+            member_threshold: mmm.member_threshold,
+            uid: mmm.uid,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "PolicyRemoveTransactionV")) {
+        let mmm = trs.PolicyRemoveTransactionV as PolicyRemoveTransactionCandid
+        let t: PolicyRemoveTransaction = {
             uid: mmm.uid,
             approves: mmm.common.approves.map(candidToApprove),
             batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
@@ -516,6 +621,7 @@ export class WalletCreateTransactionRequest implements TransactionRequest {
         }
     }
 }
+
 export class WalletUpdateNameTransactionRequest implements TransactionRequest {
     uid: string
     name: string
@@ -584,6 +690,67 @@ export class MemberRemoveTransactionRequest implements TransactionRequest {
         return {
             MemberRemoveTransactionRequestV: {
                 member_id: this.member_id
+            }
+        }
+    }
+}
+
+export class PolicyCreateTransactionRequest implements TransactionRequest {
+    'member_threshold' : number;
+    'amount_threshold' : bigint;
+    'wallets' : Array<string>;
+
+    constructor(member_threshold: number, amount_threshold: bigint, wallets: Array<string>) {
+        this.member_threshold=member_threshold
+        this.amount_threshold=amount_threshold
+        this.wallets=wallets
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            PolicyCreateTransactionRequestV: {
+                'member_threshold' : this.member_threshold,
+                'amount_threshold' : this.amount_threshold,
+                'wallets' : this.wallets,
+                'currency' : { 'ICP' : null }, //TODO
+            }
+        }
+    }
+}
+
+export class PolicyUpdateTransactionRequest implements TransactionRequest {
+    'uid' : string;
+    'member_threshold' : number;
+    'amount_threshold' : bigint;
+
+    constructor(uid: string, member_threshold: number, amount_threshold: bigint) {
+        this.uid = uid
+        this.member_threshold=member_threshold
+        this.amount_threshold=amount_threshold
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            PolicyUpdateTransactionRequestV: {
+                'uid' : this.uid,
+                'member_threshold' : this.member_threshold,
+                'amount_threshold' : this.amount_threshold,
+            }
+        }
+    }
+}
+
+export class PolicyRemoveTransactionRequest implements TransactionRequest {
+    'uid' : string;
+
+    constructor(uid: string) {
+        this.uid = uid
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            PolicyRemoveTransactionRequestV: {
+                'uid' : this.uid,
             }
         }
     }

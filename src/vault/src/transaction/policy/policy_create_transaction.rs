@@ -3,12 +3,13 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Currency, TransactionState};
+use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::policy::policy::Policy;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(PolicyCreateTransaction);
@@ -39,9 +40,30 @@ impl PolicyCreateTransaction {
 #[async_trait]
 impl ITransaction for PolicyCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
+        for w in self.wallets.clone() {
+            match state.wallets.iter().find(|wal| wal.uid.eq(&w)) {
+                None => {
+                    self.set_state(Rejected);
+                    self.common.memo = Some("Wallet not exists".to_string());
+                    return state;
+                }
+                Some(_) => {}
+            }
+        }
+
+        match state.policies.iter().find(|policy| policy.amount_threshold.eq(&self.amount_threshold)) {
+            None => {}
+            Some(_) => {
+                self.set_state(Rejected);
+                self.common.memo = Some("Threshold already exists".to_string());
+                return state;
+            }
+        }
+
         let p = Policy::new(self.uid.clone(), self.currency.clone(),
                             self.amount_threshold, self.member_threshold, self.wallets.clone());
         state.policies.push(p);
+        self.set_state(Executed);
         state
     }
 
@@ -49,6 +71,14 @@ impl ITransaction for PolicyCreateTransaction {
         let trs: PolicyCreateTransaction = self.clone();
         TransactionCandid::PolicyCreateTransactionV(trs)
     }
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct PolicyCreateTransactionRequest {
+    currency: Currency,
+    amount_threshold: u64,
+    member_threshold: u8,
+    wallets: Vec<String>,
 }
 
 pub struct PolicyCreateTransactionBuilder {
@@ -60,14 +90,13 @@ pub struct PolicyCreateTransactionBuilder {
 }
 
 impl PolicyCreateTransactionBuilder {
-    pub fn init(uid: String, currency: Currency, amount_threshold: u64,
-                member_threshold: u8, wallets: Vec<String>) -> Self {
+    pub fn init(request: PolicyCreateTransactionRequest, uid: String) -> Self {
         return PolicyCreateTransactionBuilder {
             uid,
-            currency,
-            amount_threshold,
-            member_threshold,
-            wallets,
+            currency: request.currency,
+            amount_threshold: request.amount_threshold,
+            member_threshold: request.member_threshold,
+            wallets: request.wallets,
         };
     }
 }
