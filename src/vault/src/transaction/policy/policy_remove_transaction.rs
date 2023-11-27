@@ -3,11 +3,12 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
+use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(PolicyRemoveTransaction);
@@ -26,19 +27,24 @@ impl PolicyRemoveTransaction {
     }
 }
 
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct PolicyRemoveTransactionRequest {
+    uid: String,
+}
+
 pub struct PolicyRemoveTransactionBuilder {
     uid: String,
 }
 
 impl PolicyRemoveTransactionBuilder {
-    pub fn init(uid: String) -> Self {
+    pub fn init(request: PolicyRemoveTransactionRequest) -> Self {
         return PolicyRemoveTransactionBuilder {
-            uid,
+            uid: request.uid,
         };
     }
 }
 
-impl TransactionBuilder for PolicyRemoveTransaction {
+impl TransactionBuilder for PolicyRemoveTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyRemoveTransaction::new(
             self.uid.clone(),
@@ -51,8 +57,17 @@ impl TransactionBuilder for PolicyRemoveTransaction {
 #[async_trait]
 impl ITransaction for PolicyRemoveTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
-        state.policies.retain(|p| p.uid.eq(&self.uid));
-        state
+        match state.policies.iter().find(|p| p.uid.eq(&self.uid)) {
+            None => {
+                self.set_state(Rejected);
+                state
+            }
+            Some(_) => {
+                state.policies.retain(|p| p.uid.eq(&self.uid));
+                self.set_state(Executed);
+                state
+            }
+        }
     }
 
     fn to_candid(&self) -> TransactionCandid {

@@ -125,7 +125,7 @@ describe("Wallet Transactions", () => {
 
 })
 
-function verifyWalletCreateTransaction(expected: WalletCreateTransaction, actual: WalletCreateTransaction) {
+export function verifyWalletCreateTransaction(expected: WalletCreateTransaction, actual: WalletCreateTransaction) {
     expect(expected.name).eq(actual.name)
     expect(expected.network).eq(actual.network)
     expect(actual.uid).not.eq("")
@@ -134,7 +134,7 @@ function verifyWalletCreateTransaction(expected: WalletCreateTransaction, actual
 }
 
 
-function verifyWalletUpdateTransaction(expected: WalletUpdateNameTransaction, actual: WalletUpdateNameTransaction) {
+export function verifyWalletUpdateTransaction(expected: WalletUpdateNameTransaction, actual: WalletUpdateNameTransaction) {
     expect(expected.name).eq(actual.name)
     expect(actual.uid).eq(actual.uid)
     verifyTransaction(expected, actual, TransactionType.WalletCreate)

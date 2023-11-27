@@ -110,9 +110,20 @@ type PolicyCreateTransaction = record {
     common : BasicTransactionFields;
 };
 
+type PolicyCreateTransactionRequest = record {
+    member_threshold : nat8;
+    amount_threshold : nat64;
+    wallets : vec text;
+    currency : Currency;
+};
+
 type PolicyRemoveTransaction = record {
     uid : text;
     common : BasicTransactionFields;
+};
+
+type PolicyRemoveTransactionRequest = record {
+    uid : text
 };
 
 type PolicyUpdateTransaction = record {
@@ -120,6 +131,12 @@ type PolicyUpdateTransaction = record {
     member_threshold : nat8;
     amount_threshold : nat64;
     common : BasicTransactionFields;
+};
+
+type PolicyUpdateTransactionRequest = record {
+    uid : text;
+    member_threshold : nat8;
+    amount_threshold : nat64;
 };
 
 type Quorum = record {
@@ -177,6 +194,9 @@ type TransactionRequest = variant {
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
+    PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
+    PolicyRemoveTransactionRequestV : PolicyRemoveTransactionRequest;
+    PolicyCreateTransactionRequestV : PolicyCreateTransactionRequest;
 };
 
 type TransactionState = variant {

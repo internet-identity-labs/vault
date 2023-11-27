@@ -177,6 +177,18 @@ export const idlFactory = ({ IDL }) => {
         'uid' : IDL.Text,
         'name' : IDL.Text,
     });
+    const PolicyUpdateTransactionRequest = IDL.Record({
+        'uid' : IDL.Text,
+        'member_threshold' : IDL.Nat8,
+        'amount_threshold' : IDL.Nat64,
+    });
+    const PolicyRemoveTransactionRequest = IDL.Record({ 'uid' : IDL.Text });
+    const PolicyCreateTransactionRequest = IDL.Record({
+        'member_threshold' : IDL.Nat8,
+        'amount_threshold' : IDL.Nat64,
+        'wallets' : IDL.Vec(IDL.Text),
+        'currency' : Currency,
+    });
     const TransactionRequest = IDL.Variant({
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
@@ -185,6 +197,9 @@ export const idlFactory = ({ IDL }) => {
         'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest,
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest,
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest,
+        'PolicyUpdateTransactionRequestV' : PolicyUpdateTransactionRequest,
+        'PolicyRemoveTransactionRequestV' : PolicyRemoveTransactionRequest,
+        'PolicyCreateTransactionRequestV' : PolicyCreateTransactionRequest,
     });
     return IDL.Service({
         'approve' : IDL.Func(
