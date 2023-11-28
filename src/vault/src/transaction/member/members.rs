@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::ObjectState;
 use crate::state::{STATE, VaultState};
+use crate::util::caller_to_address;
 use crate::vault_service::VaultRole;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
@@ -37,10 +38,27 @@ pub fn get_members() -> Vec<Member> {
     })
 }
 
+pub fn get_caller_role() -> VaultRole {
+    let caller = caller_to_address();
+    let role = STATE.with(|mrs| {
+        mrs.borrow().members.iter()
+            .find(|m| m.member_id.eq(&caller))
+            .map(|m| m.role)
+    });
+    match role {
+        None => {
+            trap("Not registered");
+        }
+        Some(role) => {
+            role
+        }
+    }
+}
+
 pub fn restore_member(member: Member, mut state: VaultState) -> VaultState {
-        state.members.retain(|existing| existing.member_id != member.member_id);
-        state.members.push(member);
-        state
+    state.members.retain(|existing| existing.member_id != member.member_id);
+    state.members.push(member);
+    state
 }
 
 

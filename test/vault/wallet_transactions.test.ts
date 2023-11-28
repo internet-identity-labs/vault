@@ -9,7 +9,6 @@ import {
     TransactionState,
     TransactionType,
     VaultManager,
-    VaultRole,
     WalletCreateTransaction,
     WalletCreateTransactionRequest,
     WalletUpdateNameTransaction,
@@ -17,11 +16,7 @@ import {
 } from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
-import {
-    getTransactionByIdFromGetAllTrs,
-    requestCreateMemberTransaction,
-    verifyTransaction
-} from "./member_transactions.test";
+import {getTransactionByIdFromGetAllTrs, verifyTransaction} from "./member_transactions.test";
 import {expect} from "chai";
 
 require('./bigintExtension.js');
@@ -43,8 +38,6 @@ describe("Wallet Transactions", () => {
         member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager();
         await manager.init(canister_id, admin_identity, true);
-        await requestCreateMemberTransaction(manager, principalToAddress(admin.getPrincipal() as any), "Admin", VaultRole.ADMIN)
-        await manager.execute()
     });
 
     after(() => {

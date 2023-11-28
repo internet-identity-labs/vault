@@ -23,7 +23,8 @@ pub struct MemberCreateTransaction {
 }
 
 impl MemberCreateTransaction {
-    fn new(state: TransactionState, member_id: String, name: String, role: VaultRole) -> Self {
+    //TODO private
+   pub fn new(state: TransactionState, member_id: String, name: String, role: VaultRole) -> Self {
         MemberCreateTransaction {
             common: BasicTransactionFields::new(state, TrType::MemberCreate, true),
             member_id,

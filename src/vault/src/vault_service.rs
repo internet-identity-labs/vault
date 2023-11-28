@@ -25,6 +25,17 @@ pub enum VaultRole {
     Member,
 }
 
+
+impl ToString for VaultRole {
+    fn to_string(&self) -> String {
+        match self {
+            VaultRole::Admin => String::from("Admin"),
+            VaultRole::Member => String::from("Member"),
+        }
+    }
+}
+
+
 impl PartialEq for VaultMember {
     fn eq(&self, other: &Self) -> bool {
         self.user_uuid.eq(&other.user_uuid)

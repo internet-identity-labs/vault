@@ -7,23 +7,20 @@ import {
     Currency,
     Network,
     PolicyCreateTransaction,
-    PolicyCreateTransactionRequest, PolicyRemoveTransaction, PolicyRemoveTransactionRequest,
+    PolicyCreateTransactionRequest,
+    PolicyRemoveTransaction,
+    PolicyRemoveTransactionRequest,
     PolicyUpdateTransaction,
     PolicyUpdateTransactionRequest,
     Transaction,
     TransactionState,
     TransactionType,
     VaultManager,
-    VaultRole,
     WalletCreateTransaction
 } from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
-import {
-    getTransactionByIdFromGetAllTrs,
-    requestCreateMemberTransaction,
-    verifyTransaction
-} from "./member_transactions.test";
+import {getTransactionByIdFromGetAllTrs, verifyTransaction} from "./member_transactions.test";
 import {requestCreateWalletTransaction} from "./wallet_transactions.test";
 import {expect} from "chai";
 
@@ -46,8 +43,6 @@ describe("Policy Transactions", () => {
         member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager();
         await manager.init(canister_id, admin_identity, true);
-        await requestCreateMemberTransaction(manager, principalToAddress(admin.getPrincipal() as any), "Admin", VaultRole.ADMIN)
-        await manager.execute()
     });
 
     after(() => {
@@ -140,7 +135,7 @@ describe("Policy Transactions", () => {
     it("UpdatePolicy amount exist - rejected", async function () {
         let resp = await requestCreateWalletTransaction(manager, walletName_2, Network.IC);
         walletUid_2 = (resp[0] as WalletCreateTransaction).uid
-       let policyCreateResponse =  await requestCreatePolicyTransaction(manager, 4, 4n, [walletUid_2])
+        let policyCreateResponse = await requestCreatePolicyTransaction(manager, 4, 4n, [walletUid_2])
         policyUid2 = (policyCreateResponse[0] as WalletCreateTransaction).uid
         await manager.execute()
         let policyUpdateResponse = await requestUpdatePolicyTransaction(manager, 3, 3n, policyUid2)
@@ -282,6 +277,7 @@ export function verifyPolicyUpdateTransaction(expected: PolicyUpdateTransaction,
     expect(actual.uid).not.eq(undefined)
     verifyTransaction(expected, actual, TransactionType.PolicyUpdate)
 }
+
 export function verifyPolicyRemoveTransaction(expected: PolicyRemoveTransaction, actual: PolicyRemoveTransaction) {
     expect(expected.uid).eq(actual.uid)
     verifyTransaction(expected, actual, TransactionType.PolicyUpdate)
@@ -292,7 +288,7 @@ export async function requestCreatePolicyTransaction(manager, membersTr, amountT
     return await manager.requestTransaction([memberR])
 }
 
-export async function requestRemovePolicyTransaction(manager,uid): Promise<Array<Transaction>> {
+export async function requestRemovePolicyTransaction(manager, uid): Promise<Array<Transaction>> {
     let memberR = new PolicyRemoveTransactionRequest(uid);
     return await manager.requestTransaction([memberR])
 }

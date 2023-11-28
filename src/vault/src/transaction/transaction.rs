@@ -22,6 +22,7 @@ use crate::transaction::transactions_service::is_blocked;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;
+use crate::vault_service::VaultRole;
 
 #[async_trait]
 pub trait ITransaction: BasicTransaction {
@@ -51,6 +52,11 @@ pub trait ITransaction: BasicTransaction {
                 self.set_state(Approved)
             }
         }
+    }
+    fn get_accepted_roles(&self) -> Vec<VaultRole> {
+        return if self.is_vault_state() {
+            vec![VaultRole::Admin]
+        } else { vec![VaultRole::Admin, VaultRole::Member] };
     }
     fn to_candid(&self) -> TransactionCandid;
 }
