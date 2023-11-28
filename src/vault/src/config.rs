@@ -5,7 +5,7 @@ use candid::Deserialize;
 use candid::Principal;
 use ic_ledger_types::MAINNET_LEDGER_CANISTER_ID;
 
-#[derive(CandidType, Deserialize, Clone, Debug, Hash, PartialEq)]
+#[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Conf {
     pub ledger_canister_id: Principal,
     pub origins: Option<Vec<String>>,

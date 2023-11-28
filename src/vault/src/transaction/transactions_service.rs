@@ -23,8 +23,12 @@ pub async fn execute_approved_transactions() {
     while let Some(mut trs) = unfinished_transactions.pop() {
         trs.define_state();
         print(trs.get_id().to_string());
+        print(trs.get_state().to_string());
         if trs.get_state().eq(&Approved) {
+            print("We ARE HERE NOT EXECUTED");
+
             state = trs.execute(state).await;
+            print("We ARE HERE EXECUTED");
             // if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
             //     let a: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
             //         .into_iter()

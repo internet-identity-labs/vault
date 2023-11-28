@@ -5,18 +5,24 @@ extern crate maplit;
 use std::cell::RefCell;
 
 use candid::export_service;
+use ic_cdk::api::time;
+use ic_cdk::print;
 use ic_cdk_macros::*;
 
 use crate::config::{Conf, CONF};
+use crate::enums::TransactionState;
 use crate::request::TransactionApproveRequest;
 use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
+use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_approve_handler::handle_approve;
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
-use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, get_vault_state, stable_restore, stable_save};
-use crate::util::to_array;
+use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, get_vault_state, stable_restore, stable_save, store_transaction};
+use crate::transaction_service::Approve;
+use crate::util::{caller_to_address, to_array};
+use crate::vault_service::VaultRole;
 
-mod user_service;
 mod vault_service;
 mod wallet_service;
 mod policy_service;
@@ -35,13 +41,26 @@ thread_local! {
 }
 
 #[init]
-fn init(conf: Option<Conf>) {
+async fn init(conf: Option<Conf>) {
     match conf {
         None => {}
         Some(conf) => {
             CONF.with(|c| c.replace(conf));
         }
     };
+
+    let mut mc = MemberCreateTransaction::new(
+        TransactionState::Approved, "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(), "Admin".to_string(), VaultRole::Admin
+    );
+    mc.get_common_mut().approves.insert(Approve {
+        signer: "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(),
+        created_date: time(),
+        status: TransactionState::Approved,
+    });
+    store_transaction(mc.clone_self());
+
+    execute_approved_transactions().await
+
 }
 
 #[update]
@@ -78,6 +97,7 @@ async fn execute() {
 
 #[query]
 async fn get_transactions_all() -> Vec<TransactionCandid> {
+    print(caller_to_address());
     get_all_transactions()
         .into_iter()
         .map(|l| l.to_candid())

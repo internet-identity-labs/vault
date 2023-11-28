@@ -42,8 +42,6 @@ describe("Member Transactions", () => {
         member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager();
         await manager.init(canister_id, admin_identity, true);
-        await requestCreateMemberTransaction(manager, principalToAddress(admin_identity.getPrincipal() as any), "Admin", VaultRole.ADMIN)
-        await manager.execute()
     });
 
     after(() => {
