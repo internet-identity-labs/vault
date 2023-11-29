@@ -5,6 +5,7 @@ use candid::CandidType;
 use candid::types::Serializer;
 use ic_cdk::{print, storage, trap};
 use serde::{Deserialize, Serialize};
+use serde_json::to_string;
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Executed};
@@ -25,10 +26,7 @@ pub async fn execute_approved_transactions() {
         print(trs.get_id().to_string());
         print(trs.get_state().to_string());
         if trs.get_state().eq(&Approved) {
-            print("We ARE HERE NOT EXECUTED");
-
             state = trs.execute(state).await;
-            print("We ARE HERE EXECUTED");
             // if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
             //     let a: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
             //         .into_iter()
@@ -42,6 +40,8 @@ pub async fn execute_approved_transactions() {
             // trs_to_restore.push(trs);
             // unfinished_transactions.retain(|existing| existing.get_id() != trs.get_id());
             // unfinished_transactions.push(trs);
+            print("trs.get_state().to_string()") ;
+            print(trs.get_state().to_string()) ;
             TRANSACTIONS.with(|trsss| {
                 let mut transactions = trsss.borrow_mut();
                 transactions.retain(|existing| existing.get_id() != trs.get_id());
@@ -124,11 +124,12 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let a = utrs.borrow_mut();
         let trs = TransactionIterator::new(a);
-        trs.into_iter()
+       let mut tt: Vec<Box<dyn ITransaction>> =  trs.into_iter()
             .filter(|t| {
                 ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Canceled].contains(t.get_state())
             })
-            .collect()
+            .collect();
+        tt
     });
 }
 

@@ -97,7 +97,7 @@ describe("Quorum Transactions", () => {
 
 })
 
-async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
+export async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
     let memberR = new QuorumTransactionRequest(quorum);
     return await manager.requestTransaction([memberR])
 }

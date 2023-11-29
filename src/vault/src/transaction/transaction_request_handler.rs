@@ -78,7 +78,6 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         status: TransactionState::Approved,
     };
     trs.handle_approve(approve);
-    trs.define_state();
     store_transaction(trs.clone());
     trs.to_candid()
 }
