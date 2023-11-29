@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::TransactionState::{Approved, Pending};
-use crate::state::VaultState;
+use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
+use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
 use crate::transaction::member::member_remove_transaction::MemberRemoveTransaction;
@@ -28,36 +28,57 @@ use crate::vault_service::VaultRole;
 pub trait ITransaction: BasicTransaction {
     fn define_state(&mut self) {
         if !is_blocked(|tr| {
-            return get_vault_state_block_predicate(tr) && !tr.get_id().eq(&self.get_id());
+            return get_vault_state_block_predicate(tr) && tr.get_id() < self.get_id();
         }) {
+            if self.get_state().to_owned() == Blocked {
+                self.set_state(Pending);
+            }
+
             let threshold = self.define_threshold();
-            if threshold <= self.get_common_mut().approves.len() as u8 {
+
+            let approves = self.get_common_ref().approves
+                .iter()
+                .filter(|a| a.status == Approved)
+                .count();
+
+            let rejects = self.get_common_ref().approves
+                .iter()
+                .filter(|a| a.status == Rejected)
+                .count();
+
+            let voting_members = get_current_state().members
+                .iter()
+                .filter(|a| self.get_accepted_roles().contains(&a.role))
+                .count();
+
+            if threshold <= approves as u8 {
                 self.set_state(Approved)
-            } else {
-                self.set_state(Pending)
+            } else if voting_members - rejects < threshold as usize {
+                self.set_state(Rejected)
             }
         }
     }
+
     fn define_threshold(&mut self) -> u8 {
         if self.get_threshold().is_none() {
             self.set_threshold(get_quorum().quorum)
         }
         self.get_threshold().unwrap()
     }
+
     async fn execute(&mut self, state: VaultState) -> VaultState;
+
     fn handle_approve(&mut self, approve: Approve) {
         self.store_approve(approve);
-        if self.get_common_mut().state.eq(&Pending) {
-            if get_quorum().quorum <= self.get_common_mut().approves.len() as u8 {
-                self.set_state(Approved)
-            }
-        }
+        self.define_state();
     }
+
     fn get_accepted_roles(&self) -> Vec<VaultRole> {
         return if self.is_vault_state() {
             vec![VaultRole::Admin]
         } else { vec![VaultRole::Admin, VaultRole::Member] };
     }
+
     fn to_candid(&self) -> TransactionCandid;
 }
 

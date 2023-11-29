@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use candid::CandidType;
 use ic_cdk::api::time;
+use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
@@ -22,7 +23,7 @@ pub struct BasicTransactionFields {
     pub transaction_type: TrType,
     pub is_vault_state: bool,
     pub batch_uid: Option<String>,
-    pub threshold: Option<u8>
+    pub threshold: Option<u8>,
 }
 
 impl BasicTransactionFields {
@@ -40,13 +41,13 @@ impl BasicTransactionFields {
             memo: None,
             transaction_type: tr_type,
             batch_uid: None,
-            threshold: None
+            threshold: None,
         }
     }
 }
 
 
-pub trait BasicTransaction  {
+pub trait BasicTransaction {
     fn get_common_mut(&mut self) -> &mut BasicTransactionFields;
     fn get_common_ref(&self) -> &BasicTransactionFields;
     fn clone_self(&self) -> Box<dyn ITransaction>;
@@ -69,9 +70,11 @@ pub trait BasicTransaction  {
         self.get_common_ref().is_vault_state
     }
     fn store_approve(&mut self, approve: Approve) {
-        if !self.get_common_ref().approves.contains(&approve) {
+        if self.get_common_ref().approves.iter()
+            .find(|a| a.signer == approve.signer)
+            .is_none() {
             self.get_common_mut().approves.insert(approve);
-        }
+        } else { trap("Already approved") }
     }
     fn set_state(&mut self, ts: TransactionState) {
         self.get_common_mut().state = ts
