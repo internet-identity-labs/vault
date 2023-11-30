@@ -1,15 +1,13 @@
 use std::cell::RefCell;
-use std::collections::VecDeque;
 
 use candid::CandidType;
 use candid::types::Serializer;
 use ic_cdk::{print, storage, trap};
 use serde::{Deserialize, Serialize};
-use serde_json::to_string;
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Approved, Executed};
-use crate::state::{get_current_state, restore_state, VaultState};
+use crate::enums::TransactionState::{Approved, Executed, Rejected};
+use crate::state::{get_current_state, get_vault_state, restore_state, VaultState};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {
@@ -19,7 +17,6 @@ thread_local! {
 pub async fn execute_approved_transactions() {
     let mut unfinished_transactions = get_unfinished_transactions();
     unfinished_transactions.sort();
-    let mut trs_to_restore: VecDeque<Box<dyn ITransaction>> = Default::default();
     let mut state = get_current_state();
     while let Some(mut trs) = unfinished_transactions.pop() {
         trs.define_state();
@@ -27,33 +24,26 @@ pub async fn execute_approved_transactions() {
         print(trs.get_state().to_string());
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
-            // if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
-            //     let a: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
-            //         .into_iter()
-            //         .filter(|t| t.get_batch_uid().is_some())
-            //         .map(|mut t| {
-            //             t.set_state(Rejected);
-            //             t
-            //         })
-            //         .collect();
-            // }
-            // trs_to_restore.push(trs);
-            // unfinished_transactions.retain(|existing| existing.get_id() != trs.get_id());
-            // unfinished_transactions.push(trs);
-            print("trs.get_state().to_string()") ;
-            print(trs.get_state().to_string()) ;
-            TRANSACTIONS.with(|trsss| {
-                let mut transactions = trsss.borrow_mut();
-                transactions.retain(|existing| existing.get_id() != trs.get_id());
-                transactions.push(trs);
-            });
+            //check that rejected transaction not in batch - if so reject whole batch and rollback the state
+            if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
+                let mut rejected_batch: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
+                    .into_iter()
+                    .filter(|t| t.get_batch_uid() == trs.get_batch_uid())
+                    .map(|mut t| {
+                        t.set_state(Rejected);
+                        t
+                    })
+                    .collect();
+                rejected_batch.sort();
+                //id of transaction before batch
+                let id_before_reject = rejected_batch[0].get_id() - 1;
+                state = get_vault_state(Some(id_before_reject)).await;
+                restore_trs(rejected_batch);
+            } else {
+                restore_transaction(trs);
+            }
         }
     }
-
-    // if (trs_to_restore.into_iter().any(|t| t.get_state().eq(&Rejected) && t.get_common_ref().batch_uid.is_some())) {
-    //
-    // }
-    // restore_trs(trs_to_restore);
     restore_state(state);
     TRANSACTIONS.with(|trss| {
         trss.borrow_mut().sort();
@@ -61,35 +51,13 @@ pub async fn execute_approved_transactions() {
 }
 
 fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
-    TRANSACTIONS.with(|trss| {
-        let mut transactions = trss.borrow_mut();
+    TRANSACTIONS.with(|transactions| {
+        let mut transactions = transactions.borrow_mut();
         for trs in trsss {
             transactions.retain(|existing| existing.get_id() != trs.get_id());
             transactions.push(trs);
         }
     });
-}
-
-pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
-    let mut state = VaultState::default();
-    let mut transactions = get_all_transactions();
-    transactions.sort();
-    let mut sorted_trs = transactions
-        .into_iter()
-        .filter(|transaction| {
-            let is_vault_state = transaction.is_vault_state();
-            let is_executed = transaction.get_state().eq(&Executed);
-            match tr_id {
-                None => is_vault_state && is_executed,
-                Some(tr) => is_vault_state && is_executed && transaction.get_id() <= tr,
-            }
-        })
-        .collect::<Vec<Box<dyn ITransaction>>>();
-
-    while let Some(mut trs) = sorted_trs.pop() {        //TODO
-        state = trs.execute(state).await;
-    }
-    state
 }
 
 pub fn restore_transaction(transaction: Box<dyn ITransaction>) {
@@ -124,7 +92,7 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let a = utrs.borrow_mut();
         let trs = TransactionIterator::new(a);
-       let mut tt: Vec<Box<dyn ITransaction>> =  trs.into_iter()
+        let mut tt: Vec<Box<dyn ITransaction>> = trs.into_iter()
             .filter(|t| {
                 ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Canceled].contains(t.get_state())
             })
