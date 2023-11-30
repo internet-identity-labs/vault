@@ -7,7 +7,7 @@ use crate::enums::TransactionState::Executed;
 use crate::enums::TransactionState::Rejected;
 use crate::security_service::verify_caller;
 use crate::transaction::transaction::TransactionCandid;
-use crate::transaction::transactions_service::{get_by_id, restore_transaction};
+use crate::transaction::transaction_service::{get_by_id, restore_transaction};
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 

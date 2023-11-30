@@ -8,7 +8,7 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::member::members::{restore_member};
+use crate::transaction::member::members::restore_member;
 use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
@@ -21,9 +21,9 @@ pub struct MemberUpdateNameTransaction {
 }
 
 impl MemberUpdateNameTransaction {
-    fn new(state: TransactionState, member: String, name: String) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, member: String, name: String) -> Self {
         MemberUpdateNameTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberUpdateName, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberUpdateName, true),
             member_id: member,
             name,
         }
@@ -58,20 +58,19 @@ impl ITransaction for MemberUpdateNameTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct MemberUpdateNameTransactionRequest {
-    pub member_id: String,
-    pub name: String,
+    member_id: String,
+    name: String,
+    batch_uid: Option<String>,
 }
 
 pub struct MemberUpdateNameTransactionBuilder {
-    pub member_id: String,
-    pub name: String,
+    request: MemberUpdateNameTransactionRequest,
 }
 
 impl MemberUpdateNameTransactionBuilder {
     pub fn init(request: MemberUpdateNameTransactionRequest) -> Self {
         return MemberUpdateNameTransactionBuilder {
-            member_id: request.member_id,
-            name: request.name,
+            request
         };
     }
 }
@@ -80,8 +79,9 @@ impl TransactionBuilder for MemberUpdateNameTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberUpdateNameTransaction::new(
             state,
-            self.member_id.clone(),
-            self.name.clone(),
+            self.request.batch_uid.clone(),
+            self.request.member_id.clone(),
+            self.request.name.clone(),
         );
         Box::new(trs)
     }

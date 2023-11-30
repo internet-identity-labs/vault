@@ -47,6 +47,7 @@ type MemberCreateTransactionRequest = record {
     name : text;
     role : VaultRole;
     member_id : text;
+    batch_uid : opt text;
 };
 
 type MemberRemoveTransaction = record {
@@ -55,7 +56,8 @@ type MemberRemoveTransaction = record {
 };
 
 type MemberRemoveTransactionRequest = record {
-    member_id : text
+    member_id : text;
+    batch_uid : opt text;
 };
 
 type MemberUpdateNameTransaction = record {
@@ -67,6 +69,7 @@ type MemberUpdateNameTransaction = record {
 type MemberUpdateNameTransactionRequest = record {
     name : text;
     member_id : text;
+    batch_uid : opt text;
 };
 
 type MemberUpdateRoleTransaction = record {
@@ -78,6 +81,7 @@ type MemberUpdateRoleTransaction = record {
 type MemberUpdateRoleTransactionRequest = record {
     role : VaultRole;
     member_id : text;
+    batch_uid : opt text;
 };
 
 type Network = variant {
@@ -115,6 +119,7 @@ type PolicyCreateTransactionRequest = record {
     amount_threshold : nat64;
     wallets : vec text;
     currency : Currency;
+    batch_uid : opt text;
 };
 
 type PolicyRemoveTransaction = record {
@@ -123,7 +128,8 @@ type PolicyRemoveTransaction = record {
 };
 
 type PolicyRemoveTransactionRequest = record {
-    uid : text
+    uid : text;
+    batch_uid : opt text;
 };
 
 type PolicyUpdateTransaction = record {
@@ -137,6 +143,7 @@ type PolicyUpdateTransactionRequest = record {
     uid : text;
     member_threshold : nat8;
     amount_threshold : nat64;
+    batch_uid : opt text;
 };
 
 type Quorum = record {
@@ -151,7 +158,8 @@ type QuorumUpdateTransaction = record {
 };
 
 type QuorumUpdateTransactionRequest = record {
-    quorum : nat8
+    quorum : nat8;
+    batch_uid : opt text;
 };
 
 type TrType = variant {
@@ -238,7 +246,8 @@ type WalletCreateTransaction = record {
 
 type WalletCreateTransactionRequest = record {
     name : text;
-    network : Network
+    network : Network;
+    batch_uid : opt text;
 };
 
 type WalletUpdateNameTransaction = record {
@@ -249,7 +258,8 @@ type WalletUpdateNameTransaction = record {
 
 type WalletUpdateNameTransactionRequest = record {
     uid : text;
-    name : text
+    name : text;
+    batch_uid : opt text;
 };service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     execute : () -> ();

@@ -7,9 +7,10 @@ import {
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
     Network as NetworkCandid,
     ObjectState as ObjectStateCandid,
+    Policy as PolicyCandid,
     PolicyCreateTransaction as PolicyCreateTransactionCandid,
-    PolicyUpdateTransaction as PolicyUpdateTransactionCandid,
     PolicyRemoveTransaction as PolicyRemoveTransactionCandid,
+    PolicyUpdateTransaction as PolicyUpdateTransactionCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
     TransactionApproveRequest,
     TransactionCandid,
@@ -19,7 +20,6 @@ import {
     VaultRole as VaultRoleCandid,
     VaultState,
     Wallet as WalletCandid,
-    Policy as PolicyCandid,
     WalletCreateTransaction as WalletCreateTransactionCandid,
     WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid
 } from "./service_vault";
@@ -173,13 +173,13 @@ export interface Wallet {
 }
 
 export interface Policy {
-    'uid' : string,
-    'member_threshold' : number,
-    'modified_date' : bigint,
-    'amount_threshold' : bigint,
-    'wallets' : Array<string>,
-    'currency' : Currency,
-    'created_date' : bigint,
+    'uid': string,
+    'member_threshold': number,
+    'modified_date': bigint,
+    'amount_threshold': bigint,
+    'wallets': Array<string>,
+    'currency': Currency,
+    'created_date': bigint,
 }
 
 export class Vault {
@@ -562,21 +562,25 @@ export function hasOwnProperty<
 }
 
 
-interface TransactionRequest {
-    toCandid(): TransactionRequestCandid
+abstract class TransactionRequest {
+    abstract toCandid(): TransactionRequestCandid
 }
 
 export class QuorumTransactionRequest implements TransactionRequest {
     quorum: number
+    batch_uid: string | undefined
 
-    constructor(quorum: number) {
+
+    constructor(quorum: number, batch_uid?: string) {
         this.quorum = quorum
+        this.batch_uid = batch_uid
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             QuorumUpdateTransactionRequestV: {
-                quorum: this.quorum
+                quorum: this.quorum,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
@@ -586,18 +590,20 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
     member_id: string
     name: string
     role: VaultRole
+    batch_uid: string | undefined
 
-
-    constructor(member: string, name: string, role: VaultRole) {
+    constructor(member: string, name: string, role: VaultRole, batch_uid?: string) {
         this.member_id = member
         this.name = name
         this.role = role
+        this.batch_uid = batch_uid
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             MemberCreateTransactionRequestV: {
-                member_id: this.member_id, name: this.name, role: roleToCandid(this.role)
+                member_id: this.member_id, name: this.name, role: roleToCandid(this.role),
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
@@ -606,10 +612,13 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
 export class WalletCreateTransactionRequest implements TransactionRequest {
     network: Network
     name: string
+    batch_uid: string | undefined
 
-    constructor(name: string, network: Network) {
+    constructor(name: string, network: Network, batch_uid?: string) {
         this.network = network
         this.name = name
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
@@ -617,6 +626,7 @@ export class WalletCreateTransactionRequest implements TransactionRequest {
             WalletCreateTransactionRequestV: {
                 name: this.name,
                 network: networkToCandid(this.network),
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
@@ -625,10 +635,13 @@ export class WalletCreateTransactionRequest implements TransactionRequest {
 export class WalletUpdateNameTransactionRequest implements TransactionRequest {
     uid: string
     name: string
+    batch_uid: string | undefined
 
-    constructor(name: string, uid: string) {
+    constructor(name: string, uid: string, batch_uid?: string) {
         this.uid = uid
         this.name = name
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
@@ -636,6 +649,7 @@ export class WalletUpdateNameTransactionRequest implements TransactionRequest {
             WalletUpdateNameTransactionRequestV: {
                 name: this.name,
                 uid: this.uid,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
@@ -644,17 +658,21 @@ export class WalletUpdateNameTransactionRequest implements TransactionRequest {
 export class MemberUpdateNameTransactionRequest implements TransactionRequest {
     member_id: string
     name: string
+    batch_uid: string | undefined
 
-
-    constructor(member: string, name: string) {
+    constructor(member: string, name: string, batch_uid?: string) {
         this.member_id = member
         this.name = name
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             MemberUpdateNameTransactionRequestV: {
-                member_id: this.member_id, name: this.name
+                member_id: this.member_id, name: this.name,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+
             }
         }
     }
@@ -663,17 +681,20 @@ export class MemberUpdateNameTransactionRequest implements TransactionRequest {
 export class MemberUpdateRoleTransactionRequest implements TransactionRequest {
     member_id: string
     role: VaultRole
+    batch_uid: string | undefined
 
-
-    constructor(member_id: string, role: VaultRole) {
+    constructor(member_id: string, role: VaultRole, batch_uid?: string) {
         this.member_id = member_id
         this.role = role
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             MemberUpdateRoleTransactionRequestV: {
-                member_id: this.member_id, role: roleToCandid(this.role)
+                member_id: this.member_id, role: roleToCandid(this.role),
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
@@ -681,76 +702,93 @@ export class MemberUpdateRoleTransactionRequest implements TransactionRequest {
 
 export class MemberRemoveTransactionRequest implements TransactionRequest {
     member_id: string
+    batch_uid: string | undefined
 
-    constructor(member_id: string) {
+    constructor(member_id: string, batch_uid?: string) {
         this.member_id = member_id
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             MemberRemoveTransactionRequestV: {
-                member_id: this.member_id
+                member_id: this.member_id,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
 }
 
 export class PolicyCreateTransactionRequest implements TransactionRequest {
-    'member_threshold' : number;
-    'amount_threshold' : bigint;
-    'wallets' : Array<string>;
+    'member_threshold': number;
+    'amount_threshold': bigint;
+    'wallets': Array<string>;
+    batch_uid: string | undefined
 
-    constructor(member_threshold: number, amount_threshold: bigint, wallets: Array<string>) {
-        this.member_threshold=member_threshold
-        this.amount_threshold=amount_threshold
-        this.wallets=wallets
+    constructor(member_threshold: number, amount_threshold: bigint, wallets: Array<string>, batch_uid?: string) {
+        this.member_threshold = member_threshold
+        this.amount_threshold = amount_threshold
+        this.wallets = wallets
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             PolicyCreateTransactionRequestV: {
-                'member_threshold' : this.member_threshold,
-                'amount_threshold' : this.amount_threshold,
-                'wallets' : this.wallets,
-                'currency' : { 'ICP' : null }, //TODO
+                'member_threshold': this.member_threshold,
+                'amount_threshold': this.amount_threshold,
+                'wallets': this.wallets,
+                'currency': {'ICP': null}, //TODO
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
     }
 }
 
 export class PolicyUpdateTransactionRequest implements TransactionRequest {
-    'uid' : string;
-    'member_threshold' : number;
-    'amount_threshold' : bigint;
+    'uid': string;
+    'member_threshold': number;
+    'amount_threshold': bigint;
+    batch_uid: string | undefined
 
-    constructor(uid: string, member_threshold: number, amount_threshold: bigint) {
+    constructor(uid: string, member_threshold: number, amount_threshold: bigint, batch_uid?: string) {
         this.uid = uid
-        this.member_threshold=member_threshold
-        this.amount_threshold=amount_threshold
+        this.member_threshold = member_threshold
+        this.amount_threshold = amount_threshold
+        this.batch_uid = batch_uid
+
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             PolicyUpdateTransactionRequestV: {
-                'uid' : this.uid,
-                'member_threshold' : this.member_threshold,
-                'amount_threshold' : this.amount_threshold,
+                'uid': this.uid,
+                'member_threshold': this.member_threshold,
+                'amount_threshold': this.amount_threshold,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+
             }
         }
     }
 }
 
 export class PolicyRemoveTransactionRequest implements TransactionRequest {
-    'uid' : string;
+    'uid': string;
+    batch_uid: string | undefined
 
-    constructor(uid: string) {
+    constructor(uid: string, batch_uid?: string) {
         this.uid = uid
+        this.batch_uid = batch_uid
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             PolicyRemoveTransactionRequestV: {
-                'uid' : this.uid,
+                'uid': this.uid,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+
             }
         }
     }

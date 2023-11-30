@@ -2,7 +2,7 @@ use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Blocked, Pending};
 use crate::security_service::verify_caller;
 use crate::transaction::transaction::ITransaction;
-use crate::transaction::transactions_service::is_blocked;
+use crate::transaction::transaction_service::is_blocked;
 
 pub trait TransactionBuilder {
     fn define_initial_state(&mut self) -> TransactionState {

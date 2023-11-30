@@ -154,40 +154,56 @@ export const idlFactory = ({ IDL }) => {
         'quorum' : Quorum,
         'policies' : IDL.Vec(Policy),
     });
-    const QuorumUpdateTransactionRequest = IDL.Record({ 'quorum' : IDL.Nat8 });
+    const QuorumUpdateTransactionRequest = IDL.Record({
+        'quorum' : IDL.Nat8,
+        'batch_uid' : IDL.Opt(IDL.Text),
+    });
     const MemberUpdateNameTransactionRequest = IDL.Record({
         'name' : IDL.Text,
         'member_id' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
     const WalletCreateTransactionRequest = IDL.Record({
         'name' : IDL.Text,
         'network' : Network,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
-    const MemberRemoveTransactionRequest = IDL.Record({ 'member_id' : IDL.Text });
+    const MemberRemoveTransactionRequest = IDL.Record({
+        'member_id' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
+    });
     const MemberCreateTransactionRequest = IDL.Record({
         'name' : IDL.Text,
         'role' : VaultRole,
         'member_id' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
     const MemberUpdateRoleTransactionRequest = IDL.Record({
         'role' : VaultRole,
         'member_id' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
     const WalletUpdateNameTransactionRequest = IDL.Record({
         'uid' : IDL.Text,
         'name' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
     const PolicyUpdateTransactionRequest = IDL.Record({
         'uid' : IDL.Text,
         'member_threshold' : IDL.Nat8,
         'amount_threshold' : IDL.Nat64,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
-    const PolicyRemoveTransactionRequest = IDL.Record({ 'uid' : IDL.Text });
+    const PolicyRemoveTransactionRequest = IDL.Record({
+        'uid' : IDL.Text,
+        'batch_uid' : IDL.Opt(IDL.Text),
+    });
     const PolicyCreateTransactionRequest = IDL.Record({
         'member_threshold' : IDL.Nat8,
         'amount_threshold' : IDL.Nat64,
         'wallets' : IDL.Vec(IDL.Text),
         'currency' : Currency,
+        'batch_uid' : IDL.Opt(IDL.Text),
     });
     const TransactionRequest = IDL.Variant({
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,

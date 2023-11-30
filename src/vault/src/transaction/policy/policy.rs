@@ -2,7 +2,7 @@ use candid::CandidType;
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{Currency, ObjectState};
+use crate::enums::Currency;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Policy {

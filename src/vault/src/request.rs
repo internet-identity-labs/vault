@@ -2,7 +2,6 @@ use crate::enums::TransactionState;
 
 // use candid::Principal;
 //
-use crate::enums::ObjectState;
 use candid::{CandidType, Deserialize, Principal};
 //
 // #[derive(CandidType, Deserialize, Clone)]

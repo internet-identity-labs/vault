@@ -19,9 +19,9 @@ pub struct PolicyRemoveTransaction {
 }
 
 impl PolicyRemoveTransaction {
-    fn new(uid: String, state: TransactionState) -> Self {
+    fn new(uid: String, state: TransactionState, batch_uid: Option<String>) -> Self {
         PolicyRemoveTransaction {
-            common: BasicTransactionFields::new(state, TrType::PolicyRemove, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::PolicyRemove, true),
             uid,
         }
     }
@@ -30,16 +30,17 @@ impl PolicyRemoveTransaction {
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct PolicyRemoveTransactionRequest {
     uid: String,
+    batch_uid: Option<String>,
 }
 
 pub struct PolicyRemoveTransactionBuilder {
-    uid: String,
+    request: PolicyRemoveTransactionRequest,
 }
 
 impl PolicyRemoveTransactionBuilder {
     pub fn init(request: PolicyRemoveTransactionRequest) -> Self {
         return PolicyRemoveTransactionBuilder {
-            uid: request.uid,
+            request,
         };
     }
 }
@@ -47,8 +48,9 @@ impl PolicyRemoveTransactionBuilder {
 impl TransactionBuilder for PolicyRemoveTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyRemoveTransaction::new(
-            self.uid.clone(),
+            self.request.uid.clone(),
             state,
+            self.request.batch_uid.clone(),
         );
         Box::new(trs)
     }

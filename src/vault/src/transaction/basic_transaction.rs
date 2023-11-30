@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::transaction::transaction::{ITransaction, TrType};
-use crate::transaction::transactions_service::get_id;
+use crate::transaction::transaction_service::get_id;
 use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 
@@ -27,7 +27,7 @@ pub struct BasicTransactionFields {
 }
 
 impl BasicTransactionFields {
-    pub fn new(state: TransactionState
+    pub fn new(state: TransactionState, batch_uid: Option<String>
                , tr_type: TrType, is_vault_state: bool,
     ) -> Self {
         BasicTransactionFields {
@@ -40,7 +40,7 @@ impl BasicTransactionFields {
             modified_date: time(),
             memo: None,
             transaction_type: tr_type,
-            batch_uid: None,
+            batch_uid: batch_uid,
             threshold: None,
         }
     }

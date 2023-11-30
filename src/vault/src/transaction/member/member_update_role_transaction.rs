@@ -6,12 +6,12 @@ use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
+use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::member::members::{restore_member};
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::member::members::restore_member;
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::vault_service::VaultRole;
-use crate::transaction::basic_transaction::{BasicTransaction};
 use crate::vault_service::VaultRole::Admin;
 
 impl_basic_for_transaction!(MemberUpdateRoleTransaction);
@@ -23,9 +23,9 @@ pub struct MemberUpdateRoleTransaction {
 }
 
 impl MemberUpdateRoleTransaction {
-    fn new(state: TransactionState, member_id: String, role: VaultRole) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, member_id: String, role: VaultRole) -> Self {
         MemberUpdateRoleTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberUpdateRole, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberUpdateRole, true),
             member_id,
             role,
         }
@@ -34,20 +34,19 @@ impl MemberUpdateRoleTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct MemberUpdateRoleTransactionRequest {
-    pub member_id: String,
-    pub role: VaultRole,
+    member_id: String,
+    role: VaultRole,
+    batch_uid: Option<String>,
 }
 
 pub struct MemberUpdateRoleTransactionBuilder {
-    pub member_id: String,
-    pub role: VaultRole,
+    request: MemberUpdateRoleTransactionRequest,
 }
 
 impl MemberUpdateRoleTransactionBuilder {
     pub fn init(request: MemberUpdateRoleTransactionRequest) -> Self {
         return MemberUpdateRoleTransactionBuilder {
-            member_id: request.member_id,
-            role: request.role,
+            request
         };
     }
 }
@@ -56,8 +55,9 @@ impl TransactionBuilder for MemberUpdateRoleTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberUpdateRoleTransaction::new(
             state,
-            self.member_id.clone(),
-            self.role.clone(),
+            self.request.batch_uid.clone(),
+            self.request.member_id.clone(),
+            self.request.role.clone(),
         );
         Box::new(trs)
     }
@@ -65,7 +65,6 @@ impl TransactionBuilder for MemberUpdateRoleTransactionBuilder {
 
 #[async_trait]
 impl ITransaction for MemberUpdateRoleTransaction {
-
     async fn execute(&mut self, state: VaultState) -> VaultState {
         match state.members.iter()
             .find(|x| x.member_id.eq(&self.member_id)) {
@@ -96,7 +95,6 @@ impl ITransaction for MemberUpdateRoleTransaction {
         let trs: MemberUpdateRoleTransaction = self.clone();
         TransactionCandid::MemberUpdateRoleTransactionV(trs)
     }
-
 }
 
 

@@ -18,7 +18,7 @@ use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransacti
 use crate::transaction::quorum::quorum::get_quorum;
 use crate::transaction::quorum::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::transaction_builder::get_vault_state_block_predicate;
-use crate::transaction::transactions_service::is_blocked;
+use crate::transaction::transaction_service::is_blocked;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;

@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 
 use candid::CandidType;
-use candid::types::Serializer;
 use ic_cdk::{print, storage, trap};
 use serde::{Deserialize, Serialize};
 
@@ -92,7 +91,7 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let a = utrs.borrow_mut();
         let trs = TransactionIterator::new(a);
-        let mut tt: Vec<Box<dyn ITransaction>> = trs.into_iter()
+        let tt: Vec<Box<dyn ITransaction>> = trs.into_iter()
             .filter(|t| {
                 ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Canceled].contains(t.get_state())
             })

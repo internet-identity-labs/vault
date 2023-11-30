@@ -9,7 +9,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::Member;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::vault_service::VaultRole;
 
@@ -24,9 +24,11 @@ pub struct MemberCreateTransaction {
 
 impl MemberCreateTransaction {
     //TODO private
-   pub fn new(state: TransactionState, member_id: String, name: String, role: VaultRole) -> Self {
+    pub fn new(state: TransactionState, batch_uid: Option<String>, member_id: String, name: String, role: VaultRole) -> Self {
         MemberCreateTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberCreate, true),
+            common: BasicTransactionFields::new(state, batch_uid,
+                                                TrType::MemberCreate,
+                                                true),
             member_id,
             name,
             role,
@@ -66,23 +68,20 @@ impl ITransaction for MemberCreateTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct MemberCreateTransactionRequest {
-    pub member_id: String,
-    pub name: String,
-    pub role: VaultRole,
+    member_id: String,
+    name: String,
+    role: VaultRole,
+    batch_uid: Option<String>,
 }
 
 pub struct MemberCreateTransactionBuilder {
-    member_id: String,
-    role: VaultRole,
-    name: String,
+    request: MemberCreateTransactionRequest
 }
 
 impl MemberCreateTransactionBuilder {
     pub fn init(request: MemberCreateTransactionRequest) -> Self {
         return MemberCreateTransactionBuilder {
-            member_id: request.member_id,
-            name: request.name,
-            role: request.role,
+            request
         };
     }
 }
@@ -91,9 +90,10 @@ impl TransactionBuilder for MemberCreateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberCreateTransaction::new(
             state,
-            self.member_id.clone(),
-            self.name.clone(),
-            self.role,
+            self.request.batch_uid.clone(),
+            self.request.member_id.clone(),
+            self.request.name.clone(),
+            self.request.role,
         );
         Box::new(trs)
     }

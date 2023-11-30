@@ -42,12 +42,16 @@ export interface MemberCreateTransactionRequest {
     'name' : string,
     'role' : VaultRole,
     'member_id' : string,
+    'batch_uid' : [] | [string],
 }
 export interface MemberRemoveTransaction {
     'member_id' : string,
     'common' : BasicTransactionFields,
 }
-export interface MemberRemoveTransactionRequest { 'member_id' : string }
+export interface MemberRemoveTransactionRequest {
+    'member_id' : string,
+    'batch_uid' : [] | [string],
+}
 export interface MemberUpdateNameTransaction {
     'name' : string,
     'member_id' : string,
@@ -56,6 +60,7 @@ export interface MemberUpdateNameTransaction {
 export interface MemberUpdateNameTransactionRequest {
     'name' : string,
     'member_id' : string,
+    'batch_uid' : [] | [string],
 }
 export interface MemberUpdateRoleTransaction {
     'role' : VaultRole,
@@ -65,6 +70,7 @@ export interface MemberUpdateRoleTransaction {
 export interface MemberUpdateRoleTransactionRequest {
     'role' : VaultRole,
     'member_id' : string,
+    'batch_uid' : [] | [string],
 }
 export type Network = { 'IC' : null } |
     { 'BTC' : null } |
@@ -93,12 +99,16 @@ export interface PolicyCreateTransactionRequest {
     'amount_threshold' : bigint,
     'wallets' : Array<string>,
     'currency' : Currency,
+    'batch_uid' : [] | [string],
 }
 export interface PolicyRemoveTransaction {
     'uid' : string,
     'common' : BasicTransactionFields,
 }
-export interface PolicyRemoveTransactionRequest { 'uid' : string }
+export interface PolicyRemoveTransactionRequest {
+    'uid' : string,
+    'batch_uid' : [] | [string],
+}
 export interface PolicyUpdateTransaction {
     'uid' : string,
     'member_threshold' : number,
@@ -109,6 +119,7 @@ export interface PolicyUpdateTransactionRequest {
     'uid' : string,
     'member_threshold' : number,
     'amount_threshold' : bigint,
+    'batch_uid' : [] | [string],
 }
 export interface Quorum { 'modified_date' : bigint, 'quorum' : number }
 export interface QuorumUpdateTransaction {
@@ -116,7 +127,10 @@ export interface QuorumUpdateTransaction {
     'common' : BasicTransactionFields,
     'quorum' : number,
 }
-export interface QuorumUpdateTransactionRequest { 'quorum' : number }
+export interface QuorumUpdateTransactionRequest {
+    'quorum' : number,
+    'batch_uid' : [] | [string],
+}
 export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
@@ -193,6 +207,7 @@ export interface WalletCreateTransaction {
 export interface WalletCreateTransactionRequest {
     'name' : string,
     'network' : Network,
+    'batch_uid' : [] | [string],
 }
 export interface WalletUpdateNameTransaction {
     'uid' : string,
@@ -202,6 +217,7 @@ export interface WalletUpdateNameTransaction {
 export interface WalletUpdateNameTransactionRequest {
     'uid' : string,
     'name' : string,
+    'batch_uid' : [] | [string],
 }
 export interface _SERVICE {
     'approve' : ActorMethod<
