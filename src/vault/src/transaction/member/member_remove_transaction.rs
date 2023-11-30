@@ -20,9 +20,9 @@ pub struct MemberRemoveTransaction {
 }
 
 impl MemberRemoveTransaction {
-    fn new(state: TransactionState, id: String) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, id: String) -> Self {
         MemberRemoveTransaction {
-            common: BasicTransactionFields::new(state, TrType::MemberRemove, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberRemove, true),
             member_id: id,
         }
     }
@@ -31,7 +31,7 @@ impl MemberRemoveTransaction {
 impl MemberRemoveTransactionBuilder {
     pub fn init(request: MemberRemoveTransactionRequest) -> Self {
         return MemberRemoveTransactionBuilder {
-            member_id: request.member_id,
+            request
         };
     }
 }
@@ -39,18 +39,19 @@ impl MemberRemoveTransactionBuilder {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct MemberRemoveTransactionRequest {
-    pub member_id: String,
+    member_id: String,
+    batch_uid: Option<String>,
 }
 
 pub struct MemberRemoveTransactionBuilder {
-    pub member_id: String,
+    request: MemberRemoveTransactionRequest,
 }
 
 impl TransactionBuilder for MemberRemoveTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberRemoveTransaction::new(
-            state,
-            self.member_id.clone(),
+            state, self.request.batch_uid.clone(),
+            self.request.member_id.clone(),
         );
         Box::new(trs)
     }

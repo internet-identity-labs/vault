@@ -36,6 +36,7 @@ describe("Security ", () => {
     it("Request vault state transaction from the member", async function () {
         try {
             await requestCreateMemberTransaction(memberManager, "testAddress", "testName", VaultRole.MEMBER)
+            fail("")
         } catch (e) {
             expect(e.message).contains("Not permitted")
         }
@@ -46,6 +47,7 @@ describe("Security ", () => {
         id = t[0].id;
         try {
             await memberManager.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
+            fail("")
         } catch (e) {
             expect(e.message).contains("Not permitted")
         }
@@ -54,7 +56,7 @@ describe("Security ", () => {
         try {
             await adminManager.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
         } catch (e) {
-            fail("Have to be approved from admin")
+            expect(e.message).contains("Already approved")
         }
     });
 

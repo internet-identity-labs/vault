@@ -22,9 +22,9 @@ pub struct WalletCreateTransaction {
 }
 
 impl WalletCreateTransaction {
-    fn new(state: TransactionState, uid: String, name: String, network: Network) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, uid: String, name: String, network: Network) -> Self {
         WalletCreateTransaction {
-            common: BasicTransactionFields::new(state, TrType::WalletCreate, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::WalletCreate, true),
             uid,
             name,
             network,
@@ -54,20 +54,19 @@ impl ITransaction for WalletCreateTransaction {
 pub struct WalletCreateTransactionRequest {
     pub network: Network,
     pub name: String,
+    pub batch_uid: Option<String>,
 }
 
 pub struct WalletCreateTransactionBuilder {
-    pub network: Network,
-    pub name: String,
-    pub uid: String,
+    request: WalletCreateTransactionRequest,
+    uid: String,
 }
 
 impl WalletCreateTransactionBuilder {
-    pub fn init(request: WalletCreateTransactionRequest, generated_random_address: String) -> Self {
+    pub fn init(request: WalletCreateTransactionRequest, uid: String) -> Self {
         return WalletCreateTransactionBuilder {
-            network: request.network,
-            name: request.name,
-            uid: generated_random_address,
+            request,
+            uid,
         };
     }
 }
@@ -76,9 +75,10 @@ impl WalletCreateTransactionBuilder {
 impl TransactionBuilder for WalletCreateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletCreateTransaction::new(state,
+                                               self.request.batch_uid.clone(),
                                                self.uid.clone(),
-                                               self.name.clone(),
-                                               self.network.clone());
+                                               self.request.name.clone(),
+                                               self.request.network.clone());
         Box::new(trs)
     }
 }

@@ -7,7 +7,7 @@ use crate::transaction::member::members::Member;
 use crate::transaction::policy::policy::Policy;
 use crate::transaction::quorum::quorum::Quorum;
 use crate::transaction::transaction::ITransaction;
-use crate::transaction::transactions_service::get_all_transactions;
+use crate::transaction::transaction_service::get_all_transactions;
 use crate::transaction::wallet::wallet::Wallet;
 
 thread_local! {

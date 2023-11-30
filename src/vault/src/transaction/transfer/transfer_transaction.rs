@@ -29,7 +29,7 @@
 //     fn new(address: String, currency: Currency,
 //            wallet: String, amount: u64, state: TransactionState) -> Self {
 //         TransferTransaction {
-//             common: BasicTransactionFields::new(state, TrType::Transfer, false),
+//             common: BasicTransactionFields::new(state, batch_uid, TrType::Transfer, false),
 //             wallet,
 //             policy: None,
 //             currency,

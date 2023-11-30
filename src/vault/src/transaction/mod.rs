@@ -1,5 +1,5 @@
 pub mod transaction;
-pub mod transactions_service;
+pub mod transaction_service;
 pub mod transaction_request_handler;
 pub mod transaction_approve_handler;
 pub mod transaction_builder;

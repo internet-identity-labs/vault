@@ -3,7 +3,6 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::state::STATE;
-use crate::transaction::transaction::{ITransaction, TrType};
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Quorum {

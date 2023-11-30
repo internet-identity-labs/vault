@@ -1,5 +1,4 @@
 extern crate core;
-#[macro_use]
 extern crate maplit;
 
 use std::cell::RefCell;
@@ -14,10 +13,10 @@ use crate::request::TransactionApproveRequest;
 use crate::state::{get_vault_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
-use crate::transaction::transaction::{ITransaction, TransactionCandid};
+use crate::transaction::transaction::TransactionCandid;
 use crate::transaction::transaction_approve_handler::handle_approve;
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
-use crate::transaction::transactions_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
+use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
 use crate::transaction_service::Approve;
 use crate::util::to_array;
 use crate::vault_service::VaultRole;
@@ -49,7 +48,7 @@ async fn init(conf: Option<Conf>) {
     };
 
     let mut mc = MemberCreateTransaction::new(
-        TransactionState::Approved, "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(), "Admin".to_string(), VaultRole::Admin,
+        TransactionState::Approved, None, "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(), "Admin".to_string(), VaultRole::Admin,
     );
     mc.get_common_mut().approves.insert(Approve {
         signer: "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(),

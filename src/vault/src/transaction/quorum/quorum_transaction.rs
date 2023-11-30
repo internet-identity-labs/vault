@@ -10,7 +10,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::quorum::quorum::Quorum;
-use crate::transaction::transaction::{TransactionCandid, ITransaction, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::vault_service::VaultRole::Admin;
 
@@ -23,9 +23,9 @@ pub struct QuorumUpdateTransaction {
 }
 
 impl QuorumUpdateTransaction {
-    fn new(state: TransactionState, quorum: u8) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, quorum: u8) -> Self {
         QuorumUpdateTransaction {
-            common: BasicTransactionFields::new(state, TrType::QuorumUpdate, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::QuorumUpdate, true),
             transaction_type: TrType::QuorumUpdate,
             quorum,
         }
@@ -35,17 +35,18 @@ impl QuorumUpdateTransaction {
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct
 QuorumUpdateTransactionRequest {
-    pub quorum: u8,
+    quorum: u8,
+    batch_uid: Option<String>,
 }
 
 pub struct QuorumUpdateTransactionBuilder {
-    quorum: u8,
+    request: QuorumUpdateTransactionRequest,
 }
 
 impl QuorumUpdateTransactionBuilder {
     pub fn init(request: QuorumUpdateTransactionRequest) -> Self {
         return QuorumUpdateTransactionBuilder {
-            quorum: request.quorum
+            request
         };
     }
 }
@@ -54,7 +55,8 @@ impl TransactionBuilder for QuorumUpdateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = QuorumUpdateTransaction::new(
             state,
-            self.quorum.clone(),
+            self.request.batch_uid.clone(),
+            self.request.quorum.clone(),
         );
         Box::new(trs)
     }
@@ -66,9 +68,6 @@ impl ITransaction for QuorumUpdateTransaction {
         if state.members.iter()
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
-            let aaa = state.members.iter()
-                .filter(|m| m.role.eq(&Admin))
-                .count();
             self.set_state(Rejected);
             state
         } else {

@@ -22,9 +22,9 @@ pub struct WalletUpdateNameTransaction {
 }
 
 impl WalletUpdateNameTransaction {
-    fn new(state: TransactionState, uid: String, transaction_type: TrType, name: String) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, uid: String, name: String) -> Self {
         WalletUpdateNameTransaction {
-            common: BasicTransactionFields::new(state, transaction_type, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::WalletUpdateName, true),
             uid,
             name,
         }
@@ -59,20 +59,19 @@ impl ITransaction for WalletUpdateNameTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct WalletUpdateNameTransactionRequest {
-    pub uid: String,
-    pub name: String,
+    uid: String,
+    name: String,
+    batch_uid: Option<String>,
 }
 
 pub struct WalletUpdateNameTransactionBuilder {
-    name: String,
-    uid: String,
+    request: WalletUpdateNameTransactionRequest,
 }
 
 impl WalletUpdateNameTransactionBuilder {
     pub fn init(request: WalletUpdateNameTransactionRequest) -> Self {
         return WalletUpdateNameTransactionBuilder {
-            name: request.name,
-            uid: request.uid,
+            request
         };
     }
 }
@@ -80,9 +79,9 @@ impl WalletUpdateNameTransactionBuilder {
 impl TransactionBuilder for WalletUpdateNameTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletUpdateNameTransaction::new(state,
-                                                   self.uid.clone(),
-                                                   TrType::WalletUpdateName,
-                                                   self.name.clone());
+                                                   self.request.batch_uid.clone(),
+                                                   self.request.uid.clone(),
+                                                   self.request.name.clone());
         Box::new(trs)
     }
 }

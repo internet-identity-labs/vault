@@ -22,10 +22,10 @@ pub struct PolicyUpdateTransaction {
 }
 
 impl PolicyUpdateTransaction {
-    fn new(uid: String, amount_threshold: u64,
-           member_threshold: u8, state: TransactionState) -> Self {
+    fn new(state: TransactionState, batch_uid: Option<String>, uid: String, amount_threshold: u64,
+           member_threshold: u8, ) -> Self {
         PolicyUpdateTransaction {
-            common: BasicTransactionFields::new(state, TrType::PolicyUpdate, true),
+            common: BasicTransactionFields::new(state, batch_uid, TrType::PolicyUpdate, true),
             uid,
             amount_threshold,
             member_threshold,
@@ -76,20 +76,17 @@ pub struct PolicyUpdateTransactionRequest {
     uid: String,
     amount_threshold: u64,
     member_threshold: u8,
+    batch_uid: Option<String>,
 }
 
 pub struct PolicyUpdateTransactionBuilder {
-    uid: String,
-    amount_threshold: u64,
-    member_threshold: u8,
+    request: PolicyUpdateTransactionRequest,
 }
 
 impl PolicyUpdateTransactionBuilder {
     pub fn init(request: PolicyUpdateTransactionRequest) -> Self {
         return PolicyUpdateTransactionBuilder {
-            uid: request.uid,
-            amount_threshold: request.amount_threshold,
-            member_threshold: request.member_threshold,
+            request
         };
     }
 }
@@ -97,10 +94,11 @@ impl PolicyUpdateTransactionBuilder {
 impl TransactionBuilder for PolicyUpdateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyUpdateTransaction::new(
-            self.uid.clone(),
-            self.amount_threshold.clone(),
-            self.member_threshold.clone(),
             state,
+            self.request.batch_uid.clone(),
+            self.request.uid.clone(),
+            self.request.amount_threshold.clone(),
+            self.request.member_threshold.clone(),
         );
         Box::new(trs)
     }
