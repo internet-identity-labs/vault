@@ -25,7 +25,7 @@ pub async fn execute_approved_transactions() {
             state = trs.execute(state).await;
             //check that rejected transaction not in batch - if so reject whole batch and rollback the state
             if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
-                let mut rejected_batch: Vec<Box<dyn ITransaction>> = unfinished_transactions.clone()
+                let mut rejected_batch: Vec<Box<dyn ITransaction>> = get_all_transactions()
                     .into_iter()
                     .filter(|t| t.get_batch_uid() == trs.get_batch_uid())
                     .map(|mut t| {

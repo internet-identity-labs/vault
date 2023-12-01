@@ -120,6 +120,22 @@ describe("Policy Transactions", () => {
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
 
+    it("UpdatePolicy only amount executed", async function () {
+        let policyCreateResponse = await requestUpdatePolicyTransaction(manager, 4, 3n, policyUid)
+        await manager.execute()
+        let expected = buildExpectedPoliceUpdateTransaction(policyCreateResponse[0], TransactionState.Executed)
+        expected.member_threshold = 4
+        expected.amount_threshold = 3n
+        let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
+        verifyPolicyUpdateTransaction(expected, tr)
+        let state = await manager.redefineState()
+        expect(state.policies.length).eq(1)
+        expect(state.policies[0].amount_threshold).eq(3n)
+        expect(state.policies[0].member_threshold).eq(4)
+        expect(state.policies[0].wallets.length).eq(1)
+        expect(state.policies[0].wallets[0]).eq(walletUid_1)
+    });
+
     it("UpdatePolicy not exist rejected", async function () {
         let policyCreateResponse = await requestUpdatePolicyTransaction(manager, 4, 4n, "policyUidNE")
         await manager.execute()
