@@ -45,6 +45,7 @@ impl ITransaction for PolicyUpdateTransaction {
             }
             Some(policy) => {
                 match state.policies.iter()
+                    .filter(|l| l.uid != self.uid)
                     .find(|pp| pp.amount_threshold.eq(&self.amount_threshold)) {
                     None => {}
                     Some(_) => {
