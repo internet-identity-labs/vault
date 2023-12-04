@@ -28,6 +28,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberUpdateRole' : IDL.Null,
         'QuorumUpdate' : IDL.Null,
         'Transfer' : IDL.Null,
+        'VaultNamingUpdate' : IDL.Null,
     });
     const Approve = IDL.Record({
         'status' : TransactionState,
@@ -68,6 +69,11 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
+    const VaultNamingUpdateTransaction = IDL.Record({
+        'name' : IDL.Opt(IDL.Text),
+        'description' : IDL.Opt(IDL.Text),
+        'common' : BasicTransactionFields,
+    });
     const PolicyRemoveTransaction = IDL.Record({
         'uid' : IDL.Text,
         'common' : BasicTransactionFields,
@@ -90,7 +96,6 @@ export const idlFactory = ({ IDL }) => {
         'common' : BasicTransactionFields,
     });
     const QuorumUpdateTransaction = IDL.Record({
-        'transaction_type' : TrType,
         'common' : BasicTransactionFields,
         'quorum' : IDL.Nat8,
     });
@@ -107,6 +112,7 @@ export const idlFactory = ({ IDL }) => {
         'WalletCreateTransactionV' : WalletCreateTransaction,
         'PolicyCreateTransactionV' : PolicyCreateTransaction,
         'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction,
+        'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction,
         'PolicyRemoveTransactionV' : PolicyRemoveTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
@@ -150,12 +156,19 @@ export const idlFactory = ({ IDL }) => {
     });
     const VaultState = IDL.Record({
         'members' : IDL.Vec(Member),
+        'name' : IDL.Opt(IDL.Text),
+        'description' : IDL.Opt(IDL.Text),
         'wallets' : IDL.Vec(Wallet),
         'quorum' : Quorum,
         'policies' : IDL.Vec(Policy),
     });
     const QuorumUpdateTransactionRequest = IDL.Record({
         'quorum' : IDL.Nat8,
+        'batch_uid' : IDL.Opt(IDL.Text),
+    });
+    const VaultNamingUpdateTransactionRequest = IDL.Record({
+        'name' : IDL.Opt(IDL.Text),
+        'description' : IDL.Opt(IDL.Text),
         'batch_uid' : IDL.Opt(IDL.Text),
     });
     const MemberUpdateNameTransactionRequest = IDL.Record({
@@ -207,6 +220,7 @@ export const idlFactory = ({ IDL }) => {
     });
     const TransactionRequest = IDL.Variant({
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,
+        'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest,
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
         'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest,

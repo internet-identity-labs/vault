@@ -123,7 +123,6 @@ export interface PolicyUpdateTransactionRequest {
 }
 export interface Quorum { 'modified_date' : bigint, 'quorum' : number }
 export interface QuorumUpdateTransaction {
-    'transaction_type' : TrType,
     'common' : BasicTransactionFields,
     'quorum' : number,
 }
@@ -141,7 +140,8 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberUpdateName' : null } |
     { 'MemberUpdateRole' : null } |
     { 'QuorumUpdate' : null } |
-    { 'Transfer' : null };
+    { 'Transfer' : null } |
+    { 'VaultNamingUpdate' : null };
 export interface TransactionApproveRequest {
     'transaction_id' : bigint,
     'state' : TransactionState,
@@ -151,6 +151,7 @@ export type TransactionCandid = {
 } |
     { 'PolicyCreateTransactionV' : PolicyCreateTransaction } |
     { 'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction } |
+    { 'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction } |
     { 'PolicyRemoveTransactionV' : PolicyRemoveTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
@@ -161,6 +162,9 @@ export type TransactionCandid = {
 export type TransactionRequest = {
     'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest
 } |
+    {
+        'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest
+    } |
     {
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest
     } |
@@ -182,10 +186,22 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Executed' : null } |
     { 'Canceled' : null } |
     { 'Pending' : null };
+export interface VaultNamingUpdateTransaction {
+    'name' : [] | [string],
+    'description' : [] | [string],
+    'common' : BasicTransactionFields,
+}
+export interface VaultNamingUpdateTransactionRequest {
+    'name' : [] | [string],
+    'description' : [] | [string],
+    'batch_uid' : [] | [string],
+}
 export type VaultRole = { 'Member' : null } |
     { 'Admin' : null };
 export interface VaultState {
     'members' : Array<Member>,
+    'name' : [] | [string],
+    'description' : [] | [string],
     'wallets' : Array<Wallet>,
     'quorum' : Quorum,
     'policies' : Array<Policy>,

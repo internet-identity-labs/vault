@@ -15,10 +15,11 @@ use crate::transaction::member::member_update_role_transaction::MemberUpdateRole
 use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
 use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
-use crate::transaction::quorum::quorum::get_quorum;
-use crate::transaction::quorum::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::transaction_builder::get_vault_state_block_predicate;
 use crate::transaction::transaction_service::is_blocked;
+use crate::transaction::vault::quorum::get_quorum;
+use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
+use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
 use crate::transaction_service::Approve;
@@ -153,6 +154,7 @@ pub enum TrType {
     PolicyUpdate,
     PolicyCreate,
     PolicyRemove,
+    VaultNamingUpdate,
     Transfer,
 }
 
@@ -160,6 +162,7 @@ pub enum TrType {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
     QuorumUpdateTransactionV(QuorumUpdateTransaction),
+    VaultNamingUpdateTransactionV(VaultNamingUpdateTransaction),
     MemberCreateTransactionV(MemberCreateTransaction),
     MemberUpdateNameTransactionV(MemberUpdateNameTransaction),
     MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
@@ -189,6 +192,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::PolicyCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::VaultNamingUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

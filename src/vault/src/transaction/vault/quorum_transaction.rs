@@ -9,7 +9,7 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::quorum::quorum::Quorum;
+use crate::transaction::vault::quorum::Quorum;
 use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::vault_service::VaultRole::Admin;
@@ -18,7 +18,6 @@ impl_basic_for_transaction!(QuorumUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct QuorumUpdateTransaction {
     pub common: BasicTransactionFields,
-    pub transaction_type: TrType,
     pub quorum: u8,
 }
 
@@ -26,7 +25,6 @@ impl QuorumUpdateTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, quorum: u8) -> Self {
         QuorumUpdateTransaction {
             common: BasicTransactionFields::new(state, batch_uid, TrType::QuorumUpdate, true),
-            transaction_type: TrType::QuorumUpdate,
             quorum,
         }
     }
