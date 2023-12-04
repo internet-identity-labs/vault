@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use crate::enums::TransactionState::Executed;
 use crate::transaction::member::members::Member;
 use crate::transaction::policy::policy::Policy;
-use crate::transaction::quorum::quorum::Quorum;
+use crate::transaction::vault::quorum::Quorum;
 use crate::transaction::transaction::ITransaction;
 use crate::transaction::transaction_service::get_all_transactions;
 use crate::transaction::wallet::wallet::Wallet;
@@ -20,7 +20,9 @@ pub struct VaultState {
     pub quorum: Quorum,
     pub wallets: Vec<Wallet>,
     pub members: Vec<Member>,
-    pub policies: Vec<Policy>
+    pub policies: Vec<Policy>,
+    pub name: Option<String>,
+    pub description: Option<String>
 }
 
 impl VaultState {
@@ -30,6 +32,8 @@ impl VaultState {
             wallets: vec![],
             members: vec![],
             policies: vec![],
+            name: None,
+            description: None
         }
     }
 }

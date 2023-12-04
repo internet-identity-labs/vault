@@ -152,7 +152,6 @@ type Quorum = record {
 };
 
 type QuorumUpdateTransaction = record {
-    transaction_type : TrType;
     common : BasicTransactionFields;
     quorum : nat8;
 };
@@ -174,6 +173,7 @@ type TrType = variant {
     MemberUpdateRole;
     QuorumUpdate;
     Transfer;
+    VaultNamingUpdate;
 };
 
 type TransactionApproveRequest = record {
@@ -185,6 +185,7 @@ type TransactionCandid = variant {
     WalletCreateTransactionV : WalletCreateTransaction;
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
+    VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
@@ -196,6 +197,7 @@ type TransactionCandid = variant {
 
 type TransactionRequest = variant {
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
+    VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
@@ -216,6 +218,18 @@ type TransactionState = variant {
     Pending;
 };
 
+type VaultNamingUpdateTransaction = record {
+    name : opt text;
+    description : opt text;
+    common : BasicTransactionFields;
+};
+
+type VaultNamingUpdateTransactionRequest = record {
+    name : opt text;
+    description : opt text;
+    batch_uid : opt text;
+};
+
 type VaultRole = variant {
     Member;
     Admin
@@ -223,6 +237,8 @@ type VaultRole = variant {
 
 type VaultState = record {
     members : vec Member;
+    name : opt text;
+    description : opt text;
     wallets : vec Wallet;
     quorum : Quorum;
     policies : vec Policy;
@@ -260,7 +276,9 @@ type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text;
     batch_uid : opt text;
-};service : (opt Conf) -> {
+};
+
+service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;

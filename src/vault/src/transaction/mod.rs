@@ -5,7 +5,7 @@ pub mod transaction_approve_handler;
 pub mod transaction_builder;
 pub mod wallet;
 pub mod basic_transaction;
-pub mod quorum;
+pub mod vault;
 pub mod member;
 pub mod policy;
 pub mod transfer;

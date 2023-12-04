@@ -10,10 +10,11 @@ use crate::transaction::member::member_update_role_transaction::{MemberUpdateRol
 use crate::transaction::policy::policy_create_transaction::{PolicyCreateTransactionBuilder, PolicyCreateTransactionRequest};
 use crate::transaction::policy::policy_remove_transaction::{PolicyRemoveTransactionBuilder, PolicyRemoveTransactionRequest};
 use crate::transaction::policy::policy_update_transaction::{PolicyUpdateTransactionBuilder, PolicyUpdateTransactionRequest};
-use crate::transaction::quorum::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
+use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transaction_service::store_transaction;
+use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
 use crate::transaction::wallet::wallet::generate_address;
 use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
 use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
@@ -29,6 +30,7 @@ pub enum TransactionRequest {
     WalletUpdateNameTransactionRequestV(WalletUpdateNameTransactionRequest),
     WalletCreateTransactionRequestV(WalletCreateTransactionRequest),
     QuorumUpdateTransactionRequestV(QuorumUpdateTransactionRequest),
+    VaultNamingUpdateTransactionRequestV(VaultNamingUpdateTransactionRequest),
     PolicyCreateTransactionRequestV(PolicyCreateTransactionRequest),
     PolicyUpdateTransactionRequestV(PolicyUpdateTransactionRequest),
     PolicyRemoveTransactionRequestV(PolicyRemoveTransactionRequest),
@@ -69,6 +71,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::PolicyRemoveTransactionRequestV(request) => {
             PolicyRemoveTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::VaultNamingUpdateTransactionRequestV(request) => {
+            VaultNamingUpdateTransactionBuilder::init(request).build()
         }
     };
 

@@ -17,6 +17,7 @@ import {
     TransactionRequest as TransactionRequestCandid,
     TransactionState as TransactionStateCandid,
     TrType,
+    VaultNamingUpdateTransaction as VaultNamingUpdateTransactionCandid,
     VaultRole as VaultRoleCandid,
     VaultState,
     Wallet as WalletCandid,
@@ -119,6 +120,7 @@ export enum TransactionType {
     MemberUpdateName = 'MemberUpdateName',
     MemberUpdateRole = 'MemberUpdateRole',
     QuorumUpdate = 'QuorumUpdate',
+    VaultNamingUpdate = 'VaultNamingUpdate',
     Transfer = 'Transfer'
 }
 
@@ -187,6 +189,8 @@ export class Vault {
     quorum: Quorum
     wallets: Array<Wallet>
     policies: Array<Policy>
+    name?: string
+    description?: string
 }
 
 
@@ -230,6 +234,11 @@ export interface QuorumUpdateTransaction extends Transaction {
     quorum: number
 }
 
+export interface VaultUpdateNamingTransaction extends Transaction {
+    name?: string
+    description?: string
+}
+
 export interface WalletCreateTransaction extends Transaction {
     name: string,
     network: Network,
@@ -267,10 +276,12 @@ function vaultCandidToVault(vaultCandid: VaultState): Vault {
     }
     let wallets: Array<Wallet> = vaultCandid.wallets.map(mapWallet)
     let policies: Array<Policy> = vaultCandid.policies.map(mapPolicy)
-
+    let name = vaultCandid.name.length === 0 ? undefined : vaultCandid.name[0]
+    let description = vaultCandid.description.length === 0 ? undefined : vaultCandid.description[0]
     let v: Vault = {
-        members: members, quorum: quorum, wallets, policies
+        members: members, quorum: quorum, wallets, policies, name, description
     }
+
     return v
 }
 
@@ -344,6 +355,24 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             isVaultState: mmm.common.is_vault_state,
             modifiedDate: mmm.common.modified_date,
             quorum: mmm.quorum,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "VaultNamingUpdateTransactionV")) {
+        let mmm = trs.VaultNamingUpdateTransactionV as VaultNamingUpdateTransactionCandid
+        let t: VaultUpdateNamingTransaction = {
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            name: mmm.name.length === 0 ? undefined : mmm.name[0],
+            description: mmm.description.length === 0 ? undefined : mmm.description[0],
             state: candidToTransactionState(mmm.common.state),
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
@@ -580,6 +609,29 @@ export class QuorumTransactionRequest implements TransactionRequest {
         return {
             QuorumUpdateTransactionRequestV: {
                 quorum: this.quorum,
+                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+            }
+        }
+    }
+}
+
+export class VaultNamingTransactionRequest implements TransactionRequest {
+    name: string | undefined
+    description: string | undefined
+    batch_uid: string | undefined
+
+
+    constructor(name?: string, description?: string, batch_uid?: string) {
+        this.name = name
+        this.description = description
+        this.batch_uid = batch_uid
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            VaultNamingUpdateTransactionRequestV: {
+                name: this.name !== undefined ? [this.name] : [],
+                description: this.description !== undefined ? [this.description] : [],
                 batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
             }
         }
