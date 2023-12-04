@@ -145,6 +145,25 @@ describe("Approve Handler Transactions", () => {
         }
     });
 
+    it("Trs blocked and then executed", async function () {
+        let tr_id = (await requestCreateMemberTransaction(manager1, "1", "1", VaultRole.MEMBER))[0].id
+        let tr_id2 = (await requestCreateMemberTransaction(manager1, "2", "2", VaultRole.MEMBER))[0].id
+        await manager1.execute();
+        let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id2));
+        expect(tr.state).eq(TransactionState.Blocked);
+        let approve: ApproveRequest = {
+            tr_id,
+            state: TransactionState.Approved
+        }
+        await manager2.approveTransaction([approve])
+        await manager3.approveTransaction([approve])
+        await manager1.execute();
+        tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id2));
+        let tr1 = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
+        expect(tr1.state).eq(TransactionState.Executed);
+        expect(tr.state).eq(TransactionState.Pending);
+    });
+
 
 })
 
