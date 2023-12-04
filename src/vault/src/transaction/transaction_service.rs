@@ -18,9 +18,9 @@ pub async fn execute_approved_transactions() {
     unfinished_transactions.sort();
     let mut state = get_current_state();
     while let Some(mut trs) = unfinished_transactions.pop() {
+        let state_before = trs.get_state().clone();
         trs.define_state();
-        print(trs.get_id().to_string());
-        print(trs.get_state().to_string());
+
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
             //check that rejected transaction not in batch - if so reject whole batch and rollback the state
@@ -38,9 +38,10 @@ pub async fn execute_approved_transactions() {
                 let id_before_reject = rejected_batch[0].get_id() - 1;
                 state = get_vault_state(Some(id_before_reject)).await;
                 restore_trs(rejected_batch);
-            } else {
-                restore_transaction(trs);
             }
+        }
+        if !state_before.eq(trs.get_state()) {
+            restore_transaction(trs);
         }
     }
     restore_state(state);
