@@ -7,7 +7,6 @@ pub trait TransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction>;
     fn build(&mut self) -> Box<dyn ITransaction> {
         let trs = self.build_dyn_transaction(Blocked);
-        verify_caller(trs.get_accepted_roles());
         trs
     }
 }
