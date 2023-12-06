@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use candid::CandidType;
-use ic_cdk::{print, storage, trap};
+use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
@@ -110,7 +110,7 @@ pub fn get_all_transactions() -> Vec<Box<dyn ITransaction>> {
     });
 }
 
-pub fn is_blocked<F>(mut f: F) -> bool
+pub fn is_blocked<F>(f: F) -> bool
                      where
                          F: FnMut(&Box<dyn ITransaction>) -> bool,
 {

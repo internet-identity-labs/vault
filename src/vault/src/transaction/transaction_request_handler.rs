@@ -10,15 +10,16 @@ use crate::transaction::member::member_update_role_transaction::{MemberUpdateRol
 use crate::transaction::policy::policy_create_transaction::{PolicyCreateTransactionBuilder, PolicyCreateTransactionRequest};
 use crate::transaction::policy::policy_remove_transaction::{PolicyRemoveTransactionBuilder, PolicyRemoveTransactionRequest};
 use crate::transaction::policy::policy_update_transaction::{PolicyUpdateTransactionBuilder, PolicyUpdateTransactionRequest};
-use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
+use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transaction_service::store_transaction;
+use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuilder, TransferTransactionRequest};
+use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
 use crate::transaction::wallet::wallet::generate_address;
 use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
 use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
-use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
@@ -34,6 +35,7 @@ pub enum TransactionRequest {
     PolicyCreateTransactionRequestV(PolicyCreateTransactionRequest),
     PolicyUpdateTransactionRequestV(PolicyUpdateTransactionRequest),
     PolicyRemoveTransactionRequestV(PolicyRemoveTransactionRequest),
+    TransferTransactionRequestV(TransferTransactionRequest),
 }
 
 
@@ -74,6 +76,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::VaultNamingUpdateTransactionRequestV(request) => {
             VaultNamingUpdateTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::TransferTransactionRequestV(request) => {
+            TransferTransactionBuilder::init(request).build()
         }
     };
 

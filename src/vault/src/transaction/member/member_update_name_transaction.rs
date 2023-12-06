@@ -32,7 +32,7 @@ impl MemberUpdateNameTransaction {
 
 #[async_trait]
 impl ITransaction for MemberUpdateNameTransaction {
-    async fn execute(&mut self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, state: VaultState) -> VaultState {
         match state.members.iter()
             .find(|x| x.member_id.eq(&self.member_id)) {
             None => {

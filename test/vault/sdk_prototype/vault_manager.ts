@@ -2,6 +2,7 @@ import {
     Approve as ApproveCandid,
     Member,
     MemberCreateTransaction as MemberCreateTransactionCandid,
+    TransferTransaction as TransferTransactionCandid,
     MemberRemoveTransaction as MemberRemoveTransactionCandid,
     MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
@@ -263,6 +264,13 @@ export interface PolicyRemoveTransaction extends Transaction {
     uid: string,
 }
 
+export interface TransferTransaction extends Transaction {
+    currency: Currency,
+    address: string,
+    wallet: string,
+    amount: bigint,
+}
+
 export interface WalletUpdateNameTransaction extends Transaction {
     name: string,
     uid: string
@@ -505,7 +513,8 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             modifiedDate: mmm.common.modified_date,
             state: candidToTransactionState(mmm.common.state),
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
-            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+            memo: mmm.common.memo.length === 0 ? undefined : mmm.common.memo[0]
         }
         return t;
     }
@@ -542,6 +551,27 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             state: candidToTransactionState(mmm.common.state),
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "TransferTransactionV")) {
+        let mmm = trs.TransferTransactionV as TransferTransactionCandid
+        let t: TransferTransaction = {
+            address: mmm.address,
+            amount: mmm.amount,
+            currency: Currency.ICP, //TODO
+            wallet: mmm.wallet,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+            memo: mmm.common.memo.length === 0 ? undefined : mmm.common.memo[0]
         }
         return t;
     }
@@ -633,6 +663,33 @@ export class VaultNamingTransactionRequest implements TransactionRequest {
                 name: this.name !== undefined ? [this.name] : [],
                 description: this.description !== undefined ? [this.description] : [],
                 batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+            }
+        }
+    }
+}
+
+export class TransferTransactionRequest implements TransactionRequest {
+    'currency': Currency;
+    'address': string;
+    'wallet': string;
+    'amount': bigint;
+
+
+    constructor(currency: Currency, address: string, wallet: string, amount: bigint) {
+        this.currency = currency
+        this.address = address
+        this.wallet = wallet
+        this.amount = amount
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            TransferTransactionRequestV: {
+                //TODO
+                currency: { 'ICP' : null },
+                address: this.address,
+                wallet: this.wallet,
+                amount: this.amount
             }
         }
     }

@@ -51,7 +51,16 @@ impl ITransaction for PolicyCreateTransaction {
             }
         }
 
-        match state.policies.iter().find(|policy| policy.amount_threshold.eq(&self.amount_threshold)) {
+        match state.policies.iter()
+            .filter(|policy| {
+                for w in policy.wallets.clone() {
+                    if self.wallets.contains(&w) {
+                        return true;
+                    }
+                }
+                return false;
+            })
+            .find(|policy| policy.amount_threshold.eq(&self.amount_threshold)) {
             None => {}
             Some(_) => {
                 self.set_state(Rejected);

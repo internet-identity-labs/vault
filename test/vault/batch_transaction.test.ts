@@ -9,9 +9,9 @@ import {
     VaultRole
 } from "./sdk_prototype/vault_manager";
 import {execute} from "../util/call.util";
-import {getTransactionByIdFromGetAllTrs} from "./member_transactions.test";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
+import {getTransactionByIdFromGetAllTrs} from "./helper";
 
 require('./bigintExtension.js');
 

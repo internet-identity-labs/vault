@@ -3,9 +3,8 @@ import {getIdentity} from "../util/deployment.util";
 import {VaultManager, VaultRole} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
-import {requestCreateMemberTransaction} from "./member_transactions.test";
 import {expect} from "chai";
-import {requestUpdateQuorumTransaction} from "./quorum_transactions.test";
+import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
 
 require('./bigintExtension.js');
 
@@ -16,6 +15,7 @@ describe("State Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
+        await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
         manager = new VaultManager();

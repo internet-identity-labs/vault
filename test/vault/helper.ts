@@ -1,0 +1,107 @@
+import {
+    Approve, Currency,
+    MemberCreateTransactionRequest,
+    MemberRemoveTransactionRequest,
+    MemberUpdateNameTransactionRequest,
+    MemberUpdateRoleTransactionRequest,
+    PolicyCreateTransactionRequest,
+    PolicyRemoveTransactionRequest,
+    PolicyUpdateTransactionRequest,
+    QuorumTransactionRequest,
+    Transaction,
+    TransactionState, TransferTransactionRequest,
+    VaultNamingTransactionRequest, WalletCreateTransactionRequest, WalletUpdateNameTransactionRequest
+} from "./sdk_prototype/vault_manager";
+import {expect} from "chai";
+
+
+export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
+    expect(expected.state).eq(actual.state)
+    expect(expected.batchUid).eq(actual.batchUid)
+    expect(expected.initiator).eq(actual.initiator)
+    expect(expected.isVaultState).eq(true)
+    expect(expected.transactionType).eq(trType)
+    expect(expected.memo).eq(actual.memo)
+    expect(expected.approves.length).eq(actual.approves.length)
+    if (expected.state === TransactionState.Blocked) {
+        expect(undefined).eq(actual.threshold)
+    } else {
+        expect(expected.threshold).eq(actual.threshold)
+    }
+    for (const app of expected.approves) {
+        const found = actual.approves.find((l) => l.signer === app.signer);
+        verifyApprove(app, found)
+    }
+}
+
+export async function requestCreatePolicyTransaction(manager, membersTr, amountTr, wallets): Promise<Array<Transaction>> {
+    let transactionRequest = new PolicyCreateTransactionRequest(membersTr, amountTr, wallets);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestRemovePolicyTransaction(manager, uid): Promise<Array<Transaction>> {
+    let transactionRequest = new PolicyRemoveTransactionRequest(uid);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestUpdatePolicyTransaction(manager, membersTr, amountTr, uid): Promise<Array<Transaction>> {
+    let transactionRequest = new PolicyUpdateTransactionRequest(uid, membersTr, amountTr);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberCreateTransactionRequest(memberAddress, memberName, memberRole);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestUpdateMemberNameTransaction(manager, memberAddress, memberName): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberUpdateNameTransactionRequest(memberAddress, memberName);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestUpdateMemberRoleTransaction(manager, memberAddress, transactionRequestole): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberUpdateRoleTransactionRequest(memberAddress, transactionRequestole);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestRemoveMemberTransaction(manager, memberAddress): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberRemoveTransactionRequest(memberAddress);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function getTransactionByIdFromGetAllTrs(manager, trId) {
+    let transactions = await manager.getTransactions();
+    let tr = transactions.find(l => l.id === trId);
+    return tr;
+}
+
+export async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
+    let memberR = new QuorumTransactionRequest(quorum);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestUpdateVaultNamingTransaction(manager, name?, description?): Promise<Array<Transaction>> {
+    let memberR = new VaultNamingTransactionRequest(name, description);
+    return await manager.requestTransaction([memberR])
+}
+
+
+export async function requestUpdateWalletNameTransaction(manager, uid, walletName): Promise<Array<Transaction>> {
+    let memberR = new WalletUpdateNameTransactionRequest(walletName, uid);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestCreateWalletTransaction(manager, walletName, network): Promise<Array<Transaction>> {
+    let memberR = new WalletCreateTransactionRequest(walletName, network);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestTransferTransaction(manager, address, wallet, amount): Promise<Array<Transaction>> {
+    let memberR = new TransferTransactionRequest(Currency.ICP, address, wallet, amount);
+    return await manager.requestTransaction([memberR])
+}
+
+export function verifyApprove(expected: Approve, actual: Approve) {
+    expect(expected.status).eq(actual.status)
+    expect(expected.signer).eq(actual.signer)
+}
