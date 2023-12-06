@@ -15,7 +15,7 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 impl_basic_for_transaction!(PolicyUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct PolicyUpdateTransaction {
-    pub common: BasicTransactionFields,
+    common: BasicTransactionFields,
     uid: String,
     amount_threshold: u64,
     member_threshold: u8,

@@ -17,9 +17,9 @@ use crate::vault_service::VaultRole::Admin;
 impl_basic_for_transaction!(MemberUpdateRoleTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct MemberUpdateRoleTransaction {
-    pub common: BasicTransactionFields,
-    pub member_id: String,
-    pub role: VaultRole,
+    common: BasicTransactionFields,
+    member_id: String,
+    role: VaultRole,
 }
 
 impl MemberUpdateRoleTransaction {
@@ -67,7 +67,7 @@ impl TransactionBuilder for MemberUpdateRoleTransactionBuilder {
 impl ITransaction for MemberUpdateRoleTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
         match state.members.iter()
-            .find(|x| x.member_id.eq(&self.member_id)) {
+            .find(|mbr| mbr.member_id.eq(&self.member_id)) {
             None => {
                 self.set_state(Rejected);
                 self.common.memo = Some("No such member".to_string());

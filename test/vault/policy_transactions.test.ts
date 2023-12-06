@@ -79,13 +79,14 @@ describe("Policy Transactions", () => {
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
 
-    it("CreatePolicy rejected because of unexist wallet", async function () {
+    it("CreatePolicy rejected because of nonexistent wallet", async function () {
         let policyCreateResponse = await requestCreatePolicyTransaction(manager, 3, 3n, ["test_unex_uid"])
         await manager.execute()
         let expected = buildExpectedPoliceCreateTransaction(policyCreateResponse[0], TransactionState.Rejected)
         expected.wallets = ["test_unex_uid"]
         expected.member_threshold = 3
         expected.amount_threshold = 3n
+        expected.memo = "Wallet not exists"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyCreateTransaction(expected, tr)
         let state = await manager.redefineState()
@@ -99,6 +100,7 @@ describe("Policy Transactions", () => {
         expected.wallets = [walletUid_1]
         expected.member_threshold = 3
         expected.amount_threshold = 2n
+        expected.memo = "Threshold already exists"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyCreateTransaction(expected, tr)
         let state = await manager.redefineState()

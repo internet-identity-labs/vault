@@ -15,9 +15,9 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 impl_basic_for_transaction!(MemberUpdateNameTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct MemberUpdateNameTransaction {
-    pub common: BasicTransactionFields,
-    pub member_id: String,
-    pub name: String,
+    common: BasicTransactionFields,
+    member_id: String,
+    name: String,
 }
 
 impl MemberUpdateNameTransaction {

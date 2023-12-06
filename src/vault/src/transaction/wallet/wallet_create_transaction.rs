@@ -15,10 +15,10 @@ use crate::transaction::wallet::wallet::Wallet;
 impl_basic_for_transaction!(WalletCreateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct WalletCreateTransaction {
-    pub common: BasicTransactionFields,
-    pub uid: String,
-    pub name: String,
-    pub network: Network,
+    common: BasicTransactionFields,
+    uid: String,
+    name: String,
+    network: Network,
 }
 
 impl WalletCreateTransaction {

@@ -3,7 +3,6 @@ use std::cmp::Ordering;
 
 use async_trait::async_trait;
 use candid::CandidType;
-use ic_cdk::print;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
@@ -74,7 +73,13 @@ pub trait ITransaction: BasicTransaction {
     }
 
     fn get_block_predicate(&mut self, tr: &Box<dyn ITransaction>) -> bool {
-        return get_vault_state_block_predicate(tr) && tr.get_id() < self.get_id();
+        if tr.get_id() >= self.get_id() {
+            return false;
+        }
+        if get_vault_state_block_predicate(tr) {
+            return true;
+        }
+        false
     }
 
     fn define_threshold(&mut self) -> Result<u8, String> {

@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use candid::CandidType;
-use ic_cdk::print;
 use ic_ledger_types::BlockIndex;
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +16,7 @@ use crate::transfer_service::transfer;
 impl_basic_for_transaction!(TransferTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct TransferTransaction {
-    pub common: BasicTransactionFields,
+    common: BasicTransactionFields,
     policy: Option<String>,
     wallet: String,
     block_index: Option<BlockIndex>,
@@ -47,18 +46,12 @@ impl ITransaction for TransferTransaction {
         if tr.get_id() >= self.get_id() {
             return false;
         }
-
         if get_vault_state_block_predicate(tr) {
             return true;
         }
-
         if let TransactionCandid::TransferTransactionV(transfer) = tr.to_candid() {
-            print("Зашли");
-            print((transfer.wallet == self.wallet).to_string());
             return transfer.wallet == self.wallet;
         }
-        print("Вышли");
-
         false
     }
 

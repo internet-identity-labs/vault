@@ -15,7 +15,7 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 impl_basic_for_transaction!(PolicyCreateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct PolicyCreateTransaction {
-    pub common: BasicTransactionFields,
+    common: BasicTransactionFields,
     uid: String,
     currency: Currency,
     amount_threshold: u64,

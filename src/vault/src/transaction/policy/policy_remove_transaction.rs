@@ -14,7 +14,7 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 impl_basic_for_transaction!(PolicyRemoveTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct PolicyRemoveTransaction {
-    pub common: BasicTransactionFields,
+    common: BasicTransactionFields,
     uid: String,
 }
 

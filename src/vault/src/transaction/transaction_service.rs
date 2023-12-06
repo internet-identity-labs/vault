@@ -90,14 +90,13 @@ pub fn get_by_id(transaction_id: u64) -> Box<dyn ITransaction> {
 
 pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
-        let a = utrs.borrow_mut();
-        let trs = TransactionIterator::new(a);
-        let tt: Vec<Box<dyn ITransaction>> = trs.into_iter()
+        let trss = utrs.borrow_mut();
+        let trs = TransactionIterator::new(trss);
+        trs.into_iter()
             .filter(|t| {
-                ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Canceled].contains(t.get_state())
+                ![TransactionState::Executed, TransactionState::Rejected].contains(t.get_state())
             })
-            .collect();
-        tt
+            .collect()
     });
 }
 
@@ -160,7 +159,7 @@ pub async fn stable_restore() {
     trs.sort();
     for transaction in &trs {
         if transaction.is_vault_state() && transaction.get_state().eq(&Executed) {
-            //TODO
+            //TODO get rid of this clone()
             state = transaction.clone().execute(state).await;
         }
     }
