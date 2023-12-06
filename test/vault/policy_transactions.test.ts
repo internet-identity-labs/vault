@@ -7,12 +7,8 @@ import {
     Currency,
     Network,
     PolicyCreateTransaction,
-    PolicyCreateTransactionRequest,
     PolicyRemoveTransaction,
-    PolicyRemoveTransactionRequest,
     PolicyUpdateTransaction,
-    PolicyUpdateTransactionRequest,
-    Transaction,
     TransactionState,
     TransactionType,
     VaultManager,
@@ -20,9 +16,13 @@ import {
 } from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
-import {getTransactionByIdFromGetAllTrs, verifyTransaction} from "./member_transactions.test";
-import {requestCreateWalletTransaction} from "./wallet_transactions.test";
 import {expect} from "chai";
+import {
+    getTransactionByIdFromGetAllTrs,
+    requestCreatePolicyTransaction, requestCreateWalletTransaction,
+    requestRemovePolicyTransaction,
+    requestUpdatePolicyTransaction, verifyTransaction
+} from "./helper";
 
 require('./bigintExtension.js');
 
@@ -35,6 +35,7 @@ describe("Policy Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
+        await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         const admin = getIdentity("87654321876543218765432187654321");
         const member = getIdentity("87654321876543218765432187654320");
@@ -173,7 +174,7 @@ describe("Policy Transactions", () => {
     it("RemovePolicy not exist rejected", async function () {
         let policyRemoveResponse = await requestRemovePolicyTransaction(manager, "nonexistentUID")
         await manager.execute()
-        let expected = buildExpectedPolicyRemoveTransaction(policyRemoveResponse[0], TransactionState.Rejected)
+        let expected = buildExpectedPolicyRemoveTransaction(TransactionState.Rejected)
         expected.uid = "nonexistentUID"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
@@ -184,7 +185,7 @@ describe("Policy Transactions", () => {
     it("RemovePolicy executed", async function () {
         let policyRemoveResponse = await requestRemovePolicyTransaction(manager, policyUid2)
         await manager.execute()
-        let expected = buildExpectedPolicyRemoveTransaction(policyRemoveResponse[0], TransactionState.Executed)
+        let expected = buildExpectedPolicyRemoveTransaction(TransactionState.Executed)
         expected.uid = policyUid2
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
@@ -246,21 +247,21 @@ describe("Policy Transactions", () => {
     }
 
 
-    function buildExpectedPolicyRemoveTransaction(actualTr, state) {
+    function buildExpectedPolicyRemoveTransaction(state) {
         let expectedApprove: Approve = {
-            createdDate: actualTr.approves[0].createdDate,
+            createdDate: 0n,
             signer: principalToAddress(admin_identity.getPrincipal() as any),
             status: TransactionState.Approved
         }
 
         let expectedTrs: PolicyRemoveTransaction = {
-            modifiedDate: actualTr.modifiedDate,
-            uid: actualTr.uid,
+            modifiedDate: 0n,
+            uid: "",
             threshold: 1,
             approves: [expectedApprove],
             batchUid: undefined,
-            createdDate: actualTr.createdDate,
-            id: actualTr.id,
+            createdDate: 0n,
+            id: 0n,
             initiator: principalToAddress(admin_identity.getPrincipal() as any),
             isVaultState: true,
             state,
@@ -297,22 +298,6 @@ export function verifyPolicyUpdateTransaction(expected: PolicyUpdateTransaction,
 export function verifyPolicyRemoveTransaction(expected: PolicyRemoveTransaction, actual: PolicyRemoveTransaction) {
     expect(expected.uid).eq(actual.uid)
     verifyTransaction(expected, actual, TransactionType.PolicyUpdate)
-}
-
-export async function requestCreatePolicyTransaction(manager, membersTr, amountTr, wallets): Promise<Array<Transaction>> {
-    let memberR = new PolicyCreateTransactionRequest(membersTr, amountTr, wallets);
-    return await manager.requestTransaction([memberR])
-}
-
-export async function requestRemovePolicyTransaction(manager, uid): Promise<Array<Transaction>> {
-    let memberR = new PolicyRemoveTransactionRequest(uid);
-    return await manager.requestTransaction([memberR])
-}
-
-
-export async function requestUpdatePolicyTransaction(manager, membersTr, amountTr, uid): Promise<Array<Transaction>> {
-    let memberR = new PolicyUpdateTransactionRequest(uid, membersTr, amountTr);
-    return await manager.requestTransaction([memberR])
 }
 
 

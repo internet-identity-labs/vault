@@ -170,10 +170,10 @@ type TrType = variant {
     MemberRemove;
     PolicyUpdate;
     MemberUpdateName;
+    VaultNamingUpdate;
     MemberUpdateRole;
     QuorumUpdate;
     Transfer;
-    VaultNamingUpdate;
 };
 
 type TransactionApproveRequest = record {
@@ -188,6 +188,7 @@ type TransactionCandid = variant {
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
+    TransferTransactionV : TransferTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
@@ -202,6 +203,7 @@ type TransactionRequest = variant {
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
+    TransferTransactionRequestV : TransferTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
@@ -216,6 +218,23 @@ type TransactionState = variant {
     Executed;
     Canceled;
     Pending;
+};
+
+type TransferTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
+};
+
+type TransferTransactionRequest = record {
+    currency : Currency;
+    address : text;
+    wallet : text;
+    amount : nat64;
 };
 
 type VaultNamingUpdateTransaction = record {
@@ -276,9 +295,7 @@ type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text;
     batch_uid : opt text;
-};
-
-service : (opt Conf) -> {
+};service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;

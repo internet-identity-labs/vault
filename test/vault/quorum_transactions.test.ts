@@ -4,7 +4,6 @@ import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
 import {
     Approve,
-    QuorumTransactionRequest,
     QuorumUpdateTransaction,
     Transaction,
     TransactionState,
@@ -18,8 +17,8 @@ import {execute} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
-    verifyTransaction
-} from "./member_transactions.test";
+    requestUpdateQuorumTransaction, verifyTransaction
+} from "./helper";
 
 require('./bigintExtension.js');
 
@@ -32,7 +31,7 @@ describe("Quorum Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        // await console.log(execute(`./test/resource/ledger.sh`))
+        await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         const admin = getIdentity("87654321876543218765432187654321");
         const member = getIdentity("87654321876543218765432187654320");
@@ -52,7 +51,7 @@ describe("Quorum Transactions", () => {
         let trId = trReqResp[0].id
         await manager.execute();
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
-        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(tr, TransactionState.Rejected, 2)
+        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Rejected, 2)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
         let state = await manager.redefineState();
         expect(state.quorum.quorum).eq(1)
@@ -64,7 +63,7 @@ describe("Quorum Transactions", () => {
         let trReqResp: Array<Transaction> = await requestUpdateQuorumTransaction(manager, 2)
         let trId = trReqResp[0].id
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
-        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(tr, TransactionState.Approved, 2)
+        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Approved, 2)
         verifyQuorumUpdateTransaction(tr as QuorumUpdateTransaction, trReqResp[0] as QuorumUpdateTransaction)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
         await manager.execute();
@@ -73,20 +72,20 @@ describe("Quorum Transactions", () => {
     });
 
 
-    function buildExpectedQuorumTransaction(actualTr, state, quorum) {
+    function buildExpectedQuorumTransaction(state, quorum) {
         let expectedApprove: Approve = {
-            createdDate: actualTr.approves[0].createdDate,
+            createdDate: 0n,
             signer: principalToAddress(admin_identity.getPrincipal() as any),
             status: TransactionState.Approved
         }
         let expectedTrs: QuorumUpdateTransaction = {
-            modifiedDate: actualTr.modifiedDate,
+            modifiedDate: 0n,
             quorum: quorum,
             threshold: 1,
             approves: [expectedApprove],
             batchUid: undefined,
-            createdDate: actualTr.createdDate,
-            id: actualTr.id,
+            createdDate: 0n,
+            id: 0n,
             initiator: principalToAddress(admin_identity.getPrincipal() as any),
             isVaultState: true,
             state,
@@ -96,11 +95,6 @@ describe("Quorum Transactions", () => {
     }
 
 })
-
-export async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
-    let memberR = new QuorumTransactionRequest(quorum);
-    return await manager.requestTransaction([memberR])
-}
 
 function verifyQuorumUpdateTransaction(expected: QuorumUpdateTransaction, actual: QuorumUpdateTransaction) {
     expect(expected.quorum).eq(actual.quorum)

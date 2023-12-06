@@ -25,10 +25,10 @@ export const idlFactory = ({ IDL }) => {
         'MemberRemove' : IDL.Null,
         'PolicyUpdate' : IDL.Null,
         'MemberUpdateName' : IDL.Null,
+        'VaultNamingUpdate' : IDL.Null,
         'MemberUpdateRole' : IDL.Null,
         'QuorumUpdate' : IDL.Null,
         'Transfer' : IDL.Null,
-        'VaultNamingUpdate' : IDL.Null,
     });
     const Approve = IDL.Record({
         'status' : TransactionState,
@@ -84,6 +84,15 @@ export const idlFactory = ({ IDL }) => {
         'amount_threshold' : IDL.Nat64,
         'common' : BasicTransactionFields,
     });
+    const TransferTransaction = IDL.Record({
+        'block_index' : IDL.Opt(IDL.Nat64),
+        'currency' : Currency,
+        'address' : IDL.Text,
+        'wallet' : IDL.Text,
+        'common' : BasicTransactionFields,
+        'amount' : IDL.Nat64,
+        'policy' : IDL.Opt(IDL.Text),
+    });
     const MemberCreateTransaction = IDL.Record({
         'name' : IDL.Text,
         'role' : VaultRole,
@@ -115,6 +124,7 @@ export const idlFactory = ({ IDL }) => {
         'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction,
         'PolicyRemoveTransactionV' : PolicyRemoveTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
+        'TransferTransactionV' : TransferTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
@@ -191,6 +201,12 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'batch_uid' : IDL.Opt(IDL.Text),
     });
+    const TransferTransactionRequest = IDL.Record({
+        'currency' : Currency,
+        'address' : IDL.Text,
+        'wallet' : IDL.Text,
+        'amount' : IDL.Nat64,
+    });
     const MemberUpdateRoleTransactionRequest = IDL.Record({
         'role' : VaultRole,
         'member_id' : IDL.Text,
@@ -225,6 +241,7 @@ export const idlFactory = ({ IDL }) => {
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
         'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest,
         'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest,
+        'TransferTransactionRequestV' : TransferTransactionRequest,
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest,
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest,
         'PolicyUpdateTransactionRequestV' : PolicyUpdateTransactionRequest,

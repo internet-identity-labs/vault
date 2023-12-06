@@ -138,10 +138,10 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberRemove' : null } |
     { 'PolicyUpdate' : null } |
     { 'MemberUpdateName' : null } |
+    { 'VaultNamingUpdate' : null } |
     { 'MemberUpdateRole' : null } |
     { 'QuorumUpdate' : null } |
-    { 'Transfer' : null } |
-    { 'VaultNamingUpdate' : null };
+    { 'Transfer' : null };
 export interface TransactionApproveRequest {
     'transaction_id' : bigint,
     'state' : TransactionState,
@@ -154,6 +154,7 @@ export type TransactionCandid = {
     { 'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction } |
     { 'PolicyRemoveTransactionV' : PolicyRemoveTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
+    { 'TransferTransactionV' : TransferTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
@@ -171,6 +172,7 @@ export type TransactionRequest = {
     { 'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest } |
     { 'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest } |
     { 'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest } |
+    { 'TransferTransactionRequestV' : TransferTransactionRequest } |
     {
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest
     } |
@@ -186,6 +188,21 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Executed' : null } |
     { 'Canceled' : null } |
     { 'Pending' : null };
+export interface TransferTransaction {
+    'block_index' : [] | [bigint],
+    'currency' : Currency,
+    'address' : string,
+    'wallet' : string,
+    'common' : BasicTransactionFields,
+    'amount' : bigint,
+    'policy' : [] | [string],
+}
+export interface TransferTransactionRequest {
+    'currency' : Currency,
+    'address' : string,
+    'wallet' : string,
+    'amount' : bigint,
+}
 export interface VaultNamingUpdateTransaction {
     'name' : [] | [string],
     'description' : [] | [string],

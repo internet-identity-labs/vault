@@ -5,13 +5,9 @@ import {ActorMethod} from "@dfinity/agent";
 import {
     Approve,
     MemberCreateTransaction,
-    MemberCreateTransactionRequest,
     MemberRemoveTransaction,
-    MemberRemoveTransactionRequest,
     MemberUpdateNameTransaction,
-    MemberUpdateNameTransactionRequest,
     MemberUpdateRoleTransaction,
-    MemberUpdateRoleTransactionRequest,
     Transaction,
     TransactionState,
     TransactionType,
@@ -21,6 +17,14 @@ import {
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
+import {
+    getTransactionByIdFromGetAllTrs,
+    requestCreateMemberTransaction,
+    requestRemoveMemberTransaction,
+    requestUpdateMemberNameTransaction,
+    requestUpdateMemberRoleTransaction,
+    verifyTransaction
+} from "./helper";
 
 require('./bigintExtension.js');
 
@@ -33,7 +37,7 @@ describe("Member Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        // await console.log(execute(`./test/resource/ledger.sh`))
+        await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
 
         const member = getIdentity("87654321876543218765432187654320");
@@ -64,7 +68,7 @@ describe("Member Transactions", () => {
 
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         //build transaction with expected fields but copy id and dates
-        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(tr, TransactionState.Approved)
+        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(TransactionState.Approved)
         //verify transaction from the response
         verifyCreateMemberTransaction(tr as MemberCreateTransaction, trReqResp[0] as MemberCreateTransaction)
         //verify transaction from the getAll
@@ -78,7 +82,7 @@ describe("Member Transactions", () => {
         expect(member.role).eq(VaultRole.MEMBER)
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId)
-        expectedTrs = buildExpectedCreateMemberTransaction(tr, TransactionState.Executed)
+        expectedTrs = buildExpectedCreateMemberTransaction(TransactionState.Executed)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
     });
 
@@ -92,7 +96,7 @@ describe("Member Transactions", () => {
         await manager.execute()
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId);
-        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(tr, TransactionState.Rejected)
+        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(TransactionState.Rejected)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
 
         let state = await manager.redefineState();
@@ -108,7 +112,7 @@ describe("Member Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
         verifyCreateMemberTransaction(tr as MemberCreateTransaction, trReqRespBlocked[0] as MemberCreateTransaction)
 
-        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(tr, TransactionState.Blocked)
+        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(TransactionState.Blocked)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId)
@@ -119,7 +123,7 @@ describe("Member Transactions", () => {
 
         await manager.execute();
         tr = await getTransactionByIdFromGetAllTrs(manager, approvedButNotExecuted[0].id);
-        expectedTrs = buildExpectedCreateMemberTransaction(tr, TransactionState.Executed)
+        expectedTrs = buildExpectedCreateMemberTransaction(TransactionState.Executed)
         expectedTrs.memberId = memberAddress2
 
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
@@ -322,9 +326,9 @@ describe("Member Transactions", () => {
     }
 
 
-    function buildExpectedCreateMemberTransaction(actualTr, state) {
+    function buildExpectedCreateMemberTransaction(state) {
         let expectedApprove: Approve = {
-            createdDate: actualTr.approves[0].createdDate,
+            createdDate: 0n,
             signer: principalToAddress(admin_identity.getPrincipal() as any),
             status: TransactionState.Approved
         }
@@ -332,12 +336,12 @@ describe("Member Transactions", () => {
             threshold: 1,
             approves: [expectedApprove],
             batchUid: undefined,
-            createdDate: actualTr.createdDate,
-            id: actualTr.id,
+            createdDate: 0n,
+            id: 0n,
             initiator: principalToAddress(admin_identity.getPrincipal() as any),
             isVaultState: true,
             memberId: memberAddress,
-            modifiedDate: actualTr.modifiedDate,
+            modifiedDate: 0n,
             name: memberName,
             role: memberRole,
             state,
@@ -347,21 +351,6 @@ describe("Member Transactions", () => {
     }
 
 })
-
-async function requestUpdateMemberNameTransaction(manager, memberAddress, memberName): Promise<Array<Transaction>> {
-    let memberR = new MemberUpdateNameTransactionRequest(memberAddress, memberName);
-    return await manager.requestTransaction([memberR])
-}
-
-async function requestUpdateMemberRoleTransaction(manager, memberAddress, memberRole): Promise<Array<Transaction>> {
-    let memberR = new MemberUpdateRoleTransactionRequest(memberAddress, memberRole);
-    return await manager.requestTransaction([memberR])
-}
-
-async function requestRemoveMemberTransaction(manager, memberAddress): Promise<Array<Transaction>> {
-    let memberR = new MemberRemoveTransactionRequest(memberAddress);
-    return await manager.requestTransaction([memberR])
-}
 
 function verifyUpdateMemberNameTransaction(expected: MemberUpdateNameTransaction, actual: MemberUpdateNameTransaction) {
     expect(expected.name).eq(actual.name)
@@ -380,51 +369,9 @@ function verifyUpdateMemberRoleTransaction(expected: MemberUpdateRoleTransaction
     verifyTransaction(expected, actual, TransactionType.MemberUpdateRole)
 }
 
-export async function getTransactionByIdFromGetAllTrs(manager, trId) {
-    let transactions = await manager.getTransactions();
-    let tr = transactions.find(l => l.id === trId);
-    return tr;
-}
-
-export async function requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
-    let memberR = new MemberCreateTransactionRequest(memberAddress, memberName, memberRole);
-    return await manager.requestTransaction([memberR])
-}
-
-
 function verifyCreateMemberTransaction(expected: MemberCreateTransaction, actual: MemberCreateTransaction) {
     expect(expected.name).eq(actual.name)
     expect(expected.role).eq(actual.role)
     expect(expected.memberId).eq(actual.memberId)
     verifyTransaction(expected, actual, TransactionType.MemberCreate)
-}
-
-
-export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
-    expect(expected.id).eq(actual.id)
-    expect(expected.state).eq(actual.state)
-    expect(expected.batchUid).eq(actual.batchUid)
-    expect(expected.initiator).eq(actual.initiator)
-    expect(expected.createdDate).eq(actual.createdDate)
-    expect(expected.modifiedDate).eq(actual.modifiedDate)
-    expect(expected.isVaultState).eq(true)
-    expect(expected.transactionType).eq(trType)
-    expect(expected.memo).eq(actual.memo)
-    expect(expected.approves.length).eq(actual.approves.length)
-    if (expected.state === TransactionState.Blocked) {
-        expect(undefined).eq(actual.threshold)
-    } else {
-        expect(expected.threshold).eq(actual.threshold)
-    }
-    for (const app of expected.approves) {
-        const found = actual.approves.find((l) => l.signer === app.signer);
-        verifyApprove(app, found)
-    }
-}
-
-
-export function verifyApprove(expected: Approve, actual: Approve) {
-    expect(expected.status).eq(actual.status)
-    expect(expected.signer).eq(actual.signer)
-    expect(expected.createdDate).eq(actual.createdDate)
 }

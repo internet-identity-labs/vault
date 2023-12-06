@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::transaction::transaction::{ITransaction, TrType};
+use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::get_id;
-use crate::transaction_service::Approve;
 use crate::util::caller_to_address;
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]

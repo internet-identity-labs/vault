@@ -3,10 +3,12 @@ import {getIdentity} from "../util/deployment.util";
 import {ApproveRequest, Network, TransactionState, VaultManager, VaultRole} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
-import {getTransactionByIdFromGetAllTrs, requestCreateMemberTransaction} from "./member_transactions.test";
-import {requestUpdateQuorumTransaction} from "./quorum_transactions.test";
-import {requestCreateWalletTransaction} from "./wallet_transactions.test";
 import {expect} from "chai";
+import {
+    getTransactionByIdFromGetAllTrs,
+    requestCreateMemberTransaction, requestCreateWalletTransaction,
+    requestUpdateQuorumTransaction
+} from "./helper";
 
 require('./bigintExtension.js');
 

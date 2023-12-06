@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 
 use async_trait::async_trait;
 use candid::CandidType;
+use ic_cdk::print;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
@@ -15,27 +16,39 @@ use crate::transaction::member::member_update_role_transaction::MemberUpdateRole
 use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
 use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
-use crate::transaction::transaction_builder::get_vault_state_block_predicate;
+use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::is_blocked;
+use crate::transaction::transfer::transfer_transaction::TransferTransaction;
 use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
-use crate::transaction_service::Approve;
 use crate::vault_service::VaultRole;
 
 #[async_trait]
 pub trait ITransaction: BasicTransaction {
     fn define_state(&mut self) {
         if !is_blocked(|tr| {
-            return get_vault_state_block_predicate(tr) && tr.get_id() < self.get_id();
+            return self.get_block_predicate(tr);
         }) {
-            if self.get_state().to_owned() == Blocked {
+            if self.get_state().eq(&Blocked) {
                 self.set_state(Pending);
             }
 
-            let threshold = self.define_threshold();
+            let threshold_response = self.define_threshold();
+
+            let threshold;
+            match threshold_response {
+                Ok(t) => {
+                    threshold = t;
+                }
+                Err(s) => {
+                    self.set_state(Rejected);
+                    self.get_common_mut().memo = Some(s);
+                    return;
+                }
+            };
 
             let approves = self.get_common_ref().approves
                 .iter()
@@ -60,11 +73,21 @@ pub trait ITransaction: BasicTransaction {
         }
     }
 
-    fn define_threshold(&mut self) -> u8 {
-        if self.get_threshold().is_none() {
-            self.set_threshold(get_quorum().quorum)
+    fn get_block_predicate(&mut self, tr: &Box<dyn ITransaction>) -> bool {
+        return get_vault_state_block_predicate(tr) && tr.get_id() < self.get_id();
+    }
+
+    fn define_threshold(&mut self) -> Result<u8, String> {
+        match self.get_threshold() {
+            None => {
+                let t = get_quorum().quorum;
+                self.set_threshold(t);
+                Ok(t)
+            }
+            Some(t) => {
+                Ok(t)
+            }
         }
-        self.get_threshold().unwrap()
     }
 
     async fn execute(&mut self, state: VaultState) -> VaultState;
@@ -172,7 +195,7 @@ pub enum TransactionCandid {
     PolicyCreateTransactionV(PolicyCreateTransaction),
     PolicyUpdateTransactionV(PolicyUpdateTransaction),
     PolicyRemoveTransactionV(PolicyRemoveTransaction),
-    // TransferTransaction(TransferTransaction),
+    TransferTransactionV(TransferTransaction),
 }
 
 pub trait Candid {
@@ -193,6 +216,12 @@ impl Candid for TransactionCandid {
             TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::VaultNamingUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::TransferTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
+}
+
+
+pub fn get_vault_state_block_predicate(tr: &Box<dyn ITransaction>) -> bool {
+    return tr.get_common_ref().is_vault_state;
 }

@@ -31,13 +31,6 @@ impl Member {
     }
 }
 
-
-pub fn get_members() -> Vec<Member> {
-    STATE.with(|mrs| {
-        mrs.borrow().members.clone()
-    })
-}
-
 pub fn get_caller_role() -> VaultRole {
     let caller = caller_to_address();
     let role = STATE.with(|mrs| {
