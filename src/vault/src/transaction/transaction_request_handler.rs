@@ -3,6 +3,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
+use crate::security_service::verify_caller;
 use crate::transaction::member::member_create_transaction::{MemberCreateTransactionBuilder, MemberCreateTransactionRequest};
 use crate::transaction::member::member_remove_transaction::{MemberRemoveTransactionBuilder, MemberRemoveTransactionRequest};
 use crate::transaction::member::member_update_name_transaction::{MemberUpdateNameTransactionBuilder, MemberUpdateNameTransactionRequest};
@@ -81,7 +82,7 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
             TransferTransactionBuilder::init(request).build()
         }
     };
-
+    verify_caller(trs.get_accepted_roles());
     let approve = Approve {
         signer: caller_to_address(),
         created_date: time(),
