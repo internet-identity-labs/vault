@@ -16,9 +16,9 @@ use crate::transaction::wallet::wallet::restore_wallet;
 impl_basic_for_transaction!(WalletUpdateNameTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct WalletUpdateNameTransaction {
-    pub common: BasicTransactionFields,
-    pub uid: String,
-    pub name: String,
+    common: BasicTransactionFields,
+    uid: String,
+    name: String,
 }
 
 impl WalletUpdateNameTransaction {

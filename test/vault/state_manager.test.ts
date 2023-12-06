@@ -52,7 +52,7 @@ describe("State Transactions", () => {
         let tr1 = await requestUpdateQuorumTransaction(manager, 3)
         let tr2 = await requestUpdateQuorumTransaction(manager, 5)
         let tr3 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.MEMBER)
-        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.MEMBER)
+        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.ADMIN)
         await manager.execute()
 
         let state2trs = await manager.redefineState(tr2[0].id)
@@ -62,12 +62,13 @@ describe("State Transactions", () => {
     });
 
     it("Request transactions - redefine state after blocked", async function () {
-        let tr3 = await requestCreateMemberTransaction(manager, "memberAddress8", "memberName", VaultRole.MEMBER)
+        let tr1 = await requestUpdateQuorumTransaction(manager, 2)
+        await manager.execute()
+        let tr3 = await requestCreateMemberTransaction(manager, "memberAddress8", "memberName", VaultRole.ADMIN)
         let tr4 = await requestCreateMemberTransaction(manager, "memberAddress9", "memberName", VaultRole.MEMBER)
-
         let state2trs = await manager.redefineState(tr4[0].id)
 
-        expect(state2trs.quorum.quorum).eq(1)
+        expect(state2trs.quorum.quorum).eq(2)
         //7 from previous + 1 admin and 2 in blocked (not executed)
         expect(state2trs.members.length).eq(8)
     });

@@ -17,8 +17,8 @@ use crate::vault_service::VaultRole::Admin;
 impl_basic_for_transaction!(QuorumUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct QuorumUpdateTransaction {
-    pub common: BasicTransactionFields,
-    pub quorum: u8,
+    common: BasicTransactionFields,
+    quorum: u8,
 }
 
 impl QuorumUpdateTransaction {
