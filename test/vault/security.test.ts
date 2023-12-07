@@ -7,8 +7,6 @@ import {expect} from "chai";
 import {fail} from "assert";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
 
-require('./bigintExtension.js');
-
 describe("Security ", () => {
     let canister_id;
     const admin = getIdentity("87654321876543218765432187654321");

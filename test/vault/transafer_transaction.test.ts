@@ -24,8 +24,6 @@ import {
     verifyTransaction
 } from "./helper";
 
-require('./bigintExtension.js');
-
 describe("Transfer Transactions", () => {
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")

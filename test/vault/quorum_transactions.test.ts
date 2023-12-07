@@ -20,8 +20,6 @@ import {
     requestUpdateQuorumTransaction, verifyTransaction
 } from "./helper";
 
-require('./bigintExtension.js');
-
 describe("Quorum Transactions", () => {
     let admin_actor_1: Record<string, ActorMethod>;
     let member_actor_1: Record<string, ActorMethod>;

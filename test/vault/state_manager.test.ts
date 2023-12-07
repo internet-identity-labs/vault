@@ -6,8 +6,6 @@ import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
 
-require('./bigintExtension.js');
-
 describe("State Transactions", () => {
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")

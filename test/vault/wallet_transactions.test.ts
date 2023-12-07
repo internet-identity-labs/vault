@@ -21,8 +21,6 @@ import {
     verifyTransaction
 } from "./helper";
 
-require('./bigintExtension.js');
-
 describe("Wallet Transactions", () => {
     let admin_actor_1: Record<string, ActorMethod>;
     let member_actor_1: Record<string, ActorMethod>;

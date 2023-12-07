@@ -24,8 +24,6 @@ import {
     requestUpdatePolicyTransaction, verifyTransaction
 } from "./helper";
 
-require('./bigintExtension.js');
-
 describe("Policy Transactions", () => {
     let admin_actor_1: Record<string, ActorMethod>;
     let member_actor_1: Record<string, ActorMethod>;
