@@ -13,6 +13,7 @@ import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs} from "./helper";
 
+require('./bigintextension.js');
 
 describe("Batch Transactions", () => {
     let canister_id;

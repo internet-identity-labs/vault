@@ -16,6 +16,8 @@ import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
 
+require('./bigintextension.js');
+
 describe("Vault Naming Transactions", () => {
     let admin_actor_1: Record<string, ActorMethod>;
     let canister_id;
