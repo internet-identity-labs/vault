@@ -10,7 +10,11 @@ import {
     requestUpdateQuorumTransaction
 } from "./helper";
 
-require('./bigintExtension.js');
+// bigintExtension.js
+global.BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
+
 
 describe("Approve Handler Transactions", () => {
     let canister_id;

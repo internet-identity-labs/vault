@@ -9,15 +9,12 @@ import {
     TransactionState,
     TransactionType,
     VaultManager,
-    VaultNamingTransactionRequest,
     VaultUpdateNamingTransaction
 } from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
-
-require('./bigintExtension.js');
 
 describe("Vault Naming Transactions", () => {
     let admin_actor_1: Record<string, ActorMethod>;
