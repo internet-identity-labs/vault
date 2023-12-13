@@ -7,7 +7,7 @@ import {
     PolicyCreateTransactionRequest,
     PolicyRemoveTransactionRequest,
     PolicyUpdateTransactionRequest,
-    QuorumTransactionRequest,
+    QuorumTransactionRequest, TopUpTransactionRequest,
     Transaction,
     TransactionState, TransferTransactionRequest,
     VaultNamingTransactionRequest, WalletCreateTransactionRequest, WalletUpdateNameTransactionRequest
@@ -19,7 +19,7 @@ export function verifyTransaction(expected: Transaction, actual: Transaction, tr
     expect(expected.state).eq(actual.state)
     expect(expected.batchUid).eq(actual.batchUid)
     expect(expected.initiator).eq(actual.initiator)
-    expect(expected.isVaultState).eq(true)
+    expect(expected.isVaultState).eq(actual.isVaultState)
     expect(expected.transactionType).eq(trType)
     expect(expected.memo).eq(actual.memo)
     expect(expected.approves.length).eq(actual.approves.length)
@@ -98,6 +98,11 @@ export async function requestCreateWalletTransaction(manager, walletName, networ
 
 export async function requestTransferTransaction(manager, address, wallet, amount): Promise<Array<Transaction>> {
     let memberR = new TransferTransactionRequest(Currency.ICP, address, wallet, amount);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestTopUpTransaction(manager, wallet, amount): Promise<Array<Transaction>> {
+    let memberR = new TopUpTransactionRequest(Currency.ICP, wallet, amount);
     return await manager.requestTransaction([memberR])
 }
 

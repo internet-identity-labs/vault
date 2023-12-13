@@ -4,7 +4,6 @@ export const idlFactory = ({ IDL }) => {
         'Approved' : IDL.Null,
         'Rejected' : IDL.Null,
         'Executed' : IDL.Null,
-        'Canceled' : IDL.Null,
         'Pending' : IDL.Null,
     });
     const TransactionApproveRequest = IDL.Record({
@@ -29,6 +28,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberUpdateRole' : IDL.Null,
         'QuorumUpdate' : IDL.Null,
         'Transfer' : IDL.Null,
+        'TopUp' : IDL.Null,
     });
     const Approve = IDL.Record({
         'status' : TransactionState,
@@ -69,19 +69,17 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
+    const TopUpTransaction = IDL.Record({
+        'block_index' : IDL.Opt(IDL.Nat64),
+        'currency' : Currency,
+        'wallet' : IDL.Text,
+        'common' : BasicTransactionFields,
+        'amount' : IDL.Nat64,
+        'policy' : IDL.Opt(IDL.Text),
+    });
     const VaultNamingUpdateTransaction = IDL.Record({
         'name' : IDL.Opt(IDL.Text),
         'description' : IDL.Opt(IDL.Text),
-        'common' : BasicTransactionFields,
-    });
-    const PolicyRemoveTransaction = IDL.Record({
-        'uid' : IDL.Text,
-        'common' : BasicTransactionFields,
-    });
-    const PolicyUpdateTransaction = IDL.Record({
-        'uid' : IDL.Text,
-        'member_threshold' : IDL.Nat8,
-        'amount_threshold' : IDL.Nat64,
         'common' : BasicTransactionFields,
     });
     const TransferTransaction = IDL.Record({
@@ -92,6 +90,16 @@ export const idlFactory = ({ IDL }) => {
         'common' : BasicTransactionFields,
         'amount' : IDL.Nat64,
         'policy' : IDL.Opt(IDL.Text),
+    });
+    const PolicyRemoveTransaction = IDL.Record({
+        'uid' : IDL.Text,
+        'common' : BasicTransactionFields,
+    });
+    const PolicyUpdateTransaction = IDL.Record({
+        'uid' : IDL.Text,
+        'member_threshold' : IDL.Nat8,
+        'amount_threshold' : IDL.Nat64,
+        'common' : BasicTransactionFields,
     });
     const MemberCreateTransaction = IDL.Record({
         'name' : IDL.Text,
@@ -121,10 +129,11 @@ export const idlFactory = ({ IDL }) => {
         'WalletCreateTransactionV' : WalletCreateTransaction,
         'PolicyCreateTransactionV' : PolicyCreateTransaction,
         'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction,
+        'TopUpTransactionV' : TopUpTransaction,
         'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction,
+        'TransferTransactionV' : TransferTransaction,
         'PolicyRemoveTransactionV' : PolicyRemoveTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
-        'TransferTransactionV' : TransferTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
@@ -186,6 +195,11 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'batch_uid' : IDL.Opt(IDL.Text),
     });
+    const TopUpTransactionRequest = IDL.Record({
+        'currency' : Currency,
+        'wallet' : IDL.Text,
+        'amount' : IDL.Nat64,
+    });
     const WalletCreateTransactionRequest = IDL.Record({
         'name' : IDL.Text,
         'network' : Network,
@@ -238,6 +252,7 @@ export const idlFactory = ({ IDL }) => {
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,
         'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest,
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
+        'TopUpTransactionRequestV' : TopUpTransactionRequest,
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
         'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest,
         'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest,
@@ -254,6 +269,7 @@ export const idlFactory = ({ IDL }) => {
             [IDL.Vec(TransactionCandid)],
             [],
         ),
+        'canister_balance' : IDL.Func([], [IDL.Nat64], ['query']),
         'execute' : IDL.Func([], [], []),
         'get_state' : IDL.Func([IDL.Opt(IDL.Nat64)], [VaultState], ['query']),
         'get_transactions_all' : IDL.Func(

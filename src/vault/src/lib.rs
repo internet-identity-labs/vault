@@ -8,7 +8,7 @@ use ic_cdk::api::time;
 use ic_cdk_macros::*;
 
 use crate::config::{Conf, CONF};
-use crate::enums::TransactionState;
+use crate::enums::{TransactionState, VaultRole};
 use crate::state::{get_vault_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
@@ -16,10 +16,9 @@ use crate::transaction::transaction::TransactionCandid;
 use crate::transaction::transaction_approve_handler::{Approve, handle_approve, TransactionApproveRequest};
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
-use crate::util::to_array;
-use crate::vault_service::VaultRole;
+use crate::transaction::wallet::wallet::generate_address;
+use crate::util::{caller_to_address, to_array};
 
-mod vault_service;
 mod util;
 mod enums;
 mod security_service;
@@ -108,6 +107,20 @@ async fn approve(request: Vec<TransactionApproveRequest>) -> Vec<TransactionCand
         approved_trs.push(trs);
     }
     approved_trs
+}
+
+#[query]
+async fn canister_balance() -> u64 {
+    ic_cdk::api::canister_balance()
+}
+#[query]
+async fn caller() -> String {
+    caller_to_address()
+}
+
+#[update]
+async fn hex() -> String {
+    generate_address().await
 }
 
 #[test]

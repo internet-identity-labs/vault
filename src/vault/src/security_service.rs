@@ -1,7 +1,7 @@
 use ic_cdk::trap;
+use crate::enums::VaultRole;
 
 use crate::transaction::member::members::get_caller_role;
-use crate::vault_service::VaultRole;
 
 pub fn verify_caller(accepted_roles: Vec<VaultRole>) {
     let caller_role = get_caller_role();

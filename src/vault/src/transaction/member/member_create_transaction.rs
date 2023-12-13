@@ -3,7 +3,7 @@ use candid::CandidType;
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{ObjectState, TransactionState};
+use crate::enums::{ObjectState, TransactionState, VaultRole};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -11,7 +11,6 @@ use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::Member;
 use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::vault_service::VaultRole;
 
 impl_basic_for_transaction!(MemberCreateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]

@@ -1,6 +1,5 @@
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::Blocked;
-use crate::security_service::verify_caller;
 use crate::transaction::transaction::ITransaction;
 
 //TODO reorganize this trait
