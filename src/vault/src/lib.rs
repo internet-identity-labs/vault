@@ -113,15 +113,6 @@ async fn approve(request: Vec<TransactionApproveRequest>) -> Vec<TransactionCand
 async fn canister_balance() -> u64 {
     ic_cdk::api::canister_balance()
 }
-#[query]
-async fn caller() -> String {
-    caller_to_address()
-}
-
-#[update]
-async fn hex() -> String {
-    generate_address().await
-}
 
 #[test]
 fn sub_account_test() {}
