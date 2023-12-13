@@ -161,6 +161,21 @@ type QuorumUpdateTransactionRequest = record {
     batch_uid : opt text;
 };
 
+type TopUpTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
+};
+
+type TopUpTransactionRequest = record {
+    currency : Currency;
+    wallet : text;
+    amount : nat64;
+};
+
 type TrType = variant {
     WalletUpdateName;
     MemberCreate;
@@ -174,6 +189,7 @@ type TrType = variant {
     MemberUpdateRole;
     QuorumUpdate;
     Transfer;
+    TopUp;
 };
 
 type TransactionApproveRequest = record {
@@ -185,10 +201,11 @@ type TransactionCandid = variant {
     WalletCreateTransactionV : WalletCreateTransaction;
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
+    TopUpTransactionV : TopUpTransaction;
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
+    TransferTransactionV : TransferTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
-    TransferTransactionV : TransferTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
@@ -200,6 +217,7 @@ type TransactionRequest = variant {
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
     VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
+    TopUpTransactionRequestV : TopUpTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
@@ -296,6 +314,7 @@ type WalletUpdateNameTransactionRequest = record {
     batch_uid : opt text;
 };service : (opt Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
+    canister_balance : () -> (nat64) query;
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;
     get_transactions_all : () -> (vec TransactionCandid) query;

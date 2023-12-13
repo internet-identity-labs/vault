@@ -48,3 +48,10 @@ pub enum Currency {
     ICP,
 }
 
+
+#[derive(Clone, Debug, CandidType, Deserialize, Copy, Eq, PartialEq, Serialize)]
+pub enum VaultRole {
+    Admin,
+    Member,
+}
+

@@ -1,19 +1,24 @@
+use std::convert::TryFrom;
+
 use async_trait::async_trait;
 use candid::CandidType;
-use ic_ledger_types::BlockIndex;
+use ic_ledger_types::{AccountIdentifier, BlockIndex};
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
-use crate::impl_basic_for_transaction;
-use crate::state::{get_current_state, VaultState};
+use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
+use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{get_vault_state_block_predicate, ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
+use crate::transaction::transfer::transfer_common::TransferHelper;
 use crate::transfer_service::transfer;
+use crate::util::to_array;
 
 impl_basic_for_transaction!(TransferTransaction);
+impl_transfer_for_transaction!(TransferTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct TransferTransaction {
     common: BasicTransactionFields,
@@ -24,6 +29,7 @@ pub struct TransferTransaction {
     currency: Currency,
     address: String,
 }
+
 
 impl TransferTransaction {
     fn new(state: TransactionState, address: String, currency: Currency,
@@ -43,20 +49,17 @@ impl TransferTransaction {
 #[async_trait]
 impl ITransaction for TransferTransaction {
     fn get_block_predicate(&mut self, tr: &Box<dyn ITransaction>) -> bool {
-        if tr.get_id() >= self.get_id() {
-            return false;
-        }
-        if get_vault_state_block_predicate(tr) {
-            return true;
-        }
-        if let TransactionCandid::TransferTransactionV(transfer) = tr.to_candid() {
-            return transfer.wallet == self.wallet;
-        }
-        false
+        self.get_transfer_block_predicate(tr)
+    }
+
+    fn define_threshold(&mut self) -> Result<u8, String> {
+        self.define_transfer_threshold()
     }
 
     async fn execute(&mut self, state: VaultState) -> VaultState {
-        let transfer = transfer(self.amount, self.address.clone(), self.wallet.clone())
+        let to_decoded = hex::decode(self.address.clone()).unwrap();
+        let to: AccountIdentifier = AccountIdentifier::try_from(to_array(to_decoded)).unwrap();
+        let transfer = transfer(self.amount, to, self.wallet.clone(), None)
             .await;
         match transfer {
             Ok(result) => {
@@ -69,26 +72,6 @@ impl ITransaction for TransferTransaction {
             }
         }
         state
-    }
-
-    fn define_threshold(&mut self) -> Result<u8, String> {
-        let state = get_current_state();
-        let policy = state.policies.iter()
-            .filter(|p| p.wallets.contains(&self.wallet))
-            .filter(|p| p.amount_threshold < self.amount)
-            .max_by(|a, b| {
-                a.amount_threshold.cmp(&b.amount_threshold)
-            });
-        match policy {
-            None => {
-                Err("No suitable policy".to_string())
-            }
-            Some(x) => {
-                self.policy = Some(x.uid.to_owned());
-                self.set_threshold(x.member_threshold);
-                Ok(x.member_threshold)
-            }
-        }
     }
 
     fn to_candid(&self) -> TransactionCandid {
@@ -129,5 +112,6 @@ impl TransactionBuilder for TransferTransactionBuilder {
         Box::new(trs)
     }
 }
+
 
 

@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::VaultRole::Admin;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::vault_service::VaultRole::Admin;
 
 impl_basic_for_transaction!(MemberRemoveTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]

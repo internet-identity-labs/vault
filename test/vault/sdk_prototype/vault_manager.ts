@@ -2,7 +2,6 @@ import {
     Approve as ApproveCandid,
     Member,
     MemberCreateTransaction as MemberCreateTransactionCandid,
-    TransferTransaction as TransferTransactionCandid,
     MemberRemoveTransaction as MemberRemoveTransactionCandid,
     MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
     MemberUpdateRoleTransaction as MemberUpdateRoleTransactionCandid,
@@ -13,10 +12,12 @@ import {
     PolicyRemoveTransaction as PolicyRemoveTransactionCandid,
     PolicyUpdateTransaction as PolicyUpdateTransactionCandid,
     QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
+    TopUpTransaction as TopUpTransactionCandid,
     TransactionApproveRequest,
     TransactionCandid,
     TransactionRequest as TransactionRequestCandid,
     TransactionState as TransactionStateCandid,
+    TransferTransaction as TransferTransactionCandid,
     TrType,
     VaultNamingUpdateTransaction as VaultNamingUpdateTransactionCandid,
     VaultRole as VaultRoleCandid,
@@ -42,6 +43,8 @@ export interface VaultManagerI {
     approveTransaction(approve: Array<ApproveRequest>): Promise<Array<Transaction>>
 
     execute();
+
+    canisterBalance(): Promise<bigint>;
 }
 
 
@@ -72,6 +75,10 @@ export class VaultManager implements VaultManagerI {
 
     getState(): Vault {
         return this.state
+    }
+
+    async canisterBalance(): Promise<bigint> {
+        return await this.actor.canister_balance() as bigint
     }
 
     async redefineState(id?: BigInt): Promise<Vault> {
@@ -122,7 +129,8 @@ export enum TransactionType {
     MemberUpdateRole = 'MemberUpdateRole',
     QuorumUpdate = 'QuorumUpdate',
     VaultNamingUpdate = 'VaultNamingUpdate',
-    Transfer = 'Transfer'
+    Transfer = 'Transfer',
+    TopUp = 'TopUp'
 }
 
 export enum Currency {
@@ -267,6 +275,13 @@ export interface PolicyRemoveTransaction extends Transaction {
 export interface TransferTransaction extends Transaction {
     currency: Currency,
     address: string,
+    wallet: string,
+    amount: bigint,
+    policy: string | undefined
+}
+
+export interface TopUpTransaction extends Transaction {
+    currency: Currency,
     wallet: string,
     amount: bigint,
 }
@@ -571,6 +586,27 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             state: candidToTransactionState(mmm.common.state),
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+            memo: mmm.common.memo.length === 0 ? undefined : mmm.common.memo[0],
+            policy:  mmm.policy.length === 0 ? undefined : mmm.policy[0]
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "TopUpTransactionV")) {
+        let mmm = trs.TopUpTransactionV as TopUpTransactionCandid
+        let t: TopUpTransaction = {
+            amount: mmm.amount,
+            currency: Currency.ICP, //TODO
+            wallet: mmm.wallet,
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
             memo: mmm.common.memo.length === 0 ? undefined : mmm.common.memo[0]
         }
         return t;
@@ -686,8 +722,31 @@ export class TransferTransactionRequest implements TransactionRequest {
         return {
             TransferTransactionRequestV: {
                 //TODO
-                currency: { 'ICP' : null },
+                currency: {'ICP': null},
                 address: this.address,
+                wallet: this.wallet,
+                amount: this.amount
+            }
+        }
+    }
+}
+
+export class TopUpTransactionRequest implements TransactionRequest {
+    'currency': Currency;
+    'wallet': string;
+    'amount': bigint;
+
+
+    constructor(currency: Currency, wallet: string, amount: bigint) {
+        this.currency = currency
+        this.wallet = wallet
+        this.amount = amount
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            TopUpTransactionRequestV: {
+                currency: {'ICP': null},
                 wallet: this.wallet,
                 amount: this.amount
             }
