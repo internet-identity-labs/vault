@@ -2,8 +2,9 @@ use async_trait::async_trait;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::TransactionState;
+use crate::enums::{TransactionState, VaultRole};
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::VaultRole::Admin;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -11,8 +12,6 @@ use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::restore_member;
 use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::vault_service::VaultRole;
-use crate::vault_service::VaultRole::Admin;
 
 impl_basic_for_transaction!(MemberUpdateRoleTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]

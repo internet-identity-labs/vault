@@ -3,10 +3,9 @@ use ic_cdk::api::time;
 use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::ObjectState;
+use crate::enums::{ObjectState, VaultRole};
 use crate::state::{STATE, VaultState};
 use crate::util::caller_to_address;
-use crate::vault_service::VaultRole;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct Member {

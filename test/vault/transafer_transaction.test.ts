@@ -122,7 +122,6 @@ describe("Transfer Transactions", () => {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 200)
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         let expected = buildExpectedTransferTransaction(TransactionState.Blocked)
-        let trs = await manager.getTransactions()
         expected.amount = 200n
         expected.threshold = 2
         verifyTransferTransaction(expected, tr as TransferTransaction)
@@ -159,6 +158,7 @@ describe("Transfer Transactions", () => {
             status: TransactionState.Approved
         }
         let expectedTrs: TransferTransaction = {
+            policy: undefined,
             address: address,
             amount: 100n,
             currency: Currency.ICP,
@@ -169,7 +169,7 @@ describe("Transfer Transactions", () => {
             createdDate: 0n,
             id: 0n,
             initiator: principalToAddress(admin_identity.getPrincipal() as any),
-            isVaultState: true,
+            isVaultState: false,
             modifiedDate: 0n,
             state,
             transactionType: TransactionType.Transfer

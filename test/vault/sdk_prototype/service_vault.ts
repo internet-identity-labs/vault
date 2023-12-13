@@ -130,6 +130,19 @@ export interface QuorumUpdateTransactionRequest {
     'quorum' : number,
     'batch_uid' : [] | [string],
 }
+export interface TopUpTransaction {
+    'block_index' : [] | [bigint],
+    'currency' : Currency,
+    'wallet' : string,
+    'common' : BasicTransactionFields,
+    'amount' : bigint,
+    'policy' : [] | [string],
+}
+export interface TopUpTransactionRequest {
+    'currency' : Currency,
+    'wallet' : string,
+    'amount' : bigint,
+}
 export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
@@ -141,7 +154,8 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'VaultNamingUpdate' : null } |
     { 'MemberUpdateRole' : null } |
     { 'QuorumUpdate' : null } |
-    { 'Transfer' : null };
+    { 'Transfer' : null } |
+    { 'TopUp' : null };
 export interface TransactionApproveRequest {
     'transaction_id' : bigint,
     'state' : TransactionState,
@@ -151,10 +165,11 @@ export type TransactionCandid = {
 } |
     { 'PolicyCreateTransactionV' : PolicyCreateTransaction } |
     { 'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction } |
+    { 'TopUpTransactionV' : TopUpTransaction } |
     { 'VaultNamingUpdateTransactionV' : VaultNamingUpdateTransaction } |
+    { 'TransferTransactionV' : TransferTransaction } |
     { 'PolicyRemoveTransactionV' : PolicyRemoveTransaction } |
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
-    { 'TransferTransactionV' : TransferTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
@@ -169,6 +184,7 @@ export type TransactionRequest = {
     {
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest
     } |
+    { 'TopUpTransactionRequestV' : TopUpTransactionRequest } |
     { 'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest } |
     { 'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest } |
     { 'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest } |
@@ -186,7 +202,6 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Approved' : null } |
     { 'Rejected' : null } |
     { 'Executed' : null } |
-    { 'Canceled' : null } |
     { 'Pending' : null };
 export interface TransferTransaction {
     'block_index' : [] | [bigint],
@@ -257,6 +272,7 @@ export interface _SERVICE {
         [Array<TransactionApproveRequest>],
         Array<TransactionCandid>
     >,
+    'canister_balance' : ActorMethod<[], bigint>,
     'execute' : ActorMethod<[], undefined>,
     'get_state' : ActorMethod<[[] | [bigint]], VaultState>,
     'get_transactions_all' : ActorMethod<[], Array<TransactionCandid>>,

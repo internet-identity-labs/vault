@@ -6,6 +6,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
+use crate::enums::VaultRole;
 use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
@@ -17,13 +18,13 @@ use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransacti
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::is_blocked;
+use crate::transaction::transfer::top_up_transaction::TopUpTransaction;
 use crate::transaction::transfer::transfer_transaction::TransferTransaction;
 use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
-use crate::vault_service::VaultRole;
 
 #[async_trait]
 pub trait ITransaction: BasicTransaction {
@@ -184,6 +185,7 @@ pub enum TrType {
     PolicyRemove,
     VaultNamingUpdate,
     Transfer,
+    TopUp,
 }
 
 
@@ -201,6 +203,7 @@ pub enum TransactionCandid {
     PolicyUpdateTransactionV(PolicyUpdateTransaction),
     PolicyRemoveTransactionV(PolicyRemoveTransaction),
     TransferTransactionV(TransferTransaction),
+    TopUpTransactionV(TopUpTransaction),
 }
 
 pub trait Candid {
@@ -222,6 +225,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::PolicyRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::VaultNamingUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TransferTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }
