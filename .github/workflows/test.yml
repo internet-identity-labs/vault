@@ -1,9 +1,12 @@
 name: BEItest
-on: [push, workflow_dispatch]
+on:
+  - push
+  - workflow_dispatch
 
 
 jobs:
   test:
+    name: Unit & Integration tests
     runs-on:
       group: dfx-runner
     defaults:
@@ -11,15 +14,37 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout CI repo.
+        uses: actions/checkout@v4
 
       - name: Checkout CI repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
           repository: internet-identity-labs/ci_libs
           ref: main
           path: ci_libs
 
+      - name: Cache Cargo dependencies.
+        uses: actions/cache@v3
+        with:
+          path: |
+            /home/ubuntu/.cargo/registry/
+            /home/ubuntu/.cargo_target/
+            target/
+            src/vault/target/
+          key: ${{ runner.os }}-cargo-test
+
+      - name: Versions
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+          
+          ci_versions
+
       - name: BE Integration Tests JS
-        run: npm i && npm run test
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+          CI_DEBUG=true
+
+          ci_echo_debug "npm i && npm run test" >&2
+          npm i && npm run test
