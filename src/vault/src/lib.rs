@@ -3,7 +3,7 @@ extern crate maplit;
 
 use std::cell::RefCell;
 
-use candid::export_service;
+use candid::{export_service, Principal};
 use ic_cdk::api::time;
 use ic_cdk_macros::*;
 
@@ -16,8 +16,7 @@ use crate::transaction::transaction::TransactionCandid;
 use crate::transaction::transaction_approve_handler::{Approve, handle_approve, TransactionApproveRequest};
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
-use crate::transaction::wallet::wallet::generate_address;
-use crate::util::{caller_to_address, to_array};
+use crate::util::{to_address, to_array};
 
 mod util;
 mod enums;
@@ -32,24 +31,18 @@ thread_local! {
 }
 
 #[init]
-async fn init(conf: Option<Conf>) {
-    match conf {
-        None => {}
-        Some(conf) => {
-            CONF.with(|c| c.replace(conf));
-        }
-    };
-
+async fn init(initiator: Principal, conf: Conf) {
+    CONF.with(|c| c.replace(conf));
+    let member_id = to_address(initiator);
     let mut mc = MemberCreateTransaction::new(
-        TransactionState::Approved, None, "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(), "Admin".to_string(), VaultRole::Admin,
+        TransactionState::Approved, None, member_id.clone(), "Initiator".to_string(), VaultRole::Admin,
     );
     mc.get_common_mut().approves.insert(Approve {
-        signer: "6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632".to_string(),
+        signer: member_id,
         created_date: time(),
         status: TransactionState::Approved,
     });
     store_transaction(mc.clone_self());
-
     execute_approved_transactions().await
 }
 
@@ -130,6 +123,8 @@ fn pre_upgrade() {
 }
 
 
+
+
 #[post_upgrade]
 pub async fn post_upgrade() {
     stable_restore().await
@@ -137,5 +132,5 @@ pub async fn post_upgrade() {
 
 #[update]
 async fn get_trusted_origins() -> Vec<String> {
-    CONF.with(|c| c.borrow().clone().origins.unwrap())
+    CONF.with(|c| c.borrow().clone().origins)
 }

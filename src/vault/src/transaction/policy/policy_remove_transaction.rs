@@ -65,7 +65,7 @@ impl ITransaction for PolicyRemoveTransaction {
                 state
             }
             Some(_) => {
-                state.policies.retain(|p| p.uid.eq(&self.uid));
+                state.policies.retain(|p| !p.uid.eq(&self.uid));
                 self.set_state(Executed);
                 state
             }

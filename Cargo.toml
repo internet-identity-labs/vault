@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "src/vault",
+    "src/vault_manager",
 ]
 exclude = []

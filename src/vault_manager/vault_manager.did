@@ -1,0 +1,12 @@
+type CreateResult = record {
+    canister_id : principal
+};
+
+type Result = variant {
+    Ok : CreateResult;
+    Err : text
+};
+
+service : {
+    create_canister_call : () -> (Result);
+}

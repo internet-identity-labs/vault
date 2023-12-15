@@ -1,13 +1,12 @@
-use ic_ledger_types::{AccountIdentifier, BlockIndex, DEFAULT_FEE, Memo, Subaccount, Tokens};
+use ic_ledger_types::{AccountIdentifier, BlockIndex, DEFAULT_FEE, MAINNET_LEDGER_CANISTER_ID, Memo, Subaccount, Tokens};
 
-use crate::config::CONF;
 use crate::to_array;
 
 pub async fn transfer(amount: u64, to: AccountIdentifier, from_hex: String, memo: Option<u64>) -> Result<BlockIndex, String> {
     let tokens = Tokens::from_e8s(amount);
     let from_decoded = hex::decode(from_hex).unwrap();
     let from_sub = Subaccount(to_array(from_decoded));
-    let ledger_canister_id = CONF.with(|conf| conf.borrow().ledger_canister_id);
+    let ledger_canister_id = MAINNET_LEDGER_CANISTER_ID;
     let memo = match memo {
         None => {Memo(0)}
         Some(u) => {Memo(u)}
