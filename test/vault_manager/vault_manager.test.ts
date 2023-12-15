@@ -1,6 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {createCanister} from "./sdk/ochestrator";
+import {createCanister, getCanisters} from "./sdk/ochestrator";
 import {VaultManager} from "../vault/sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
@@ -29,6 +29,9 @@ describe("VM Test", () => {
         expect(state.members.length).eq(1);
         let address = principalToAddress(identity.getPrincipal() as any)
         expect(state.members[0].userId).eq(address);
+        let canisters = await getCanisters(canister_id, identity);
+        expect(canisters.length).eq(1);
+        expect(canisters[0].canister_id.toText()).eq(canister.toText());
     });
 
 

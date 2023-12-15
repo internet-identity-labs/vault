@@ -7,6 +7,11 @@ type Result = variant {
     Err : text
 };
 
-service : {
+type VaultCanister = record {
+    initiator : principal;
+    canister_id : principal
+};service : {
+    canister_balance : () -> (nat64) query;
     create_canister_call : () -> (Result);
+    get_all_canisters : () -> (vec VaultCanister);
 }
