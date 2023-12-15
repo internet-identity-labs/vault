@@ -4,7 +4,6 @@ LEDGER_ID="$(dfx canister id ledger)"
 
 dfx identity use test_admin
 
-dfx deploy vault --argument "(opt record { ledger_canister_id=principal \"${LEDGER_ID}\"}, )"
-#dfx deploy vault
+dfx deploy vault --argument '(principal "3ekng-5nqql-esu4u-64sla-pcm5o-hjatn-hwjo7-vk7ya-ianug-zqqyy-iae", record { origins = vec {} })'
 
 echo "DONE"

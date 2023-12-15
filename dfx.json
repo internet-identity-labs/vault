@@ -6,6 +6,12 @@
       "wasm": "vault.wasm",
       "type": "custom"
     },
+    "vault_manager": {
+      "build": "src/vault_manager/build.sh",
+      "candid": "src/vault_manager/vault_manager.did",
+      "wasm": "vault_manager.wasm",
+      "type": "custom"
+    },
     "ledger": {
       "type": "custom",
       "candid": "ledger.did",
