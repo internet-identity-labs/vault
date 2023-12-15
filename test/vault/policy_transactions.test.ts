@@ -193,6 +193,7 @@ describe("Policy Transactions", () => {
         verifyPolicyRemoveTransaction(expected, tr)
         let state = await manager.redefineState()
         expect(state.policies.length).eq(1)
+        expect(state.policies[0]).not.eq(policyUid2)
     });
 
 

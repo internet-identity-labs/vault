@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::str::FromStr;
 
 use candid::{export_service, Principal};
@@ -5,10 +6,22 @@ use candid::CandidType;
 use ic_cdk::{api, caller, id};
 use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterSettings, InstallCodeArgument};
 use ic_cdk_macros::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-const INITIAL_CYCLES_BALANCE: u128 = 10_000_000_000;
+const FEE: u128 = 100_000_000_000;
+//0.1T - to be discussed
+const INITIAL_CYCLES_BALANCE: u128 = 104_000_000_000;
 pub const WASM: &[u8] = include_bytes!("vault.wasm");
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct VaultCanister {
+    canister_id: Principal,
+    initiator: Principal,
+}
+
+thread_local! {
+    pub static CANISTERS: RefCell<Vec<VaultCanister>> = RefCell::new(Vec::default());
+}
 
 #[derive(CandidType, Clone, Deserialize)]
 struct CreateCanisterArgs<TCycles> {
@@ -28,17 +41,22 @@ struct WalletStoreWASMArgs {
 }
 
 #[update]
+async fn get_all_canisters() -> Vec<VaultCanister> {
+    CANISTERS.with(|c| c.borrow().clone())
+}
+
+#[update]
 async fn create_canister_call() -> Result<CreateResult, String> {
     let set = CanisterSettings {
-        //add this canister as a controller
-        controllers: Some(vec![id()]),
+        //add this canister as a controller + for now add a debug dude
+        controllers: Some(vec![id(), Principal::from_text("lh6kg-7ebfk-bwa26-zgl6l-l27vx-xnnr4-ow2n4-mm4cq-tfjky-rs5gq-5ae".to_string()).unwrap()]),
         compute_allocation: None,
         memory_allocation: None,
         freezing_threshold: None,
     };
 
     let a = CreateCanisterArgs {
-        cycles: INITIAL_CYCLES_BALANCE,
+        cycles: INITIAL_CYCLES_BALANCE + FEE,
         settings: set.clone(),
     };
 
@@ -122,8 +140,16 @@ async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
             ));
         }
     };
-
+    CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
+        canister_id: canister_id.clone(),
+        initiator: principal,
+    }));
     Ok(())
+}
+
+#[query]
+async fn canister_balance() -> u64 {
+    ic_cdk::api::canister_balance()
 }
 
 #[test]
