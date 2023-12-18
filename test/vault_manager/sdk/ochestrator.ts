@@ -14,7 +14,8 @@ export async function createCanister(canister_id: string, identity: SignIdentity
     // @ts-ignore
     return result.Ok.canister_id;
 }
-export async function getCanisters(canister_id: string, identity: SignIdentity) {
+
+export async function getCanisters(canister_id: string, identity: SignIdentity): Promise<[VaultCanister]> {
     let actor = await getActor(canister_id, identity, idlFactory);
     return await actor.get_all_canisters() as [VaultCanister];
 }
