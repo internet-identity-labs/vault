@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-echo "===========DEPLOY VAULT MANAGEr========="
+echo "===========DEPLOY VAULT MANAGER========="
 dfx identity use test_admin
 
 pwd
