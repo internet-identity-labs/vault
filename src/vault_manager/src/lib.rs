@@ -55,7 +55,7 @@ async fn create_canister_call() -> Result<CreateResult, String> {
         freezing_threshold: None,
     };
 
-    let a = CreateCanisterArgs {
+    let args = CreateCanisterArgs {
         cycles: INITIAL_CYCLES_BALANCE + FEE,
         settings: set.clone(),
     };
@@ -73,7 +73,7 @@ async fn create_canister_call() -> Result<CreateResult, String> {
         Principal::management_canister(),
         "create_canister",
         (in_arg, ),
-        a.cycles,
+        args.cycles,
     ).await {
         Ok(x) => x,
         Err((code, msg)) => {
