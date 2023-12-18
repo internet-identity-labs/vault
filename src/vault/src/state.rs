@@ -49,14 +49,17 @@ pub fn restore_state(state: VaultState) {
 
 
 pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
+    let transactions = get_all_transactions();
+    define_state(transactions, tr_id).await
+}
+
+pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Option<u64>) -> VaultState {
     let mut state = VaultState::default();
-    let mut transactions = get_all_transactions();
-    transactions.sort();
     let mut sorted_trs = transactions
         .into_iter()
         .filter(|transaction| {
             let is_vault_state = transaction.is_vault_state();
-            let is_executed = transaction.get_state().eq(&Executed);
+            let is_executed = transaction.get_state() == &Executed;
             match tr_id {
                 None => is_vault_state && is_executed,
                 Some(tr) => is_vault_state && is_executed && transaction.get_id() <= tr,
@@ -64,7 +67,11 @@ pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
         })
         .collect::<Vec<Box<dyn ITransaction>>>();
 
-    while let Some(mut trs) = sorted_trs.pop() {        //TODO
+    sorted_trs.sort_by(|a,b| -> std::cmp::Ordering {
+        b.get_id().cmp(&a.get_id())
+    });
+
+    while let Some(mut trs) = sorted_trs.pop() {
         state = trs.execute(state).await;
     }
     state

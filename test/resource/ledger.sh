@@ -16,7 +16,7 @@ echo $(dfx identity get-principal)
 export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
 echo "===========DEPLOY LEDGER========="
 
-dfx deploy ledger --argument "
+dfx deploy ledger --specified-id=ryjl3-tyaaa-aaaaa-aaaba-cai --argument "
   (variant {
     Init = record {
       minting_account = \"$MINT_ACC\";

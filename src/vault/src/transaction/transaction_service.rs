@@ -5,8 +5,8 @@ use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Approved, Executed, Rejected};
-use crate::state::{get_current_state, get_vault_state, restore_state, VaultState};
+use crate::enums::TransactionState::{Approved, Rejected};
+use crate::state::{define_state, get_current_state, get_vault_state, restore_state, VaultState};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {
@@ -153,16 +153,13 @@ pub fn stable_save() {
 
 pub async fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    let mut state = VaultState::default();
     let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions
-        .into_iter().map(|x| x.to_transaction()).collect();
-    trs.sort();
-    for transaction in &trs {
-        if transaction.is_vault_state() && transaction.get_state().eq(&Executed) {
-            //TODO get rid of this clone()
-            state = transaction.clone().execute(state).await;
-        }
-    }
+        .into_iter().map(|x| x.to_transaction())
+        .collect();
+    trs.sort_by(|a,b| -> std::cmp::Ordering {
+        a.get_id().cmp(&b.get_id())
+    });
+    let state = define_state(trs.clone(), None).await;
     restore_state(state);
     TRANSACTIONS.with(|utrs| {
         utrs.borrow_mut();

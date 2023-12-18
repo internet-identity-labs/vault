@@ -61,11 +61,12 @@ impl ITransaction for PolicyRemoveTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         match state.policies.iter().find(|p| p.uid.eq(&self.uid)) {
             None => {
+                self.common.memo = Some(format!("Nu such policy {}", self.uid));
                 self.set_state(Rejected);
                 state
             }
             Some(_) => {
-                state.policies.retain(|p| p.uid.eq(&self.uid));
+                state.policies.retain(|p| !p.uid.eq(&self.uid));
                 self.set_state(Executed);
                 state
             }

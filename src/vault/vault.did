@@ -19,8 +19,7 @@ type BasicTransactionFields = record {
 };
 
 type Conf = record {
-    origins : opt vec text;
-    ledger_canister_id : principal
+    origins : vec text;
 };
 
 type Currency = variant {
@@ -312,7 +311,7 @@ type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text;
     batch_uid : opt text;
-};service : (opt Conf) -> {
+};service : (principal, Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     canister_balance : () -> (nat64) query;
     execute : () -> ();

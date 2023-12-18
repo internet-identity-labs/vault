@@ -5,5 +5,8 @@
   },
   "vault": {
     "dev": "6jq2j-daaaa-aaaap-absuq-cai"
+  },
+  "vault_manager": {
+    "dev": "sgk26-7yaaa-aaaan-qaovq-cai"
   }
 }

@@ -1,0 +1,17 @@
+type CreateResult = record {
+    canister_id : principal
+};
+
+type Result = variant {
+    Ok : CreateResult;
+    Err : text
+};
+
+type VaultCanister = record {
+    initiator : principal;
+    canister_id : principal
+};service : {
+    canister_balance : () -> (nat64) query;
+    create_canister_call : () -> (Result);
+    get_all_canisters : () -> (vec VaultCanister);
+}
