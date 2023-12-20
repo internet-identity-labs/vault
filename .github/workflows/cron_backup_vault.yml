@@ -13,7 +13,7 @@ env:
 jobs:
   Backup:
     runs-on:
-      group: dfx-runner
+      group: dfx-backup
     defaults:
       run:
         shell: bash
