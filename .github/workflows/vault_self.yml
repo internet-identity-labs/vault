@@ -9,26 +9,25 @@ on:
         options: 
           - dev
           - ic
-      canister_name:
-        description: 'Choose applicable canister'
-        required: true
-        type: choice
-        options:
-          - vault
       debug_messages:
         description: 'Show debug messages'
         type: choice
         options: 
           - 'false'
           - 'true'
+      artifact_version:
+        description: 'The version of your artifact in SemVer format'
+        required: true
+        type: string
       confirmation:
         description: 'For the ic deployment - confirm your choice by typing "Yes"'
         type: string
 
 env:
   NETWORK_NAME: ${{ github.event.inputs.network_name }}
-  CANISTER_NAME: ${{ github.event.inputs.canister_name }}
+  CANISTER_NAME: vault
   CI_DEBUG: ${{ github.event.inputs.debug_messages }}
+  ARTIFACT_VERSION: ${{ github.event.inputs.artifact_version }}
 
 
 jobs:
@@ -94,6 +93,24 @@ jobs:
           fi
           ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
 
+          # https://semver.org/
+          REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+          if ! [[ "${ARTIFACT_VERSION}" =~ ${REGEX} ]]; then
+            ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
+            exit 1
+          fi
+
+          if [ "${NETWORK_NAME}" == 'dev' ]; then
+            ARTIFACT_VERSION="${ARTIFACT_VERSION}-DEV"
+          fi
+          ARTIFACT_VERSION="${ARTIFACT_VERSION}-${{ github.run_id }}"
+
+          # Rechecking ARTIFACT_VERSION after modification
+          if ! [[ "${ARTIFACT_VERSION}" =~ ${REGEX} ]]; then
+            ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
+            exit 1
+          fi
+
           ci_echo_debug "Populating env variables" >&2
           CANISTER_DID="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.candid")"
           CANISTER_WASM="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.wasm")"
@@ -105,6 +122,7 @@ jobs:
           echo "ID_NAME=${ID_NAME}" >> $GITHUB_ENV
           echo "ID_PATH=${ID_PATH}" >> $GITHUB_ENV
           echo "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >> $GITHUB_ENV
+          echo "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >> $GITHUB_ENV
 
       - name: PRE-BUILD => Print Vars.
         run: |
@@ -117,6 +135,7 @@ jobs:
           ci_echo_info "ID_NAME=${ID_NAME}" >&2
           ci_echo_info "ID_PATH=${ID_PATH}" >&2
           ci_echo_info "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >&2
+          ci_echo_info "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >&2
 
       - name: PRE-BUILD => Write identity.
         run: |
@@ -174,5 +193,5 @@ jobs:
       - name: Save artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.CANISTER_WASM }}
+          name: ${{ env.CANISTER_WASM }}-${{ env.ARTIFACT_VERSION }}
           path: ${{ github.workspace }}/${{ env.CANISTER_WASM }}
