@@ -1,0 +1,10 @@
+type VaultWasm = record {
+    wasm_module : vec nat8;
+    hash : text;
+    version : text
+};service : () -> {
+    add_version : (VaultWasm) -> ();
+    canister_balance : () -> (nat64) query;
+    get_available_versions : () -> (vec text);
+    get_by_version : (text) -> (VaultWasm) query;
+}

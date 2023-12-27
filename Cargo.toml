@@ -2,5 +2,6 @@
 members = [
     "src/vault",
     "src/vault_manager",
+    "src/vault_repo",
 ]
 exclude = []

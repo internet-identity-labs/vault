@@ -2,6 +2,7 @@ extern crate core;
 extern crate maplit;
 
 use std::cell::RefCell;
+use std::string::ToString;
 
 use candid::{export_service, Principal};
 use ic_cdk::api::time;
@@ -26,6 +27,8 @@ mod config;
 mod transaction;
 mod state;
 
+pub const VERSION: &str = "0.0.3";
+
 thread_local! {
     pub static HEART_COUNT: RefCell<u8> = RefCell::new(0);
 }
@@ -44,6 +47,11 @@ async fn init(initiator: Principal, conf: Conf) {
     });
     store_transaction(mc.clone_self());
     execute_approved_transactions().await
+}
+
+#[query]
+async fn get_version() -> String {
+    VERSION.to_string()
 }
 
 #[update]
@@ -121,9 +129,6 @@ fn export_candid() -> String {
 fn pre_upgrade() {
     stable_save();
 }
-
-
-
 
 #[post_upgrade]
 pub async fn post_upgrade() {
