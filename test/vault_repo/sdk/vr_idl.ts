@@ -1,0 +1,14 @@
+export const idlFactory = ({ IDL }) => {
+    const VaultWasm = IDL.Record({
+        'wasm_module' : IDL.Vec(IDL.Nat8),
+        'hash' : IDL.Text,
+        'version' : IDL.Text,
+    });
+    return IDL.Service({
+        'add_version' : IDL.Func([VaultWasm], [], []),
+        'canister_balance' : IDL.Func([], [IDL.Nat64], ['query']),
+        'get_available_versions' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
+        'get_by_version' : IDL.Func([IDL.Text], [VaultWasm], ['query']),
+    });
+};
+export const init = ({ IDL }) => { return []; };

@@ -1,5 +1,5 @@
 [package]
-name = "vault_manager"
+name = "vault_repo"
 version = "0.1.0"
 edition = "2018"
 
@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 candid = "0.9.9"
 
 [dependencies]
-semver="1.0.20"
+sha256 = "1.1.1"
 ic-kit = "0.4.8"
 bytemuck = "1.12.3"
 candid = "0.9.9"
@@ -28,7 +28,6 @@ crc32fast = "1.2.0"
 serde_bytes = "0.11"
 maplit = "1.0.2"
 serde_json = "1.0.82"
-async-trait = "0.1.74"
 lazy_static = "1.4"
 
 [dev-dependencies]
