@@ -18,7 +18,7 @@ describe("VM Test", () => {
     let canister_id
     let vault_canister_id
     before(async () => {
-        // DFX.INIT();
+        DFX.INIT();
         DFX.USE_TEST_ADMIN();
         await console.log(execute(`dfx deploy vault_repo --specified-id=6jq2j-daaaa-aaaap-absuq-cai`))
         vault_canister_id = DFX.GET_CANISTER_ID("vault_repo");
