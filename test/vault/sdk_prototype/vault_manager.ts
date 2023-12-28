@@ -22,6 +22,7 @@ import {
     VaultNamingUpdateTransaction as VaultNamingUpdateTransactionCandid,
     VaultRole as VaultRoleCandid,
     VaultState,
+    VersionUpgradeTransaction as VersionUpgradeCandid,
     Wallet as WalletCandid,
     WalletCreateTransaction as WalletCreateTransactionCandid,
     WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid
@@ -65,6 +66,10 @@ export class VaultManager implements VaultManagerI {
         let trs = await this.actor.get_transactions_all() as Array<TransactionCandid>
         let res: Array<Transaction> = trs.map(transactionCandidToTransaction);
         return res
+    }
+
+    async getVersion(): Promise<string> {
+        return await this.actor.get_version() as string
     }
 
     async requestTransaction(request: Array<TransactionRequest>): Promise<Array<Transaction>> {
@@ -130,7 +135,8 @@ export enum TransactionType {
     QuorumUpdate = 'QuorumUpdate',
     VaultNamingUpdate = 'VaultNamingUpdate',
     Transfer = 'Transfer',
-    TopUp = 'TopUp'
+    TopUp = 'TopUp',
+    VersionUpgrade = 'VersionUpgrade',
 }
 
 export enum Currency {
@@ -241,6 +247,10 @@ export interface MemberRemoveTransaction extends Transaction {
 
 export interface QuorumUpdateTransaction extends Transaction {
     quorum: number
+}
+
+export interface VersionUpgradeTransaction extends Transaction {
+    version: string
 }
 
 export interface VaultUpdateNamingTransaction extends Transaction {
@@ -378,6 +388,23 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             isVaultState: mmm.common.is_vault_state,
             modifiedDate: mmm.common.modified_date,
             quorum: mmm.quorum,
+            state: candidToTransactionState(mmm.common.state),
+            transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
+            threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
+        }
+        return t;
+    }
+    if (hasOwnProperty(trs, "UpgradeTransactionV")) {
+        let mmm = trs.UpgradeTransactionV as VersionUpgradeCandid
+        let t: VersionUpgradeTransaction = {
+            approves: mmm.common.approves.map(candidToApprove),
+            batchUid: mmm.common.batch_uid.length === 0 ? undefined : mmm.common.batch_uid[0],
+            createdDate: mmm.common.created_date,
+            id: mmm.common.id,
+            initiator: mmm.common.initiator,
+            isVaultState: mmm.common.is_vault_state,
+            modifiedDate: mmm.common.modified_date,
+            version: mmm.version,
             state: candidToTransactionState(mmm.common.state),
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
@@ -587,7 +614,7 @@ function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
             transactionType: mapTrTypeToTransactionType(mmm.common.transaction_type),
             threshold: mmm.common.threshold.length === 0 ? undefined : mmm.common.threshold[0],
             memo: mmm.common.memo.length === 0 ? undefined : mmm.common.memo[0],
-            policy:  mmm.policy.length === 0 ? undefined : mmm.policy[0]
+            policy: mmm.policy.length === 0 ? undefined : mmm.policy[0]
         }
         return t;
     }
@@ -883,6 +910,22 @@ export class MemberRemoveTransactionRequest implements TransactionRequest {
             MemberRemoveTransactionRequestV: {
                 member_id: this.member_id,
                 batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+            }
+        }
+    }
+}
+
+export class VersionUpgradeTransactionRequest implements TransactionRequest {
+    version: string
+
+    constructor(version: string) {
+        this.version = version
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            VersionUpgradeTransactionRequestV: {
+                version: this.version,
             }
         }
     }

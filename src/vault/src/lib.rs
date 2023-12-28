@@ -27,7 +27,7 @@ mod config;
 mod transaction;
 mod state;
 
-pub const VERSION: &str = "0.0.3";
+pub const VERSION: &str = "0.0.1";
 
 thread_local! {
     pub static HEART_COUNT: RefCell<u8> = RefCell::new(0);

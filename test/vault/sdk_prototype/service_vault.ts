@@ -19,10 +19,7 @@ export interface BasicTransactionFields {
     'created_date' : bigint,
     'batch_uid' : [] | [string],
 }
-export interface Conf {
-    'origins' : [] | [Array<string>],
-    'ledger_canister_id' : Principal,
-}
+export interface Conf { 'origins' : Array<string> }
 export type Currency = { 'ICP' : null };
 export interface Member {
     'modified_date' : bigint,
@@ -146,6 +143,7 @@ export interface TopUpTransactionRequest {
 export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
+    { 'VersionUpgrade' : null } |
     { 'WalletCreate' : null } |
     { 'PolicyCreate' : null } |
     { 'MemberRemove' : null } |
@@ -154,8 +152,8 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'VaultNamingUpdate' : null } |
     { 'MemberUpdateRole' : null } |
     { 'QuorumUpdate' : null } |
-    { 'Transfer' : null } |
-    { 'TopUp' : null };
+    { 'TopUp' : null } |
+    { 'Transfer' : null };
 export interface TransactionApproveRequest {
     'transaction_id' : bigint,
     'state' : TransactionState,
@@ -172,6 +170,7 @@ export type TransactionCandid = {
     { 'PolicyUpdateTransactionV' : PolicyUpdateTransaction } |
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
+    { 'UpgradeTransactionV' : VersionUpgradeTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
     { 'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction } |
     { 'MemberRemoveTransactionV' : MemberRemoveTransaction };
@@ -196,6 +195,7 @@ export type TransactionRequest = {
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest
     } |
     { 'PolicyUpdateTransactionRequestV' : PolicyUpdateTransactionRequest } |
+    { 'VersionUpgradeTransactionRequestV' : VersionUpgradeTransactionRequest } |
     { 'PolicyRemoveTransactionRequestV' : PolicyRemoveTransactionRequest } |
     { 'PolicyCreateTransactionRequestV' : PolicyCreateTransactionRequest };
 export type TransactionState = { 'Blocked' : null } |
@@ -238,6 +238,11 @@ export interface VaultState {
     'quorum' : Quorum,
     'policies' : Array<Policy>,
 }
+export interface VersionUpgradeTransaction {
+    'version' : string,
+    'common' : BasicTransactionFields,
+}
+export interface VersionUpgradeTransactionRequest { 'version' : string }
 export interface Wallet {
     'uid' : string,
     'modified_date' : bigint,
@@ -276,6 +281,7 @@ export interface _SERVICE {
     'execute' : ActorMethod<[], undefined>,
     'get_state' : ActorMethod<[[] | [bigint]], VaultState>,
     'get_transactions_all' : ActorMethod<[], Array<TransactionCandid>>,
+    'get_version' : ActorMethod<[], string>,
     'request_transaction' : ActorMethod<
         [Array<TransactionRequest>],
         Array<TransactionCandid>

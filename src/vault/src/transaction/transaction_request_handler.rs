@@ -17,6 +17,7 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transaction_service::store_transaction;
 use crate::transaction::transfer::top_up_transaction::{TopUpTransactionBuilder, TopUpTransactionRequest};
 use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuilder, TransferTransactionRequest};
+use crate::transaction::upgrade::upgrade_transaction::{VersionUpgradeTransactionBuilder, VersionUpgradeTransactionRequest};
 use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
 use crate::transaction::wallet::wallet::generate_address;
@@ -39,6 +40,7 @@ pub enum TransactionRequest {
     PolicyRemoveTransactionRequestV(PolicyRemoveTransactionRequest),
     TransferTransactionRequestV(TransferTransactionRequest),
     TopUpTransactionRequestV(TopUpTransactionRequest),
+    VersionUpgradeTransactionRequestV(VersionUpgradeTransactionRequest),
 }
 
 
@@ -85,6 +87,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::TopUpTransactionRequestV(request) => {
             TopUpTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::VersionUpgradeTransactionRequestV(request) => {
+            VersionUpgradeTransactionBuilder::init(request).build()
         }
     };
     verify_caller(trs.get_accepted_roles());
