@@ -19,7 +19,7 @@ type BasicTransactionFields = record {
 };
 
 type Conf = record {
-    origins : vec text;
+    origins : vec text
 };
 
 type Currency = variant {
@@ -179,6 +179,7 @@ type TrType = variant {
     WalletUpdateName;
     MemberCreate;
     PolicyRemove;
+    VersionUpgrade;
     WalletCreate;
     PolicyCreate;
     MemberRemove;
@@ -187,8 +188,8 @@ type TrType = variant {
     VaultNamingUpdate;
     MemberUpdateRole;
     QuorumUpdate;
-    Transfer;
     TopUp;
+    Transfer;
 };
 
 type TransactionApproveRequest = record {
@@ -207,6 +208,7 @@ type TransactionCandid = variant {
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
+    UpgradeTransactionV : VersionUpgradeTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
     WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
     MemberRemoveTransactionV : MemberRemoveTransaction;
@@ -224,6 +226,7 @@ type TransactionRequest = variant {
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
+    VersionUpgradeTransactionRequestV : VersionUpgradeTransactionRequest;
     PolicyRemoveTransactionRequestV : PolicyRemoveTransactionRequest;
     PolicyCreateTransactionRequestV : PolicyCreateTransactionRequest;
 };
@@ -279,6 +282,15 @@ type VaultState = record {
     policies : vec Policy;
 };
 
+type VersionUpgradeTransaction = record {
+    version : text;
+    common : BasicTransactionFields;
+};
+
+type VersionUpgradeTransactionRequest = record {
+    version : text
+};
+
 type Wallet = record {
     uid : text;
     modified_date : nat64;
@@ -317,5 +329,6 @@ type WalletUpdateNameTransactionRequest = record {
     execute : () -> ();
     get_state : (opt nat64) -> (VaultState) query;
     get_transactions_all : () -> (vec TransactionCandid) query;
+    get_version : () -> (text) query;
     request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
 }

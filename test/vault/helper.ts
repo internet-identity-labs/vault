@@ -1,5 +1,6 @@
 import {
-    Approve, Currency,
+    Approve,
+    Currency,
     MemberCreateTransactionRequest,
     MemberRemoveTransactionRequest,
     MemberUpdateNameTransactionRequest,
@@ -7,10 +8,15 @@ import {
     PolicyCreateTransactionRequest,
     PolicyRemoveTransactionRequest,
     PolicyUpdateTransactionRequest,
-    QuorumTransactionRequest, TopUpTransactionRequest,
+    QuorumTransactionRequest,
+    TopUpTransactionRequest,
     Transaction,
-    TransactionState, TransferTransactionRequest,
-    VaultNamingTransactionRequest, WalletCreateTransactionRequest, WalletUpdateNameTransactionRequest
+    TransactionState,
+    TransferTransactionRequest,
+    VaultNamingTransactionRequest,
+    VersionUpgradeTransactionRequest,
+    WalletCreateTransactionRequest,
+    WalletUpdateNameTransactionRequest
 } from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 
@@ -93,6 +99,11 @@ export async function requestUpdateWalletNameTransaction(manager, uid, walletNam
 
 export async function requestCreateWalletTransaction(manager, walletName, network): Promise<Array<Transaction>> {
     let memberR = new WalletCreateTransactionRequest(walletName, network);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestVersionUpgradeTransaction(manager, version): Promise<Array<Transaction>> {
+    let memberR = new VersionUpgradeTransactionRequest(version);
     return await manager.requestTransaction([memberR])
 }
 

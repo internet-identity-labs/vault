@@ -9,3 +9,4 @@ pub mod vault;
 pub mod member;
 pub mod policy;
 pub mod transfer;
+pub mod upgrade;

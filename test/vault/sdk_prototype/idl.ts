@@ -19,6 +19,7 @@ export const idlFactory = ({ IDL }) => {
         'WalletUpdateName' : IDL.Null,
         'MemberCreate' : IDL.Null,
         'PolicyRemove' : IDL.Null,
+        'VersionUpgrade' : IDL.Null,
         'WalletCreate' : IDL.Null,
         'PolicyCreate' : IDL.Null,
         'MemberRemove' : IDL.Null,
@@ -27,8 +28,8 @@ export const idlFactory = ({ IDL }) => {
         'VaultNamingUpdate' : IDL.Null,
         'MemberUpdateRole' : IDL.Null,
         'QuorumUpdate' : IDL.Null,
-        'Transfer' : IDL.Null,
         'TopUp' : IDL.Null,
+        'Transfer' : IDL.Null,
     });
     const Approve = IDL.Record({
         'status' : TransactionState,
@@ -112,6 +113,10 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'common' : BasicTransactionFields,
     });
+    const VersionUpgradeTransaction = IDL.Record({
+        'version' : IDL.Text,
+        'common' : BasicTransactionFields,
+    });
     const QuorumUpdateTransaction = IDL.Record({
         'common' : BasicTransactionFields,
         'quorum' : IDL.Nat8,
@@ -136,6 +141,7 @@ export const idlFactory = ({ IDL }) => {
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
+        'UpgradeTransactionV' : VersionUpgradeTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
         'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction,
         'MemberRemoveTransactionV' : MemberRemoveTransaction,
@@ -237,6 +243,7 @@ export const idlFactory = ({ IDL }) => {
         'amount_threshold' : IDL.Nat64,
         'batch_uid' : IDL.Opt(IDL.Text),
     });
+    const VersionUpgradeTransactionRequest = IDL.Record({ 'version' : IDL.Text });
     const PolicyRemoveTransactionRequest = IDL.Record({
         'uid' : IDL.Text,
         'batch_uid' : IDL.Opt(IDL.Text),
@@ -260,6 +267,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest,
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest,
         'PolicyUpdateTransactionRequestV' : PolicyUpdateTransactionRequest,
+        'VersionUpgradeTransactionRequestV' : VersionUpgradeTransactionRequest,
         'PolicyRemoveTransactionRequestV' : PolicyRemoveTransactionRequest,
         'PolicyCreateTransactionRequestV' : PolicyCreateTransactionRequest,
     });
@@ -277,6 +285,7 @@ export const idlFactory = ({ IDL }) => {
             [IDL.Vec(TransactionCandid)],
             ['query'],
         ),
+        'get_version' : IDL.Func([], [IDL.Text], ['query']),
         'request_transaction' : IDL.Func(
             [IDL.Vec(TransactionRequest)],
             [IDL.Vec(TransactionCandid)],

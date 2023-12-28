@@ -20,6 +20,7 @@ use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::is_blocked;
 use crate::transaction::transfer::top_up_transaction::TopUpTransaction;
 use crate::transaction::transfer::transfer_transaction::TransferTransaction;
+use crate::transaction::upgrade::upgrade_transaction::VersionUpgradeTransaction;
 use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
@@ -29,7 +30,7 @@ use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateName
 #[async_trait]
 pub trait ITransaction: BasicTransaction {
     fn define_state(&mut self) {
-        if !is_blocked(|tr| {
+        if  !is_blocked(|tr| {
             return self.get_block_predicate(tr);
         }) {
             if self.get_state().eq(&Blocked) {
@@ -37,7 +38,9 @@ pub trait ITransaction: BasicTransaction {
             }
 
             let threshold_response = self.define_threshold();
-
+            if self.get_state().eq(&Rejected) {
+                return;
+            }
             let threshold;
             match threshold_response {
                 Ok(t) => {
@@ -186,8 +189,8 @@ pub enum TrType {
     VaultNamingUpdate,
     Transfer,
     TopUp,
+    VersionUpgrade,
 }
-
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
@@ -204,6 +207,7 @@ pub enum TransactionCandid {
     PolicyRemoveTransactionV(PolicyRemoveTransaction),
     TransferTransactionV(TransferTransaction),
     TopUpTransactionV(TopUpTransaction),
+    UpgradeTransactionV(VersionUpgradeTransaction),
 }
 
 pub trait Candid {
@@ -226,6 +230,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::VaultNamingUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TransferTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::UpgradeTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

@@ -1798,6 +1798,7 @@ dependencies = [
  "ic-stable-structures",
  "lazy_static",
  "maplit",
+ "semver",
  "serde",
  "serde_bytes",
  "serde_json",
