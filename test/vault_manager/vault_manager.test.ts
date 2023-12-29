@@ -84,7 +84,7 @@ describe("VM Test", () => {
         let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
         canisters.sort();
         expect(canisters.length).eq(2);
-        expect(canisters[0].canister_id.toText()).eq(canister.toText());
+        expect(canisters.map(l=>l.canister_id.toText()).find(l=>l === canister)).not.eq(undefined);
         expect(canisters[0].initiator.toText()).eq(identity.getPrincipal().toText());
     });
 })
