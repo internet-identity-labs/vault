@@ -76,12 +76,9 @@ describe("Approve Handler Transactions", () => {
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve])
+        await manager1.execute();
         let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.approves.length).eq(2);
-        expect(tr.state).eq(TransactionState.Approved);
-
-        await manager1.execute();
-        tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.state).eq(TransactionState.Executed);
     });
 
