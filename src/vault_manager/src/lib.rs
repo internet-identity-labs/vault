@@ -13,7 +13,7 @@ const FEE: u128 = 100_000_000_000;
 //0.2T - to be discussed
 const INITIAL_CYCLES_BALANCE: u128 = 204_000_000_000;
 //TODO stage/prod
-pub const REPO_CANISTER_ID: &str = "6jq2j-daaaa-aaaap-absuq-cai";
+pub const REPO_CANISTER_ID: &str = "7jlkn-paaaa-aaaap-abvpa-cai";
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct VaultCanister {

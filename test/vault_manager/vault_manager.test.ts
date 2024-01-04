@@ -20,7 +20,7 @@ describe("VM Test", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        await console.log(execute(`dfx deploy vault_repo --specified-id=6jq2j-daaaa-aaaap-absuq-cai`))
+        await console.log(execute(`dfx deploy vault_repo --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
         vault_canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), vault_canister_id);
         console.log(execute(`dfx canister call vault_repo sync_controllers`))
