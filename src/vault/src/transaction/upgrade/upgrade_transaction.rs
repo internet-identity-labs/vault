@@ -34,8 +34,7 @@ impl VersionUpgradeTransaction {
 
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct
-VersionUpgradeTransactionRequest {
+pub struct VersionUpgradeTransactionRequest {
     version: String,
 }
 

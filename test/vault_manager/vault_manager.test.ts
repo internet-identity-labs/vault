@@ -23,7 +23,7 @@ describe("VM Test", () => {
         await console.log(execute(`dfx deploy vault_repo --specified-id=6jq2j-daaaa-aaaap-absuq-cai`))
         vault_canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), vault_canister_id);
-        await console.log(execute(`dfx canister call vault_repo sync_controllers`))
+        console.log(execute(`dfx canister call vault_repo sync_controllers`))
 
         let wasm_bytes = readWasmFile("test/vault_repo/vault_001.wasm");
         let actor =  await getActor(vault_canister_id, identity, idlFactory);
