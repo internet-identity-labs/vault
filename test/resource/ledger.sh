@@ -12,7 +12,6 @@ dfx identity use test_admin
 
 echo $MINT_ACC
 echo $(dfx identity get-principal)
-#export LEDGER_ACC=$(dfx ledger account-id)
 export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
 echo "===========DEPLOY LEDGER========="
 
