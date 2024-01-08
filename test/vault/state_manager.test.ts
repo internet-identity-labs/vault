@@ -1,10 +1,11 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {VaultManager, VaultRole} from "./sdk_prototype/vault_manager";
+import {VaultManager} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
+import {VaultRole} from "./sdk_prototype/enums";
 
 require('./bigintextension.js');
 
@@ -34,16 +35,16 @@ describe("State Transactions", () => {
         let tr5 = await requestCreateMemberTransaction(manager, "memberAddress5", "memberName", VaultRole.MEMBER)
         await manager.execute()
 
-        let currentState = await manager.redefineState();
+        let currentState = await manager.getState();
 
         expect(currentState.members.length).eq(6)
 
-        let state1trs = await manager.redefineState(1n)
+        let state1trs = await manager.getState(1n)
 
         expect(state1trs.members.length).eq(1)
         expect(state1trs.members[0].userId).eq(principalToAddress(admin_identity.getPrincipal() as any))
 
-        let state2trs = await manager.redefineState(tr3[0].id)
+        let state2trs = await manager.getState(tr3[0].id)
 
         expect(state2trs.members.length).eq(4)
     });
@@ -55,7 +56,7 @@ describe("State Transactions", () => {
         let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.ADMIN)
         await manager.execute()
 
-        let state2trs = await manager.redefineState(tr2[0].id)
+        let state2trs = await manager.getState(tr2[0].id)
 
         expect(state2trs.quorum.quorum).eq(1)
         expect(state2trs.members.length).eq(6)
@@ -66,7 +67,7 @@ describe("State Transactions", () => {
         await manager.execute()
         let tr3 = await requestCreateMemberTransaction(manager, "memberAddress8", "memberName", VaultRole.ADMIN)
         let tr4 = await requestCreateMemberTransaction(manager, "memberAddress9", "memberName", VaultRole.MEMBER)
-        let state2trs = await manager.redefineState(tr4[0].id)
+        let state2trs = await manager.getState(tr4[0].id)
 
         expect(state2trs.quorum.quorum).eq(2)
         //7 from previous + 1 admin and 2 in blocked (not executed)

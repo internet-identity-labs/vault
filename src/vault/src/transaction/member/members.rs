@@ -3,7 +3,7 @@ use ic_cdk::api::time;
 use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{ObjectState, VaultRole};
+use crate::enums::{VaultRole};
 use crate::state::{STATE, VaultState};
 use crate::util::caller_to_address;
 
@@ -12,7 +12,6 @@ pub struct Member {
     pub member_id: String,
     pub role: VaultRole,
     pub name: String,
-    pub state: ObjectState,
     pub modified_date: u64,
     pub created_date: u64,
 }
@@ -23,7 +22,6 @@ impl Member {
             member_id: id,
             role,
             name,
-            state: ObjectState::Active,
             modified_date: time(),
             created_date: time(),
         }

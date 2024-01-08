@@ -2,19 +2,14 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {
-    Approve,
-    QuorumUpdateTransaction,
-    Transaction,
-    TransactionState,
-    TransactionType,
-    VaultManager,
-    VaultUpdateNamingTransaction
-} from "./sdk_prototype/vault_manager";
+import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
+import {TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {QuorumUpdateTransaction, Transaction, VaultUpdateNamingTransaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 
@@ -46,7 +41,7 @@ describe("Vault Naming Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         let expectedTrs: VaultUpdateNamingTransaction = buildExpectedNamingTransaction(TransactionState.Executed)
         verifyUpdateVaultNamingTransaction(expectedTrs, tr as QuorumUpdateTransaction)
-        let state = await manager.redefineState();
+        let state = await manager.getState();
         expect(state.name).eq("Name")
         expect(state.description).eq("Description")
     });

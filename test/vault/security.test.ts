@@ -1,11 +1,12 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {TransactionState, VaultManager, VaultRole} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {fail} from "assert";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
+import {VaultManager} from "./sdk_prototype/vault_manager";
+import {TransactionState, VaultRole} from "./sdk_prototype/enums";
 
 require('./bigintextension.js');
 
@@ -53,7 +54,7 @@ describe("Security ", () => {
         let t = await requestCreateMemberTransaction(adminManager, "testAddress", "testName", VaultRole.MEMBER)
         id = t[0].id;
         try {
-            await memberManager.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
+            await memberManager.approveTransaction([{trId: id, state: TransactionState.Approved}])
             fail("")
         } catch (e) {
             expect(e.message).contains("Not permitted")
@@ -61,7 +62,7 @@ describe("Security ", () => {
     });
     it("Approve state transaction with admin role - have to be approved", async function () {
         try {
-            await adminManager.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
+            await adminManager.approveTransaction([{trId: id, state: TransactionState.Approved}])
             fail("")
         } catch (e) {
             expect(e.message).contains("Already approved")
@@ -69,9 +70,9 @@ describe("Security ", () => {
     });
     it("Approve state transaction with admin role - have to be approved", async function () {
         try {
-            await adminManager2.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
+            await adminManager2.approveTransaction([{trId: id, state: TransactionState.Approved}])
             await memberManager.execute()
-            await adminManager2.approveTransaction([{tr_id: id, state: TransactionState.Approved}])
+            await adminManager2.approveTransaction([{trId: id, state: TransactionState.Approved}])
         } catch (e) {
             expect(e.message).contains("Transaction is immutable")
         }

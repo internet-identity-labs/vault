@@ -3,7 +3,7 @@ use ic_cdk::{call, trap};
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{Network, ObjectState};
+use crate::enums::{Network};
 use crate::state::VaultState;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
@@ -11,7 +11,6 @@ pub struct Wallet {
     pub uid: String,
     pub name: String,
     pub network: Network,
-    pub state: ObjectState,
     pub modified_date: u64,
     pub created_date: u64,
 }
@@ -22,7 +21,6 @@ impl Wallet {
             uid,
             name,
             network,
-            state: ObjectState::Active,
             modified_date: time(),
             created_date: time(),
         }

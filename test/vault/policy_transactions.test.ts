@@ -2,27 +2,26 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {
-    Approve,
-    Currency,
-    Network,
-    PolicyCreateTransaction,
-    PolicyRemoveTransaction,
-    PolicyUpdateTransaction,
-    TransactionState,
-    TransactionType,
-    VaultManager,
-    WalletCreateTransaction
-} from "./sdk_prototype/vault_manager";
+import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {
     getTransactionByIdFromGetAllTrs,
-    requestCreatePolicyTransaction, requestCreateWalletTransaction,
+    requestCreatePolicyTransaction,
+    requestCreateWalletTransaction,
     requestRemovePolicyTransaction,
-    requestUpdatePolicyTransaction, verifyTransaction
+    requestUpdatePolicyTransaction,
+    verifyTransaction
 } from "./helper";
+import {Currency, Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {
+    PolicyCreateTransaction,
+    PolicyRemoveTransaction,
+    PolicyUpdateTransaction,
+    WalletCreateTransaction
+} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 
@@ -71,10 +70,10 @@ describe("Policy Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         expected.state = TransactionState.Executed
         verifyPolicyCreateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
-        expect(state.policies[0].amount_threshold).eq(2n)
-        expect(state.policies[0].member_threshold).eq(2)
+        expect(state.policies[0].amountThreshold).eq(2n)
+        expect(state.policies[0].memberThreshold).eq(2)
         expect(state.policies[0].wallets.length).eq(1)
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
@@ -89,7 +88,7 @@ describe("Policy Transactions", () => {
         expected.memo = "Wallet not exists"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyCreateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
     });
 
@@ -103,7 +102,7 @@ describe("Policy Transactions", () => {
         expected.memo = "Threshold already exists"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyCreateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
     });
 
@@ -115,10 +114,10 @@ describe("Policy Transactions", () => {
         expected.amount_threshold = 3n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyUpdateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
-        expect(state.policies[0].amount_threshold).eq(3n)
-        expect(state.policies[0].member_threshold).eq(3)
+        expect(state.policies[0].amountThreshold).eq(3n)
+        expect(state.policies[0].memberThreshold).eq(3)
         expect(state.policies[0].wallets.length).eq(1)
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
@@ -131,10 +130,10 @@ describe("Policy Transactions", () => {
         expected.amount_threshold = 3n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyUpdateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
-        expect(state.policies[0].amount_threshold).eq(3n)
-        expect(state.policies[0].member_threshold).eq(4)
+        expect(state.policies[0].amountThreshold).eq(3n)
+        expect(state.policies[0].memberThreshold).eq(4)
         expect(state.policies[0].wallets.length).eq(1)
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
@@ -147,7 +146,7 @@ describe("Policy Transactions", () => {
         expected.amount_threshold = 4n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyUpdateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
     });
 
@@ -165,10 +164,10 @@ describe("Policy Transactions", () => {
         expected.amount_threshold = 3n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyUpdateResponse[0].id)
         verifyPolicyUpdateTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(2)
-        expect(state.policies[1].amount_threshold).eq(4n)
-        expect(state.policies[1].member_threshold).eq(4)
+        expect(state.policies[1].amountThreshold).eq(4n)
+        expect(state.policies[1].memberThreshold).eq(4)
         expect(state.policies[1].wallets.length).eq(1)
         expect(state.policies[1].wallets[0]).eq(walletUid_2)
     });
@@ -180,7 +179,7 @@ describe("Policy Transactions", () => {
         expected.uid = "nonexistentUID"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(2)
     });
 
@@ -191,7 +190,7 @@ describe("Policy Transactions", () => {
         expected.uid = policyUid2
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.policies.length).eq(1)
         expect(state.policies[0]).not.eq(policyUid2)
     });

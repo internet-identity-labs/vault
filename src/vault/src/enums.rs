@@ -24,19 +24,6 @@ impl ToString for TransactionState {
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
-pub enum ObjectState {
-    Archived,
-    Active
-}
-
-#[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
-pub enum Action {
-    Create,
-    Archive,
-    Update
-}
-
-#[derive(Clone, Debug, CandidType, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum Network {
     IC,
     BTC,
@@ -47,7 +34,6 @@ pub enum Network {
 pub enum Currency {
     ICP,
 }
-
 
 #[derive(Clone, Debug, CandidType, Deserialize, Copy, Eq, PartialEq, Serialize)]
 pub enum VaultRole {

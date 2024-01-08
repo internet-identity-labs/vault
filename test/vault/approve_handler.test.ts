@@ -1,6 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {ApproveRequest, Network, TransactionState, VaultManager, VaultRole} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -9,6 +8,9 @@ import {
     requestCreateMemberTransaction, requestCreateWalletTransaction,
     requestUpdateQuorumTransaction
 } from "./helper";
+import {VaultManager} from "./sdk_prototype/vault_manager";
+import {ApproveRequest} from "./sdk_prototype/approve";
+import {Network, TransactionState, VaultRole} from "./sdk_prototype/enums";
 
 require('./bigintextension.js');
 
@@ -51,7 +53,7 @@ describe("Approve Handler Transactions", () => {
     it("Trs approved by 1 and rejected by 2", async function () {
         let tr_id = (await requestUpdateQuorumTransaction(manager1, 3))[0].id
         let reject: ApproveRequest = {
-            tr_id,
+            trId: tr_id,
             state: TransactionState.Rejected
         }
         await manager2.approveTransaction([reject])
@@ -72,7 +74,7 @@ describe("Approve Handler Transactions", () => {
     it("Trs approved by 2 and rejected by 1", async function () {
         let tr_id = (await requestUpdateQuorumTransaction(manager1, 3))[0].id
         let approve: ApproveRequest = {
-            tr_id,
+            trId: tr_id,
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve])
@@ -85,7 +87,7 @@ describe("Approve Handler Transactions", () => {
     it("Trs approved by 3 and executed", async function () {
         let tr_id = (await requestCreateWalletTransaction(manager1, "2", Network.IC))[0].id
         let approve: ApproveRequest = {
-            tr_id,
+            trId: tr_id,
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve])
@@ -106,7 +108,7 @@ describe("Approve Handler Transactions", () => {
         }
         try {
             await manager1.approveTransaction([{
-                tr_id,
+                trId: tr_id,
                 state: TransactionState.Rejected
             }])
         } catch (e) {
@@ -126,7 +128,7 @@ describe("Approve Handler Transactions", () => {
     it("Trs rejected by 1 from 3 and rejected", async function () {
         let tr_id = (await requestCreateWalletTransaction(manager1, "1", Network.IC))[0].id
         let approve: ApproveRequest = {
-            tr_id,
+            trId: tr_id,
             state: TransactionState.Rejected
         }
         await manager2.approveTransaction([approve])
@@ -152,7 +154,7 @@ describe("Approve Handler Transactions", () => {
         let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id2));
         expect(tr.state).eq(TransactionState.Blocked);
         let approve: ApproveRequest = {
-            tr_id,
+            trId: tr_id,
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve])

@@ -1,16 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {
-    Approve,
-    Currency,
-    Network,
-    TransactionState,
-    TransactionType,
-    TransferTransaction,
-    VaultManager,
-    VaultRole,
-    WalletCreateTransaction
-} from "./sdk_prototype/vault_manager";
+import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {fromHexString, principalToAddress, principalToAddressBytes} from "ictool";
@@ -20,9 +10,13 @@ import {
     requestCreateMemberTransaction,
     requestCreatePolicyTransaction,
     requestCreateWalletTransaction,
-    requestTransferTransaction, requestUpdateQuorumTransaction,
+    requestTransferTransaction,
+    requestUpdateQuorumTransaction,
     verifyTransaction
 } from "./helper";
+import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
+import {TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 

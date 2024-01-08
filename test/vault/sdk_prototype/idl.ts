@@ -146,15 +146,10 @@ export const idlFactory = ({ IDL }) => {
         'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction,
         'MemberRemoveTransactionV' : MemberRemoveTransaction,
     });
-    const ObjectState = IDL.Variant({
-        'Active' : IDL.Null,
-        'Archived' : IDL.Null,
-    });
     const Member = IDL.Record({
         'modified_date' : IDL.Nat64,
         'name' : IDL.Text,
         'role' : VaultRole,
-        'state' : ObjectState,
         'member_id' : IDL.Text,
         'created_date' : IDL.Nat64,
     });
@@ -163,7 +158,6 @@ export const idlFactory = ({ IDL }) => {
         'modified_date' : IDL.Nat64,
         'name' : IDL.Text,
         'network' : Network,
-        'state' : ObjectState,
         'created_date' : IDL.Nat64,
     });
     const Quorum = IDL.Record({
