@@ -3,13 +3,7 @@ import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
 import {
-    Approve,
-    Network,
-    TransactionState,
-    TransactionType,
     VaultManager,
-    WalletCreateTransaction,
-    WalletUpdateNameTransaction
 } from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
@@ -20,6 +14,9 @@ import {
     requestUpdateWalletNameTransaction,
     verifyTransaction
 } from "./helper";
+import {Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {WalletCreateTransaction, WalletUpdateNameTransaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 
@@ -61,7 +58,7 @@ describe("Wallet Transactions", () => {
         expected = buildExpectedWalletCreateTransaction(TransactionState.Executed)
         verifyWalletCreateTransaction(expected, trFromAll)
 
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         let walletActual = state.wallets.find(w => w.name === walletName)
         uid = walletActual.uid;
         expect(walletActual.uid).not.undefined
@@ -81,7 +78,7 @@ describe("Wallet Transactions", () => {
         expected.name = walletName_2
         verifyWalletUpdateTransaction(expected, trFromAll)
 
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         let walletActual = state.wallets.find(w => w.uid === uid)
         expect(walletActual.name).eq(walletName_2)
     });

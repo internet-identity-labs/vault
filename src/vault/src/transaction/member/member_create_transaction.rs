@@ -3,7 +3,7 @@ use candid::CandidType;
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{ObjectState, TransactionState, VaultRole};
+use crate::enums::{TransactionState, VaultRole};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -42,7 +42,6 @@ impl ITransaction for MemberCreateTransaction {
             member_id: self.member_id.clone(),
             role: self.role,
             name: self.name.clone(),
-            state: ObjectState::Active,
             modified_date: time(),
             created_date: time(),
         };
@@ -74,7 +73,7 @@ pub struct MemberCreateTransactionRequest {
 }
 
 pub struct MemberCreateTransactionBuilder {
-    request: MemberCreateTransactionRequest
+    request: MemberCreateTransactionRequest,
 }
 
 impl MemberCreateTransactionBuilder {

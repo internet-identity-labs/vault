@@ -2,11 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory as vrIdl} from "./../vault_repo/sdk/vr_idl";
 import {
-    Approve,
-    TransactionState,
-    TransactionType,
     VaultManager,
-    VersionUpgradeTransaction
 } from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
@@ -16,6 +12,9 @@ import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {createCanister} from "../vault_manager/sdk/ochestrator";
+import {TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {VersionUpgradeTransaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 
@@ -51,7 +50,7 @@ describe("Upgrade Transactions", () => {
         vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(0));
         manager = new VaultManager()
         await manager.init(vault_canister_id, admin, true)
-        let state = await manager.redefineState()
+        let state = await manager.getState()
         expect(state.members.length).eq(1);
 
     });

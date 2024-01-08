@@ -160,7 +160,7 @@ async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
 
     //TODO: handle logic with origins depends on the environment
     let conf = Conf {
-        origins: vec![],
+        origins: vec!["http://localhost:4200".to_string(), "https://vaults-dev.nfid.one".to_string(), "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io".to_string()],
     };
     let principal = caller();
 

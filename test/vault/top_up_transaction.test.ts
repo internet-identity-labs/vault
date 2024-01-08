@@ -1,16 +1,12 @@
 import {getIdentity} from "../util/deployment.util";
-import {
-    Approve,
-    Currency,
-    TopUpTransaction,
-    TransactionState,
-    TransactionType,
-    VaultManager
-} from "./sdk_prototype/vault_manager";
+import {VaultManager} from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs, requestTopUpTransaction, verifyTransaction} from "./helper";
 import {sleep} from "../util/call.util";
+import {Currency, TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {TopUpTransaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 

@@ -30,7 +30,6 @@ type Member = record {
     modified_date : nat64;
     name : text;
     role : VaultRole;
-    state : ObjectState;
     member_id : text;
     created_date : nat64;
 };
@@ -87,11 +86,6 @@ type Network = variant {
     IC;
     BTC;
     ETH
-};
-
-type ObjectState = variant {
-    Active;
-    Archived
 };
 
 type Policy = record {
@@ -296,7 +290,6 @@ type Wallet = record {
     modified_date : nat64;
     name : text;
     network : Network;
-    state : ObjectState;
     created_date : nat64;
 };
 

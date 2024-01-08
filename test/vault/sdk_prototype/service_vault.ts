@@ -25,7 +25,6 @@ export interface Member {
     'modified_date' : bigint,
     'name' : string,
     'role' : VaultRole,
-    'state' : ObjectState,
     'member_id' : string,
     'created_date' : bigint,
 }
@@ -72,8 +71,6 @@ export interface MemberUpdateRoleTransactionRequest {
 export type Network = { 'IC' : null } |
     { 'BTC' : null } |
     { 'ETH' : null };
-export type ObjectState = { 'Active' : null } |
-    { 'Archived' : null };
 export interface Policy {
     'uid' : string,
     'member_threshold' : number,
@@ -248,7 +245,6 @@ export interface Wallet {
     'modified_date' : bigint,
     'name' : string,
     'network' : Network,
-    'state' : ObjectState,
     'created_date' : bigint,
 }
 export interface WalletCreateTransaction {

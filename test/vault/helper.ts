@@ -1,6 +1,4 @@
 import {
-    Approve,
-    Currency,
     MemberCreateTransactionRequest,
     MemberRemoveTransactionRequest,
     MemberUpdateNameTransactionRequest,
@@ -10,15 +8,16 @@ import {
     PolicyUpdateTransactionRequest,
     QuorumTransactionRequest,
     TopUpTransactionRequest,
-    Transaction,
-    TransactionState,
     TransferTransactionRequest,
     VaultNamingTransactionRequest,
     VersionUpgradeTransactionRequest,
     WalletCreateTransactionRequest,
     WalletUpdateNameTransactionRequest
-} from "./sdk_prototype/vault_manager";
+} from "./sdk_prototype/transaction_requests";
 import {expect} from "chai";
+import {Transaction} from "./sdk_prototype/transactions";
+import {Currency, TransactionState} from "./sdk_prototype/enums";
+import {Approve} from "./sdk_prototype/approve";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {

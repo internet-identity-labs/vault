@@ -3,13 +3,7 @@ import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
 import {
-    Approve,
-    QuorumUpdateTransaction,
-    Transaction,
-    TransactionState,
-    TransactionType,
     VaultManager,
-    VaultRole
 } from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
@@ -19,6 +13,9 @@ import {
     requestCreateMemberTransaction,
     requestUpdateQuorumTransaction, verifyTransaction
 } from "./helper";
+import {TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
+import {QuorumUpdateTransaction, Transaction} from "./sdk_prototype/transactions";
+import {Approve} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
 
@@ -53,7 +50,7 @@ describe("Quorum Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Rejected, 2)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
-        let state = await manager.redefineState();
+        let state = await manager.getState();
         expect(state.quorum.quorum).eq(1)
     });
 
@@ -67,7 +64,7 @@ describe("Quorum Transactions", () => {
         verifyQuorumUpdateTransaction(tr as QuorumUpdateTransaction, trReqResp[0] as QuorumUpdateTransaction)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
         await manager.execute();
-        let state = await manager.redefineState();
+        let state = await manager.getState();
         expect(state.quorum.quorum).eq(2)
     });
 
