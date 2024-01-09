@@ -93,17 +93,17 @@ describe("Wallet Transactions", () => {
 
 
     it("Request 2 Wallets With The Same Uid rejected", async function () {
-        let tr1 = new WalletCreateTransactionRequest("uniqueId", "11112123123", Network.IC);
-        let p1 = await manager.requestTransaction([tr1])
+        let request1 = new WalletCreateTransactionRequest("uniqueId", "11112123123", Network.IC);
+        let response1 = await manager.requestTransaction([request1])
         await manager.execute()
-        let ptr1 = await getTransactionByIdFromGetAllTrs(manager, p1[0].id) as WalletCreateTransaction
-        expect(ptr1.state).eq(TransactionState.Executed)
-        let tr2 = new WalletCreateTransactionRequest("uniqueId", "345346456", Network.IC);
-        let p2 = await manager.requestTransaction([tr2])
+        let transaction1 = await getTransactionByIdFromGetAllTrs(manager, response1[0].id) as WalletCreateTransaction
+        expect(transaction1.state).eq(TransactionState.Executed)
+        let request2 = new WalletCreateTransactionRequest("uniqueId", "345346456", Network.IC);
+        let response2 = await manager.requestTransaction([request2])
         await manager.execute()
-        let ptr2 = await getTransactionByIdFromGetAllTrs(manager, p2[0].id) as WalletCreateTransaction
-        expect(ptr2.state).eq(TransactionState.Rejected)
-        expect(hasOwnProperty(ptr2.error, "UIDAlreadyExists")).eq(true)
+        let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as WalletCreateTransaction
+        expect(transaction2.state).eq(TransactionState.Rejected)
+        expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)
     });
 
 

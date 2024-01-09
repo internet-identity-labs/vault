@@ -198,17 +198,17 @@ describe("Policy Transactions", () => {
     });
 
     it("Request 2 Policy With Th eSame Uid rejected", async function () {
-        let tr1 = new PolicyCreateTransactionRequest("uniqueId", 2, 10n, [walletUid_1]);
-        let p1 = await manager.requestTransaction([tr1])
+        let request1 = new PolicyCreateTransactionRequest("uniqueId", 2, 10n, [walletUid_1]);
+        let response1 = await manager.requestTransaction([request1])
         await manager.execute()
-        let ptr1 = await getTransactionByIdFromGetAllTrs(manager, p1[0].id) as PolicyCreateTransaction
-        expect(ptr1.state).eq(TransactionState.Executed)
-        let tr2 = new PolicyCreateTransactionRequest("uniqueId", 2, 15n, [walletUid_1]);
-        let p2 = await manager.requestTransaction([tr2])
+        let transaction1 = await getTransactionByIdFromGetAllTrs(manager, response1[0].id) as PolicyCreateTransaction
+        expect(transaction1.state).eq(TransactionState.Executed)
+        let request2 = new PolicyCreateTransactionRequest("uniqueId", 2, 15n, [walletUid_1]);
+        let response2 = await manager.requestTransaction([request2])
         await manager.execute()
-        let ptr2 = await getTransactionByIdFromGetAllTrs(manager, p2[0].id) as PolicyCreateTransaction
-        expect(ptr2.state).eq(TransactionState.Rejected)
-        expect(hasOwnProperty(ptr2.error, "UIDAlreadyExists")).eq(true)
+        let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as PolicyCreateTransaction
+        expect(transaction2.state).eq(TransactionState.Rejected)
+        expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)
     });
 
     function buildExpectedPolicyCreateTransaction(actualTr, state) {
