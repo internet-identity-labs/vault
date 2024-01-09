@@ -126,6 +126,7 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
 export class WalletCreateTransactionRequest implements TransactionRequest {
     network: Network
     name: string
+    //use generateRandomString() from helper.ts to generate uid
     uid: string
     batch_uid: string | undefined
 

@@ -5,6 +5,7 @@ import {
     VaultRole as VaultRoleCandid
 } from "./service_vault";
 import {Network, TransactionState, TransactionType, VaultRole} from "./enums";
+import {randomBytes} from "crypto";
 
 export function transactionStateToCandid(
     state: TransactionState,
@@ -86,4 +87,9 @@ export function networkToCandid(network: Network): NetworkCandid {
         return {IC: null} as NetworkCandid
     }
     throw Error("Unexpected enum value")
+}
+
+export function generateRandomString(): string {
+    const bytes = randomBytes(32);
+    return bytes.toString('hex');
 }
