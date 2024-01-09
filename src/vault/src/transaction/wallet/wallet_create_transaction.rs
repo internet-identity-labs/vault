@@ -3,7 +3,8 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Network, TransactionState};
-use crate::enums::TransactionState::Executed;
+use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::UIDAlreadyExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -35,6 +36,12 @@ impl WalletCreateTransaction {
 #[async_trait]
 impl ITransaction for WalletCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
+        if state.wallets.iter().find(|p| p.uid.eq(&self.uid)).is_some() {
+            self.set_state(Rejected);
+            self.common.error = Some(UIDAlreadyExists);
+            return state;
+        }
+
         let w = Wallet::new(self.uid.clone(),
                             self.name.clone(),
                             self.network.clone());
@@ -54,19 +61,18 @@ impl ITransaction for WalletCreateTransaction {
 pub struct WalletCreateTransactionRequest {
     pub network: Network,
     pub name: String,
+    pub uid: String,
     pub batch_uid: Option<String>,
 }
 
 pub struct WalletCreateTransactionBuilder {
     request: WalletCreateTransactionRequest,
-    uid: String,
 }
 
 impl WalletCreateTransactionBuilder {
-    pub fn init(request: WalletCreateTransactionRequest, uid: String) -> Self {
+    pub fn init(request: WalletCreateTransactionRequest) -> Self {
         return WalletCreateTransactionBuilder {
             request,
-            uid,
         };
     }
 }
@@ -76,7 +82,7 @@ impl TransactionBuilder for WalletCreateTransactionBuilder {
     fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletCreateTransaction::new(state,
                                                self.request.batch_uid.clone(),
-                                               self.uid.clone(),
+                                               self.request.uid.clone(),
                                                self.request.name.clone(),
                                                self.request.network.clone());
         Box::new(trs)

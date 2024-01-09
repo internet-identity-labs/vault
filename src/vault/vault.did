@@ -109,6 +109,7 @@ type PolicyCreateTransaction = record {
 };
 
 type PolicyCreateTransactionRequest = record {
+    uid : text;
     member_threshold : nat8;
     amount_threshold : nat64;
     wallets : vec text;
@@ -255,6 +256,7 @@ type TransferTransactionRequest = record {
 type VaultError = variant {
     QuorumNotReached;
     WalletNotExists;
+    CouldNotDefinePolicy;
     ThresholdAlreadyExists;
     CanisterReject : record {
         message : text
@@ -264,8 +266,8 @@ type VaultError = variant {
     ThresholdDefineError : record {
         message : text
     };
+    UIDAlreadyExists;
     PolicyNotExists;
-    CouldNotDefinePolicy;
 };
 
 type VaultNamingUpdateTransaction = record {
@@ -319,6 +321,7 @@ type WalletCreateTransaction = record {
 };
 
 type WalletCreateTransactionRequest = record {
+    uid : text;
     name : text;
     network : Network;
     batch_uid : opt text;
@@ -334,9 +337,7 @@ type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text;
     batch_uid : opt text;
-};
-
-service : (principal, Conf) -> {
+};service : (principal, Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     canister_balance : () -> (nat64) query;
     execute : () -> ();
