@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::enums::{TransactionState, VaultRole};
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::enums::VaultRole::Admin;
+use crate::errors::VaultError::MemberNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -69,7 +70,7 @@ impl ITransaction for MemberUpdateRoleTransaction {
             .find(|mbr| mbr.member_id.eq(&self.member_id)) {
             None => {
                 self.set_state(Rejected);
-                self.common.memo = Some("No such member".to_string());
+                self.common.error = Some(MemberNotExists);
                 state
             }
             Some(m) => {

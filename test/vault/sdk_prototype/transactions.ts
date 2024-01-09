@@ -7,8 +7,11 @@ import {
     PolicyCreateTransaction as PolicyCreateTransactionCandid,
     PolicyRemoveTransaction as PolicyRemoveTransactionCandid,
     PolicyUpdateTransaction as PolicyUpdateTransactionCandid,
-    QuorumUpdateTransaction as QuorumUpdateTransactionCandid, TopUpTransaction as TopUpTransactionCandid,
-    TransactionCandid, TransferTransaction as TransferTransactionCandid,
+    QuorumUpdateTransaction as QuorumUpdateTransactionCandid,
+    TopUpTransaction as TopUpTransactionCandid,
+    TransactionCandid,
+    TransferTransaction as TransferTransactionCandid,
+    VaultError,
     VaultNamingUpdateTransaction as VaultNamingUpdateTransactionCandid,
     VersionUpgradeTransaction as VersionUpgradeCandid,
     WalletCreateTransaction as WalletCreateTransactionCandid,
@@ -16,11 +19,11 @@ import {
 } from "./service_vault";
 import {Approve, candidToApprove} from "./approve";
 import {
+    candidToNetwork,
     candidToRole,
     candidToTransactionState,
     candidToTransactionType,
-    hasOwnProperty,
-    candidToNetwork
+    hasOwnProperty
 } from "./helper";
 
 export interface Transaction {
@@ -35,6 +38,7 @@ export interface Transaction {
     createdDate: bigint;
     batchUid: string;
     threshold: number | undefined
+    error?: VaultError
 }
 
 export interface MemberCreateTransaction extends Transaction {
@@ -128,6 +132,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -145,6 +150,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -163,6 +169,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -182,6 +189,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -200,6 +208,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -218,6 +227,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -235,6 +245,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -253,7 +264,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
-            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0]
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -271,7 +283,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
-            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0]
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -293,7 +306,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
-            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0]
+            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -312,7 +326,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
-            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0]
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -329,7 +344,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
-            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0]
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -351,7 +367,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
-            policy: response.policy.length === 0 ? undefined : response.policy[0]
+            policy: response.policy.length === 0 ? undefined : response.policy[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }
@@ -371,7 +388,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             state: candidToTransactionState(response.common.state),
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
-            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0]
+            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
         return transaction;
     }

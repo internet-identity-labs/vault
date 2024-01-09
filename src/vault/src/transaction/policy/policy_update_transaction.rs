@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::{PolicyNotExists, ThresholdAlreadyExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -40,7 +41,7 @@ impl ITransaction for PolicyUpdateTransaction {
             .find(|p| p.uid.eq(&self.uid)) {
             None => {
                 self.set_state(Rejected);
-                self.common.memo = Some("No such policy".to_string());
+                self.common.error = Some(PolicyNotExists);
                 state
             }
             Some(policy) => {
@@ -50,7 +51,7 @@ impl ITransaction for PolicyUpdateTransaction {
                     None => {}
                     Some(_) => {
                         self.set_state(Rejected);
-                        self.common.memo = Some("Threshold already exists".to_string());
+                        self.common.error = Some(ThresholdAlreadyExists);
                         return state;
                     }
                 }

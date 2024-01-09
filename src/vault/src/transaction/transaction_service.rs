@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Rejected};
-use crate::state::{define_state, get_current_state, get_vault_state, restore_state, VaultState};
+use crate::state::{define_state, get_current_state, get_vault_state, restore_state};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {

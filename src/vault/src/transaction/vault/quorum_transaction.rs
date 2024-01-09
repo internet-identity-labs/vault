@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::enums::VaultRole::Admin;
+use crate::errors::VaultError::QuorumNotReached;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -67,6 +68,7 @@ impl ITransaction for QuorumUpdateTransaction {
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
             self.set_state(Rejected);
+            self.common.error = Some(QuorumNotReached);
             state
         } else {
             let q = Quorum {

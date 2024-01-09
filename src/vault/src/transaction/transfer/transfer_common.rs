@@ -1,3 +1,5 @@
+use crate::errors::VaultError;
+use crate::errors::VaultError::CouldNotDefinePolicy;
 use crate::state::get_current_state;
 use crate::transaction::transaction::{get_vault_state_block_predicate, ITransaction, TransactionCandid};
 
@@ -12,7 +14,7 @@ pub trait TransferHelper: ITransaction {
     fn get_amount(&self) -> u64;
     fn set_policy(&mut self, x: Option<String>);
 
-    fn define_transfer_threshold(&mut self) -> Result<u8, String> {
+    fn define_transfer_threshold(&mut self) -> Result<u8, VaultError> {
         let state = get_current_state();
         let wallet = self.get_wallet();
         let amount = self.get_amount();
@@ -24,7 +26,7 @@ pub trait TransferHelper: ITransaction {
             });
         match policy {
             None => {
-                Err("No suitable policy".to_string())
+                Err(CouldNotDefinePolicy)
             }
             Some(x) => {
                 self.set_policy(Some(x.uid.clone()));
