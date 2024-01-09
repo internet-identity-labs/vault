@@ -13,6 +13,7 @@ export interface BasicTransactionFields {
     'initiator' : string,
     'modified_date' : bigint,
     'memo' : [] | [string],
+    'error' : [] | [VaultError],
     'state' : TransactionState,
     'approves' : Array<Approve>,
     'is_vault_state' : boolean,
@@ -210,11 +211,21 @@ export interface TransferTransaction {
     'policy' : [] | [string],
 }
 export interface TransferTransactionRequest {
+    'memo' : [] | [string],
     'currency' : Currency,
     'address' : string,
     'wallet' : string,
     'amount' : bigint,
 }
+export type VaultError = { 'QuorumNotReached' : null } |
+    { 'WalletNotExists' : null } |
+    { 'ThresholdAlreadyExists' : null } |
+    { 'CanisterReject' : { 'message' : string } } |
+    { 'MemberNotExists' : null } |
+    { 'MemberAlreadyExists' : null } |
+    { 'ThresholdDefineError' : { 'message' : string } } |
+    { 'PolicyNotExists' : null } |
+    { 'CouldNotDefinePolicy' : null };
 export interface VaultNamingUpdateTransaction {
     'name' : [] | [string],
     'description' : [] | [string],

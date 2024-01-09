@@ -5,9 +5,11 @@ use candid::CandidType;
 use ic_ledger_types::{AccountIdentifier, BlockIndex};
 use serde::{Deserialize, Serialize};
 
+use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
-use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
+use crate::errors::VaultError;
+use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
@@ -33,9 +35,11 @@ pub struct TransferTransaction {
 
 impl TransferTransaction {
     fn new(state: TransactionState, address: String, currency: Currency,
-           wallet: String, amount: u64, ) -> Self {
+           wallet: String, amount: u64, memo: Option<String>) -> Self {
+        let mut common = BasicTransactionFields::new(state, None, TrType::Transfer, false);
+        common.memo = memo;
         TransferTransaction {
-            common: BasicTransactionFields::new(state, None, TrType::Transfer, false),
+            common,
             wallet,
             policy: None,
             currency,
@@ -52,7 +56,7 @@ impl ITransaction for TransferTransaction {
         self.get_transfer_block_predicate(tr)
     }
 
-    fn define_threshold(&mut self) -> Result<u8, String> {
+    fn define_threshold(&mut self) -> Result<u8, VaultError> {
         self.define_transfer_threshold()
     }
 
@@ -66,9 +70,9 @@ impl ITransaction for TransferTransaction {
                 self.block_index = Some(result);
                 self.set_state(Executed);
             }
-            Err(s) => {
+            Err(message) => {
                 self.set_state(Rejected);
-                self.get_common_mut().memo = Some(s);
+                self.get_common_mut().error = Some(CanisterReject { message });
             }
         }
         state
@@ -86,6 +90,7 @@ pub struct TransferTransactionRequest {
     amount: u64,
     currency: Currency,
     address: String,
+    memo: Option<String>,
 }
 
 pub struct TransferTransactionBuilder {
@@ -108,6 +113,7 @@ impl TransactionBuilder for TransferTransactionBuilder {
             self.request.currency.clone(),
             self.request.wallet.clone(),
             self.request.amount.clone(),
+            self.request.memo.clone(),
         );
         Box::new(trs)
     }

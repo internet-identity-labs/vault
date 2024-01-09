@@ -11,6 +11,7 @@ type BasicTransactionFields = record {
     initiator : text;
     modified_date : nat64;
     memo : opt text;
+    error : opt VaultError;
     state : TransactionState;
     approves : vec Approve;
     is_vault_state : bool;
@@ -244,10 +245,27 @@ type TransferTransaction = record {
 };
 
 type TransferTransactionRequest = record {
+    memo : opt text;
     currency : Currency;
     address : text;
     wallet : text;
     amount : nat64;
+};
+
+type VaultError = variant {
+    QuorumNotReached;
+    WalletNotExists;
+    ThresholdAlreadyExists;
+    CanisterReject : record {
+        message : text
+    };
+    MemberNotExists;
+    MemberAlreadyExists;
+    ThresholdDefineError : record {
+        message : text
+    };
+    PolicyNotExists;
+    CouldNotDefinePolicy;
 };
 
 type VaultNamingUpdateTransaction = record {
@@ -316,7 +334,9 @@ type WalletUpdateNameTransactionRequest = record {
     uid : text;
     name : text;
     batch_uid : opt text;
-};service : (principal, Conf) -> {
+};
+
+service : (principal, Conf) -> {
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
     canister_balance : () -> (nat64) query;
     execute : () -> ();

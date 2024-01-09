@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::PolicyNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -61,7 +62,7 @@ impl ITransaction for PolicyRemoveTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         match state.policies.iter().find(|p| p.uid.eq(&self.uid)) {
             None => {
-                self.common.memo = Some(format!("Nu such policy {}", self.uid));
+                self.common.error = Some(PolicyNotExists);
                 self.set_state(Rejected);
                 state
             }

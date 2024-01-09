@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
 use crate::enums::VaultRole;
+use crate::errors::VaultError;
 use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
@@ -30,7 +31,7 @@ use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateName
 #[async_trait]
 pub trait ITransaction: BasicTransaction {
     fn define_state(&mut self) {
-        if  !is_blocked(|tr| {
+        if !is_blocked(|tr| {
             return self.get_block_predicate(tr);
         }) {
             if self.get_state().eq(&Blocked) {
@@ -48,7 +49,7 @@ pub trait ITransaction: BasicTransaction {
                 }
                 Err(s) => {
                     self.set_state(Rejected);
-                    self.get_common_mut().memo = Some(s);
+                    self.get_common_mut().error = Some(s);
                     return;
                 }
             };
@@ -86,7 +87,7 @@ pub trait ITransaction: BasicTransaction {
         false
     }
 
-    fn define_threshold(&mut self) -> Result<u8, String> {
+    fn define_threshold(&mut self) -> Result<u8, VaultError> {
         match self.get_threshold() {
             None => {
                 let t = get_quorum().quorum;

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::WalletNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -38,7 +39,7 @@ impl ITransaction for WalletUpdateNameTransaction {
             .find(|w| w.uid.eq(&self.uid)) {
             None => {
                 self.set_state(Rejected);
-                self.common.memo = Some("No such wallet".to_string());
+                self.common.error = Some(WalletNotExists);
                 state
             }
             Some(w) => {

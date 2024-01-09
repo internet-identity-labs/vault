@@ -54,7 +54,7 @@ export class TransferTransactionRequest implements TransactionRequest {
     address: string;
     wallet: string;
     amount: bigint;
-
+    memo: string | undefined;
 
     constructor(currency: Currency, address: string, wallet: string, amount: bigint) {
         this.currency = currency
@@ -70,7 +70,8 @@ export class TransferTransactionRequest implements TransactionRequest {
                 currency: {'ICP': null},
                 address: this.address,
                 wallet: this.wallet,
-                amount: this.amount
+                amount: this.amount,
+                memo: this.memo !== undefined ? [this.memo] : []
             }
         }
     }

@@ -4,9 +4,11 @@ use ic_cdk::id;
 use ic_ledger_types::{AccountIdentifier, BlockIndex, Subaccount};
 use serde::{Deserialize, Serialize};
 
+use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
-use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
+use crate::errors::VaultError;
+use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
@@ -56,7 +58,7 @@ impl ITransaction for TopUpTransaction {
         self.get_transfer_block_predicate(tr)
     }
 
-    fn define_threshold(&mut self) -> Result<u8, String> {
+    fn define_threshold(&mut self) -> Result<u8, VaultError> {
         self.define_transfer_threshold()
     }
 
@@ -75,15 +77,15 @@ impl ITransaction for TopUpTransaction {
                     Ok(_) => {
                         self.set_state(Executed);
                     }
-                    Err(s) => {
+                    Err(message) => {
                         self.set_state(Rejected);
-                        self.get_common_mut().memo = Some(s);
+                        self.get_common_mut().error = Some(CanisterReject { message });
                     }
                 }
             }
-            Err(s) => {
+            Err(message) => {
                 self.set_state(Rejected);
-                self.get_common_mut().memo = Some(s);
+                self.get_common_mut().error = Some(CanisterReject { message });
             }
         }
         state

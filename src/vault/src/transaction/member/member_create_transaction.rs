@@ -4,6 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{TransactionState, VaultRole};
+use crate::errors::VaultError::MemberAlreadyExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -48,8 +49,7 @@ impl ITransaction for MemberCreateTransaction {
         if state.members.iter()
             .any(|m| m.member_id.eq(&self.member_id)) {
             self.set_state(TransactionState::Rejected);
-            //TODO Enum with errors
-            self.common.memo = Some("Member already exists".to_string());
+            self.common.error = Some(MemberAlreadyExists);
             state
         } else {
             state.members.push(member);

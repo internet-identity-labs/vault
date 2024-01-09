@@ -17,6 +17,7 @@ import {
 import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
 import {TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
 import {Approve} from "./sdk_prototype/approve";
+import {hasOwnProperty} from "./sdk_prototype/helper";
 
 require('./bigintextension.js');
 
@@ -62,7 +63,7 @@ describe("Transfer Transactions", () => {
         verifyTransferTransaction(expected, tr)
     });
 
-    it("Trs approved and rejected by system", async function () {
+    it("Trs approved and rejected ", async function () {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 300_000_000)
         let tr = trRequestResponse[0] as TransferTransaction
         let expected = buildExpectedTransferTransaction(TransactionState.Approved)
@@ -71,8 +72,9 @@ describe("Transfer Transactions", () => {
         await manager.execute()
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
         expected.state = TransactionState.Rejected
-        expected.memo = "ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 199989900 } }"
         verifyTransferTransaction(expected, tr)
+        // @ts-ignore
+        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 199989900 } }")
     });
 
     it("Trs approved and executed from member", async function () {
@@ -97,7 +99,8 @@ describe("Transfer Transactions", () => {
         let expected = buildExpectedTransferTransaction(TransactionState.Rejected)
         expected.amount = 10n
         expected.threshold = undefined
-        expected.memo = "No suitable policy"
+        // @ts-ignore
+        expect(hasOwnProperty(tr.error, "CouldNotDefinePolicy")).eq(true)
         verifyTransferTransaction(expected, tr as TransferTransaction)
     });
 

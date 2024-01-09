@@ -31,6 +31,17 @@ export const idlFactory = ({ IDL }) => {
         'TopUp' : IDL.Null,
         'Transfer' : IDL.Null,
     });
+    const VaultError = IDL.Variant({
+        'QuorumNotReached' : IDL.Null,
+        'WalletNotExists' : IDL.Null,
+        'ThresholdAlreadyExists' : IDL.Null,
+        'CanisterReject' : IDL.Record({ 'message' : IDL.Text }),
+        'MemberNotExists' : IDL.Null,
+        'MemberAlreadyExists' : IDL.Null,
+        'ThresholdDefineError' : IDL.Record({ 'message' : IDL.Text }),
+        'PolicyNotExists' : IDL.Null,
+        'CouldNotDefinePolicy' : IDL.Null,
+    });
     const Approve = IDL.Record({
         'status' : TransactionState,
         'signer' : IDL.Text,
@@ -43,6 +54,7 @@ export const idlFactory = ({ IDL }) => {
         'initiator' : IDL.Text,
         'modified_date' : IDL.Nat64,
         'memo' : IDL.Opt(IDL.Text),
+        'error' : IDL.Opt(VaultError),
         'state' : TransactionState,
         'approves' : IDL.Vec(Approve),
         'is_vault_state' : IDL.Bool,
@@ -216,6 +228,7 @@ export const idlFactory = ({ IDL }) => {
         'batch_uid' : IDL.Opt(IDL.Text),
     });
     const TransferTransactionRequest = IDL.Record({
+        'memo' : IDL.Opt(IDL.Text),
         'currency' : Currency,
         'address' : IDL.Text,
         'wallet' : IDL.Text,

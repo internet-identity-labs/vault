@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{impl_basic_for_transaction, VERSION};
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
@@ -66,7 +67,7 @@ impl TransactionBuilder for VersionUpgradeTransactionBuilder {
 
 #[async_trait]
 impl ITransaction for VersionUpgradeTransaction {
-    async fn execute(&mut self, mut state: VaultState) -> VaultState {
+    async fn execute(&mut self, state: VaultState) -> VaultState {
         let current_version = Version::parse(VERSION).unwrap();
         let expected_version = Version::parse(&self.version).unwrap();
         if expected_version <= current_version {
@@ -82,9 +83,9 @@ impl ITransaction for VersionUpgradeTransaction {
                     self.set_state(Executed);
                     (x, state)
                 }
-                Err((code, msg)) => {
+                Err((_, msg)) => {
                     self.set_state(Rejected);
-                    self.get_common_mut().memo = Some(msg);
+                    self.get_common_mut().error = Some(CanisterReject { message: msg.clone() });
                     ((), state)
                 }
             };

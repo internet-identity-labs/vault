@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
+use crate::errors::VaultError::{ThresholdAlreadyExists, WalletNotExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -44,7 +45,7 @@ impl ITransaction for PolicyCreateTransaction {
             match state.wallets.iter().find(|wal| wal.uid.eq(&w)) {
                 None => {
                     self.set_state(Rejected);
-                    self.common.memo = Some("Wallet not exists".to_string());
+                    self.common.error = Some(WalletNotExists);
                     return state;
                 }
                 Some(_) => {}
@@ -64,7 +65,7 @@ impl ITransaction for PolicyCreateTransaction {
             None => {}
             Some(_) => {
                 self.set_state(Rejected);
-                self.common.memo = Some("Threshold already exists".to_string());
+                self.common.error = Some(ThresholdAlreadyExists);
                 return state;
             }
         }

@@ -26,6 +26,7 @@ mod transfer_service;
 mod config;
 mod transaction;
 mod state;
+mod errors;
 
 pub const VERSION: &str = "0.0.1";
 

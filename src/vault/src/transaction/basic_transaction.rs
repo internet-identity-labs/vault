@@ -6,6 +6,7 @@ use ic_cdk::trap;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
+use crate::errors::VaultError;
 use crate::transaction::transaction::{ITransaction, TrType};
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::get_id;
@@ -24,6 +25,7 @@ pub struct BasicTransactionFields {
     pub is_vault_state: bool,
     pub batch_uid: Option<String>,
     pub threshold: Option<u8>,
+    pub error: Option<VaultError>,
 }
 
 impl BasicTransactionFields {
@@ -42,6 +44,7 @@ impl BasicTransactionFields {
             transaction_type: tr_type,
             batch_uid: batch_uid,
             threshold: None,
+            error: None,
         }
     }
 }

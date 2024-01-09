@@ -22,6 +22,7 @@ import {
     WalletCreateTransaction
 } from "./sdk_prototype/transactions";
 import {Approve} from "./sdk_prototype/approve";
+import {hasOwnProperty} from "./sdk_prototype/helper";
 
 require('./bigintextension.js');
 
@@ -85,23 +86,23 @@ describe("Policy Transactions", () => {
         expected.wallets = ["test_unex_uid"]
         expected.member_threshold = 3
         expected.amount_threshold = 3n
-        expected.memo = "Wallet not exists"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
         verifyPolicyCreateTransaction(expected, tr)
+        expect(hasOwnProperty(tr.error, "WalletNotExists")).eq(true)
         let state = await manager.getState()
         expect(state.policies.length).eq(1)
     });
 
-    it("CreatePolicy rejected because of non-existent wallet", async function () {
+    it("CreatePolicy rejected because threshold already exists wallet", async function () {
         let policyCreateResponse = await requestCreatePolicyTransaction(manager, 3, 2n, [walletUid_1])
         await manager.execute()
         let expected = buildExpectedPoliceCreateTransaction(policyCreateResponse[0], TransactionState.Rejected)
         expected.wallets = [walletUid_1]
         expected.member_threshold = 3
         expected.amount_threshold = 2n
-        expected.memo = "Threshold already exists"
-        let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
+        let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id) as PolicyCreateTransaction
         verifyPolicyCreateTransaction(expected, tr)
+        expect(hasOwnProperty(tr.error, "ThresholdAlreadyExists")).eq(true)
         let state = await manager.getState()
         expect(state.policies.length).eq(1)
     });
