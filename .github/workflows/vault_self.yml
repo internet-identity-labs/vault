@@ -14,6 +14,8 @@ on:
         required: true
         type: choice
         options:
+          - vault_manager
+          - vault_repo
           - vault
       debug_messages:
         description: 'Show debug messages'
@@ -21,6 +23,9 @@ on:
         options: 
           - 'false'
           - 'true'
+      artifact_version:
+        description: 'The version of your VAULT artifact in SemVer format'
+        type: string
       confirmation:
         description: 'For the ic deployment - confirm your choice by typing "Yes"'
         type: string
@@ -29,6 +34,7 @@ env:
   NETWORK_NAME: ${{ github.event.inputs.network_name }}
   CANISTER_NAME: ${{ github.event.inputs.canister_name }}
   CI_DEBUG: ${{ github.event.inputs.debug_messages }}
+  ARTIFACT_VERSION: ${{ github.event.inputs.artifact_version }}
 
 
 jobs:
@@ -94,6 +100,31 @@ jobs:
           fi
           ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
 
+          if [ "${CANISTER_NAME}" == 'vault' ]; then
+            # https://semver.org/
+            REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+            if ! [[ "${ARTIFACT_VERSION}" =~ ${REGEX} ]]; then
+              ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
+              exit 1
+            fi
+
+            if [ "${NETWORK_NAME}" == 'dev' ]; then
+              ARTIFACT_VERSION="${ARTIFACT_VERSION}-DEV"
+            fi
+            ARTIFACT_VERSION="${ARTIFACT_VERSION}-${{ github.run_id }}"
+
+            # Rechecking ARTIFACT_VERSION after modification
+            if ! [[ "${ARTIFACT_VERSION}" =~ ${REGEX} ]]; then
+              ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
+              exit 1
+            fi
+
+            ARTIFACT_VERSION="-${ARTIFACT_VERSION}"
+          else
+            ARTIFACT_VERSION=''
+          fi
+
+
           ci_echo_debug "Populating env variables" >&2
           CANISTER_DID="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.candid")"
           CANISTER_WASM="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.wasm")"
@@ -105,6 +136,7 @@ jobs:
           echo "ID_NAME=${ID_NAME}" >> $GITHUB_ENV
           echo "ID_PATH=${ID_PATH}" >> $GITHUB_ENV
           echo "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >> $GITHUB_ENV
+          echo "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >> $GITHUB_ENV
 
       - name: PRE-BUILD => Print Vars.
         run: |
@@ -117,6 +149,7 @@ jobs:
           ci_echo_info "ID_NAME=${ID_NAME}" >&2
           ci_echo_info "ID_PATH=${ID_PATH}" >&2
           ci_echo_info "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >&2
+          ci_echo_info "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >&2
 
       - name: PRE-BUILD => Write identity.
         run: |
@@ -146,6 +179,7 @@ jobs:
           dfx build --network "${NETWORK_NAME}" "${CANISTER_NAME}"
 
       - name: DEPLOY => Upgrade the canister.
+        if: ${{ (github.event.inputs.canister_name != 'vault') }}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
@@ -174,5 +208,40 @@ jobs:
       - name: Save artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.CANISTER_WASM }}
+          name: ${{ env.CANISTER_WASM }}${{ env.ARTIFACT_VERSION }}
           path: ${{ github.workspace }}/${{ env.CANISTER_WASM }}
+
+      - name: DEPLOY => Upload WASM to the Vault Repo.
+        if: ${{ (github.event.inputs.canister_name == 'vault') }}
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          ci_echo_debug "cat canister_ids.json | jq -er '.vault_repo.${NETWORK_NAME}'" >&2
+          if ! vault_canister_id=$(cat canister_ids.json | jq -er ".vault_repo.${NETWORK_NAME}"); then
+            ci_echo_error "Can't get canister 'vault_repo' and network '${NETWORK_NAME}' data from canister_ids.json" >&2
+            exit 1
+          fi
+
+          ci_echo_info "Saving WASM to the vault_repo canister." >&2
+          export WASM_FILE_PATH="${{ github.workspace }}/${{ env.CANISTER_WASM }}"
+          export VERSION="${ARTIFACT_VERSION#-}"
+          export CANISTER_ID="${vault_canister_id}"
+
+          # TODO: Change this for production to the secrets.
+          export IDENTITY_SEED="87654321876543218765432187654321"
+
+          ci_echo_info "WASM_FILE_PATH=${WASM_FILE_PATH}" >&2
+          ci_echo_info "VERSION=${VERSION}" >&2
+          ci_echo_info "CANISTER_ID=${CANISTER_ID}" >&2
+
+          ci_echo_debug "npm install typescript" >&2
+          npm install typescript
+
+          ci_echo_debug "npm install" >&2
+          npm install
+
+          ci_echo_debug "npx tsc .github/workflows/save_vault_wasm.ts --skipLibCheck" >&2
+          npx tsc .github/workflows/save_vault_wasm.ts --skipLibCheck
+          
+          ci_echo_debug "npm run vault-upload" >&2
+          npm run vault-upload

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Identity Manager Identity Tests",
   "scripts": {
-    "test": "npx mocha"
+    "test": "npx mocha",
+    "vault-upload": "node .github/workflows/save_vault_wasm.js"
   },
   "engines": {
     "node": ">=14.15.0"
