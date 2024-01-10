@@ -2,9 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {
-    VaultManager,
-} from "./sdk_prototype/vault_manager";
+import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -17,6 +15,8 @@ import {
 import {Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
 import {WalletCreateTransaction, WalletUpdateNameTransaction} from "./sdk_prototype/transactions";
 import {Approve} from "./sdk_prototype/approve";
+import {WalletCreateTransactionRequest} from "./sdk_prototype/transaction_requests";
+import {hasOwnProperty} from "./sdk_prototype/helper";
 
 require('./bigintextension.js');
 
@@ -89,6 +89,21 @@ describe("Wallet Transactions", () => {
         let trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         let expected = buildExpectedWalletCreateTransaction(TransactionState.Rejected)
         verifyWalletUpdateTransaction(expected, trFromAll)
+    });
+
+
+    it("Request 2 Wallets With The Same Uid rejected", async function () {
+        let request1 = new WalletCreateTransactionRequest("uniqueId", "11112123123", Network.IC);
+        let response1 = await manager.requestTransaction([request1])
+        await manager.execute()
+        let transaction1 = await getTransactionByIdFromGetAllTrs(manager, response1[0].id) as WalletCreateTransaction
+        expect(transaction1.state).eq(TransactionState.Executed)
+        let request2 = new WalletCreateTransactionRequest("uniqueId", "345346456", Network.IC);
+        let response2 = await manager.requestTransaction([request2])
+        await manager.execute()
+        let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as WalletCreateTransaction
+        expect(transaction2.state).eq(TransactionState.Rejected)
+        expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)
     });
 
 

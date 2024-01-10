@@ -8,6 +8,7 @@ pub enum VaultError {
     MemberNotExists,
     WalletNotExists,
     PolicyNotExists,
+    UIDAlreadyExists,
     CouldNotDefinePolicy,
     CanisterReject { message: String },
     QuorumNotReached,

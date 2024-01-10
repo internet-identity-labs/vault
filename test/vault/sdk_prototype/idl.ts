@@ -34,13 +34,14 @@ export const idlFactory = ({ IDL }) => {
     const VaultError = IDL.Variant({
         'QuorumNotReached' : IDL.Null,
         'WalletNotExists' : IDL.Null,
+        'CouldNotDefinePolicy' : IDL.Null,
         'ThresholdAlreadyExists' : IDL.Null,
         'CanisterReject' : IDL.Record({ 'message' : IDL.Text }),
         'MemberNotExists' : IDL.Null,
         'MemberAlreadyExists' : IDL.Null,
         'ThresholdDefineError' : IDL.Record({ 'message' : IDL.Text }),
+        'UIDAlreadyExists' : IDL.Null,
         'PolicyNotExists' : IDL.Null,
-        'CouldNotDefinePolicy' : IDL.Null,
     });
     const Approve = IDL.Record({
         'status' : TransactionState,
@@ -213,6 +214,7 @@ export const idlFactory = ({ IDL }) => {
         'amount' : IDL.Nat64,
     });
     const WalletCreateTransactionRequest = IDL.Record({
+        'uid' : IDL.Text,
         'name' : IDL.Text,
         'network' : Network,
         'batch_uid' : IDL.Opt(IDL.Text),
@@ -256,6 +258,7 @@ export const idlFactory = ({ IDL }) => {
         'batch_uid' : IDL.Opt(IDL.Text),
     });
     const PolicyCreateTransactionRequest = IDL.Record({
+        'uid' : IDL.Text,
         'member_threshold' : IDL.Nat8,
         'amount_threshold' : IDL.Nat64,
         'wallets' : IDL.Vec(IDL.Text),

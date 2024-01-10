@@ -20,7 +20,6 @@ use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuil
 use crate::transaction::upgrade::upgrade_transaction::{VersionUpgradeTransactionBuilder, VersionUpgradeTransactionRequest};
 use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
-use crate::transaction::wallet::wallet::generate_address;
 use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
 use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
 use crate::util::caller_to_address;
@@ -59,9 +58,7 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
             QuorumUpdateTransactionBuilder::init(r).build()
         }
         TransactionRequest::WalletCreateTransactionRequestV(trs) => {
-            //only one async call in builders - no reason to make trait async ???
-            let generated_random_address = generate_address().await;
-            WalletCreateTransactionBuilder::init(trs, generated_random_address).build()
+            WalletCreateTransactionBuilder::init(trs).build()
         }
         TransactionRequest::WalletUpdateNameTransactionRequestV(request) => {
             WalletUpdateNameTransactionBuilder::init(request).build()
@@ -70,8 +67,7 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
             MemberRemoveTransactionBuilder::init(request).build()
         }
         TransactionRequest::PolicyCreateTransactionRequestV(request) => {
-            let generated_random_uid = generate_address().await;
-            PolicyCreateTransactionBuilder::init(request, generated_random_uid).build()
+            PolicyCreateTransactionBuilder::init(request).build()
         }
         TransactionRequest::PolicyUpdateTransactionRequestV(request) => {
             PolicyUpdateTransactionBuilder::init(request).build()

@@ -18,6 +18,7 @@ import {expect} from "chai";
 import {Transaction} from "./sdk_prototype/transactions";
 import {Currency, TransactionState} from "./sdk_prototype/enums";
 import {Approve} from "./sdk_prototype/approve";
+import {generateRandomString} from "./sdk_prototype/helper";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
@@ -40,7 +41,8 @@ export function verifyTransaction(expected: Transaction, actual: Transaction, tr
 }
 
 export async function requestCreatePolicyTransaction(manager, membersTr, amountTr, wallets): Promise<Array<Transaction>> {
-    let transactionRequest = new PolicyCreateTransactionRequest(membersTr, amountTr, wallets);
+    const uniqueId: string = generateRandomString();
+    let transactionRequest = new PolicyCreateTransactionRequest(uniqueId, membersTr, amountTr, wallets);
     return await manager.requestTransaction([transactionRequest])
 }
 
@@ -97,7 +99,8 @@ export async function requestUpdateWalletNameTransaction(manager, uid, walletNam
 }
 
 export async function requestCreateWalletTransaction(manager, walletName, network): Promise<Array<Transaction>> {
-    let memberR = new WalletCreateTransactionRequest(walletName, network);
+    const uniqueId: string = generateRandomString();
+    let memberR = new WalletCreateTransactionRequest(uniqueId, walletName, network);
     return await manager.requestTransaction([memberR])
 }
 

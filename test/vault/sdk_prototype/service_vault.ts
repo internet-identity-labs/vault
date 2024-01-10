@@ -90,6 +90,7 @@ export interface PolicyCreateTransaction {
     'common' : BasicTransactionFields,
 }
 export interface PolicyCreateTransactionRequest {
+    'uid' : string,
     'member_threshold' : number,
     'amount_threshold' : bigint,
     'wallets' : Array<string>,
@@ -219,13 +220,14 @@ export interface TransferTransactionRequest {
 }
 export type VaultError = { 'QuorumNotReached' : null } |
     { 'WalletNotExists' : null } |
+    { 'CouldNotDefinePolicy' : null } |
     { 'ThresholdAlreadyExists' : null } |
     { 'CanisterReject' : { 'message' : string } } |
     { 'MemberNotExists' : null } |
     { 'MemberAlreadyExists' : null } |
     { 'ThresholdDefineError' : { 'message' : string } } |
-    { 'PolicyNotExists' : null } |
-    { 'CouldNotDefinePolicy' : null };
+    { 'UIDAlreadyExists' : null } |
+    { 'PolicyNotExists' : null };
 export interface VaultNamingUpdateTransaction {
     'name' : [] | [string],
     'description' : [] | [string],
@@ -265,6 +267,7 @@ export interface WalletCreateTransaction {
     'common' : BasicTransactionFields,
 }
 export interface WalletCreateTransactionRequest {
+    'uid' : string,
     'name' : string,
     'network' : Network,
     'batch_uid' : [] | [string],

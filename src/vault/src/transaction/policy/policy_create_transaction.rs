@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
-use crate::errors::VaultError::{ThresholdAlreadyExists, WalletNotExists};
+use crate::errors::VaultError::{ThresholdAlreadyExists, UIDAlreadyExists, WalletNotExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -41,6 +41,12 @@ impl PolicyCreateTransaction {
 #[async_trait]
 impl ITransaction for PolicyCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
+        if state.policies.iter().find(|p| p.uid.eq(&self.uid)).is_some() {
+            self.set_state(Rejected);
+            self.common.error = Some(UIDAlreadyExists);
+            return state;
+        }
+
         for w in self.wallets.clone() {
             match state.wallets.iter().find(|wal| wal.uid.eq(&w)) {
                 None => {
@@ -85,6 +91,7 @@ impl ITransaction for PolicyCreateTransaction {
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct PolicyCreateTransactionRequest {
+    uid: String,
     currency: Currency,
     amount_threshold: u64,
     member_threshold: u8,
@@ -94,14 +101,12 @@ pub struct PolicyCreateTransactionRequest {
 
 pub struct PolicyCreateTransactionBuilder {
     request: PolicyCreateTransactionRequest,
-    uid: String,
 }
 
 impl PolicyCreateTransactionBuilder {
-    pub fn init(request: PolicyCreateTransactionRequest, uid: String) -> Self {
+    pub fn init(request: PolicyCreateTransactionRequest) -> Self {
         return PolicyCreateTransactionBuilder {
             request,
-            uid,
         };
     }
 }
@@ -111,7 +116,7 @@ impl TransactionBuilder for PolicyCreateTransactionBuilder {
         let trs = PolicyCreateTransaction::new(
             state,
             self.request.batch_uid.clone(),
-            self.uid.clone(),
+            self.request.uid.clone(),
             self.request.currency.clone(),
             self.request.amount_threshold.clone(),
             self.request.member_threshold.clone(),

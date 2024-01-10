@@ -126,18 +126,21 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
 export class WalletCreateTransactionRequest implements TransactionRequest {
     network: Network
     name: string
+    //use generateRandomString() from helper.ts to generate uid
+    uid: string
     batch_uid: string | undefined
 
-    constructor(name: string, network: Network, batch_uid?: string) {
+    constructor(uid: string, name: string, network: Network, batch_uid?: string) {
         this.network = network
         this.name = name
         this.batch_uid = batch_uid
-
+        this.uid = uid
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             WalletCreateTransactionRequestV: {
+                uid: this.uid,
                 name: this.name,
                 network: networkToCandid(this.network),
                 batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
@@ -251,22 +254,24 @@ export class VersionUpgradeTransactionRequest implements TransactionRequest {
 }
 
 export class PolicyCreateTransactionRequest implements TransactionRequest {
+    uid: string
     member_threshold: number;
     amount_threshold: bigint;
     wallets: Array<string>;
     batch_uid: string | undefined
 
-    constructor(member_threshold: number, amount_threshold: bigint, wallets: Array<string>, batch_uid?: string) {
+    constructor(uid: string, member_threshold: number, amount_threshold: bigint, wallets: Array<string>, batch_uid?: string) {
         this.member_threshold = member_threshold
         this.amount_threshold = amount_threshold
         this.wallets = wallets
         this.batch_uid = batch_uid
-
+        this.uid = uid
     }
 
     toCandid(): TransactionRequestCandid {
         return {
             PolicyCreateTransactionRequestV: {
+                uid: this.uid,
                 member_threshold: this.member_threshold,
                 amount_threshold: this.amount_threshold,
                 wallets: this.wallets,
