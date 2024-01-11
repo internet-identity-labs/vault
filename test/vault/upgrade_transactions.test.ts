@@ -4,7 +4,7 @@ import {idlFactory as vrIdl} from "./../vault_repo/sdk/vr_idl";
 import {
     VaultManager,
 } from "./sdk_prototype/vault_manager";
-import {principalToAddress} from "ictool";
+import {fromHexString, principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {getTransactionByIdFromGetAllTrs, requestVersionUpgradeTransaction, verifyTransaction} from "./helper";
@@ -44,10 +44,12 @@ describe("Upgrade Transactions", () => {
             version: "0.0.1"
         }
         await actor.add_version(wasm);
-
+        console.log(execute(`./test/resource/ledger.sh`))
+        let correctBytes = fromHexString("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e")
+        console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
         console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
         vault_manager_canister = DFX.GET_CANISTER_ID("vault_manager");
-        vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(0));
+        vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1));
         manager = new VaultManager()
         await manager.init(vault_canister_id, admin, true)
         let state = await manager.getState()

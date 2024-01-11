@@ -74,7 +74,7 @@ describe("Transfer Transactions", () => {
         expected.state = TransactionState.Rejected
         verifyTransferTransaction(expected, tr)
         // @ts-ignore
-        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 199989900 } }")
+        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 99989900 } }")
     });
 
     it("Trs approved and executed from member", async function () {
