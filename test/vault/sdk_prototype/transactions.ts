@@ -110,6 +110,7 @@ export interface TopUpTransaction extends Transaction {
     currency: Currency,
     wallet: string,
     amount: bigint,
+    blockIndex?: bigint
 }
 
 export interface WalletUpdateNameTransaction extends Transaction {
@@ -389,7 +390,8 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             transactionType: candidToTransactionType(response.common.transaction_type),
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
-            error: response.common.error.length === 0 ? undefined : response.common.error[0]
+            error: response.common.error.length === 0 ? undefined : response.common.error[0],
+            blockIndex: response.block_index.length === 0 ? undefined : response.block_index[0],
         }
         return transaction;
     }

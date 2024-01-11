@@ -6,19 +6,22 @@ use candid::CandidType;
 use ic_cdk::{api, caller, id, storage, trap};
 use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterSettings, InstallCodeArgument};
 use ic_cdk_macros::*;
+use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, query_blocks};
 pub use semver::Version;
 use serde::{Deserialize, Serialize};
 
 const FEE: u128 = 100_000_000_000;
-//0.2T - to be discussed
-const INITIAL_CYCLES_BALANCE: u128 = 204_000_000_000;
+//0.5T - to be discussed
+const INITIAL_CYCLES_BALANCE: u128 = 500_000_000_000;
 //TODO stage/prod
 pub const REPO_CANISTER_ID: &str = "7jlkn-paaaa-aaaap-abvpa-cai";
+pub const DESTINATION_ADDRESS: &str = "4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e";
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct VaultCanister {
     canister_id: Principal,
     initiator: Principal,
+    block_number: u64,
 }
 
 thread_local! {
@@ -110,7 +113,9 @@ async fn update_canister_self(version: String) -> Result<(), String> {
 }
 
 #[update]
-async fn create_canister_call() -> Result<CreateResult, String> {
+async fn create_canister_call(block_number: u64) -> Result<CreateResult, String> {
+    verify_payment(block_number).await;
+
     let set = CanisterSettings {
         //TODO add this canister as a controller + for now add a debug dude
         controllers: Some(vec![id(), Principal::from_text("lh6kg-7ebfk-bwa26-zgl6l-l27vx-xnnr4-ow2n4-mm4cq-tfjky-rs5gq-5ae".to_string()).unwrap()]),
@@ -148,11 +153,11 @@ async fn create_canister_call() -> Result<CreateResult, String> {
         }
     };
 
-    install_wallet(&create_result.canister_id).await?;
+    install_wallet(&create_result.canister_id, block_number).await?;
     Ok(create_result)
 }
 
-async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
+async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<(), String> {
     #[derive(CandidType, Deserialize, Clone, Debug)]
     pub struct Conf {
         pub origins: Vec<String>,
@@ -230,6 +235,7 @@ async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
     CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
         canister_id: canister_id.clone(),
         initiator: principal,
+        block_number,
     }));
 
     Ok(())
@@ -269,4 +275,56 @@ export_service!();
 #[ic_cdk_macros::query(name = "__get_candid_interface")]
 fn export_candid() -> String {
     __export_service()
+}
+
+//TODO dev/stage or config sc-10234?
+#[update]
+async fn get_trusted_origins() -> Vec<String> {
+    vec!["http://localhost:4200".to_string(), "https://vaults-dev.nfid.one".to_string(), "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io".to_string()]
+}
+
+
+async fn verify_payment(block_number: u64) {
+    CANISTERS.with(|c| {
+        let canisters = c.borrow();
+        let canister = canisters.iter().find(|x| x.block_number == block_number);
+        match canister {
+            None => {}
+            Some(_) => {
+                trap("Block already used");
+            }
+        }
+    });
+
+    let args: GetBlocksArgs = GetBlocksArgs {
+        start: block_number,
+        length: 1,
+    };
+
+    let response = query_blocks(MAINNET_LEDGER_CANISTER_ID, args).await;
+
+    match response {
+        Ok(x) => {
+            if x.blocks.len() == 0 {
+                trap("No blocks found");
+            }
+            let operation = x.blocks[0].transaction.operation.clone().unwrap();
+            match operation {
+                Operation::Transfer { to, amount, .. } => {
+                    if to.to_string() != DESTINATION_ADDRESS {
+                        trap("Incorrect destination");
+                    }
+                    if amount.e8s() < 100000000 {
+                        trap("Incorrect amount");
+                    }
+                }
+                _ => {
+                    trap("Operation is not Transfer");
+                }
+            }
+        }
+        Err(e) => {
+            trap(format!("Error: {:?}", e).as_str());
+        }
+    }
 }

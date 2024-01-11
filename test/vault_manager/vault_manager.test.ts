@@ -3,13 +3,14 @@ import {getActor, getIdentity} from "../util/deployment.util";
 import {createCanister, getCanisters} from "./sdk/ochestrator";
 import {VaultManager} from "../vault/sdk_prototype/vault_manager";
 import {expect} from "chai";
-import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {fromHexString, principalToAddress} from "ictool";
+import {call, execute} from "../util/call.util";
 import {VaultCanister} from "./sdk/vm";
 import {idlFactory} from "../vault_repo/sdk/vr_idl";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {readWasmFile} from "../vault_repo/vault_repo.test";
+import {fail} from "assert";
 
 
 describe("VM Test", () => {
@@ -24,9 +25,14 @@ describe("VM Test", () => {
         vault_canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), vault_canister_id);
         console.log(execute(`dfx canister call vault_repo sync_controllers`))
+        console.log(execute(`./test/resource/ledger.sh`))
+
+        let correctBytes = fromHexString("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e")
+        console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
+        console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
 
         let wasm_bytes = readWasmFile("test/vault_repo/vault_001.wasm");
-        let actor =  await getActor(vault_canister_id, identity, idlFactory);
+        let actor = await getActor(vault_canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
             wasm_module: Array.from(wasm_bytes),
@@ -35,17 +41,17 @@ describe("VM Test", () => {
         }
         await actor.add_version(wasm);
 
-        await console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
-
+        console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
     });
 
     after(() => {
         DFX.STOP();
     });
 
+
     it("Create Vault from the VaultManagerCanister", async function () {
         canister_id = DFX.GET_CANISTER_ID("vault_manager");
-        canister = await createCanister(canister_id, identity, BigInt(0));
+        canister = await createCanister(canister_id, identity, BigInt(1));
         let vaultManager = new VaultManager()
         await vaultManager.init(canister, identity, true)
         let state = await vaultManager.getState()
@@ -58,9 +64,36 @@ describe("VM Test", () => {
     });
 
 
+    it("Create Vault from the VaultManagerCanister Rejected because of payment", async function () {
+        let incorrectBytes = fromHexString("6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632")
+        console.log(DFX.LEDGER_FILL_BALANCE(incorrectBytes.toString().replaceAll(',', ';')))
+        try {
+            await createCanister(canister_id, identity, BigInt(3));
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("Incorrect destination");
+        }
+        let correctBytes = fromHexString("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e")
+        console.log(call(`dfx canister call ledger transfer "(record { to=vec { ${correctBytes.toString().replaceAll(',', ';')} };
+          amount=record { e8s=50_000_000 }; fee=record { e8s=10_000 : nat64 }; memo=0:nat64; } )"`))
+        try {
+            await createCanister(canister_id, identity, BigInt(4));
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("Incorrect amount");
+        }
+        try {
+            await createCanister(canister_id, identity, BigInt(1));
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("Block already used");
+        }
+    });
+
+
     it("Create Vault from the VaultManagerCanister with newer version by default", async function () {
         let wasm_bytes = readWasmFile("test/vault_repo/vault_002.wasm");
-        let actor =  await getActor(vault_canister_id, identity, idlFactory);
+        let actor = await getActor(vault_canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
             wasm_module: Array.from(wasm_bytes),
@@ -69,7 +102,7 @@ describe("VM Test", () => {
         }
         await actor.add_version(wasm);
 
-        canister = await createCanister(canister_id, identity, BigInt(0));
+        canister = await createCanister(canister_id, identity, BigInt(2));
 
         let vaultManager = new VaultManager()
         await vaultManager.init(canister, identity, true)
@@ -79,12 +112,11 @@ describe("VM Test", () => {
     });
 
 
-
     it("Get all canisters", async function () {
         let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
         canisters.sort();
         expect(canisters.length).eq(2);
-        expect(canisters.map(l=>l.canister_id.toText()).find(l=>l === canister.toText())).not.eq(undefined);
+        expect(canisters.map(l => l.canister_id.toText()).find(l => l === canister.toText())).not.eq(undefined);
         expect(canisters[0].initiator.toText()).eq(identity.getPrincipal().toText());
     });
 })

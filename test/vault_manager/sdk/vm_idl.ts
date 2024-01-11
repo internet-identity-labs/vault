@@ -7,7 +7,7 @@ export const idlFactory = ({ IDL }) => {
     });
     return IDL.Service({
         'canister_balance' : IDL.Func([], [IDL.Nat64], ['query']),
-        'create_canister_call' : IDL.Func([], [Result], []),
+        'create_canister_call' : IDL.Func([IDL.Nat64], [Result], []),
         'get_all_canisters' : IDL.Func([], [IDL.Vec(VaultCanister)], []),
     });
 };

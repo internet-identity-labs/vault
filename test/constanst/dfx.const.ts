@@ -12,5 +12,5 @@ export const DFX = {
     GET_CANISTER_ID: (x: string) => call(`dfx canister id ${x}`),
     ADD_CONTROLLER: (x: string, y: string) => execute(`dfx canister update-settings --add-controller "${x}" ${y}`),
     LEDGER_FILL_BALANCE: (x:string) => call(`dfx canister call ledger transfer "(record { to=vec { ${x} };
-          amount=record { e8s=200_000_000 }; fee=record { e8s=10_000 : nat64 }; memo=0:nat64; } )"`),
+          amount=record { e8s=100_000_000 }; fee=record { e8s=10_000 : nat64 }; memo=0:nat64; } )"`),
 }
