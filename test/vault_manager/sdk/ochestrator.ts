@@ -5,7 +5,7 @@ import {Result, VaultCanister} from "./vm";
 
 export async function createCanister(canister_id: string, identity: SignIdentity, transactionBlock: BigInt) {
     let actor = await getActor(canister_id, identity, idlFactory);
-    let result = await actor.create_canister_call() as Result;
+    let result = await actor.create_canister_call(transactionBlock) as Result;
     // @ts-ignore
     if (result.Err) {
         // @ts-ignore

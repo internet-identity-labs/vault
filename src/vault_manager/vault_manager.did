@@ -12,6 +12,6 @@ type VaultCanister = record {
     canister_id : principal
 };service : {
     canister_balance : () -> (nat64) query;
-    create_canister_call : () -> (Result);
+    create_canister_call : (nat64) -> (Result);
     get_all_canisters : () -> (vec VaultCanister);
 }

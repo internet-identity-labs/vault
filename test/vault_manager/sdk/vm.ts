@@ -10,6 +10,6 @@ export interface VaultCanister {
 }
 export interface _SERVICE {
     'canister_balance' : ActorMethod<[], bigint>,
-    'create_canister_call' : ActorMethod<[], Result>,
+    'create_canister_call' : ActorMethod<[bigint], Result>,
     'get_all_canisters' : ActorMethod<[], Array<VaultCanister>>,
 }
