@@ -253,6 +253,16 @@ export class VersionUpgradeTransactionRequest implements TransactionRequest {
     }
 }
 
+export class PurgeTransactionRequest implements TransactionRequest {
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            PurgeTransactionRequestV: {
+            }
+        }
+    }
+}
+
 export class PolicyCreateTransactionRequest implements TransactionRequest {
     uid: string
     member_threshold: number;

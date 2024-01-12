@@ -118,6 +118,9 @@ export interface WalletUpdateNameTransaction extends Transaction {
     uid: string
 }
 
+export interface PurgeTransaction extends Transaction {
+}
+
 export function transactionCandidToTransaction(trs: TransactionCandid): Transaction {
     if (hasOwnProperty(trs, "QuorumUpdateTransactionV")) {
         let response = trs.QuorumUpdateTransactionV as QuorumUpdateTransactionCandid
@@ -392,6 +395,24 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0],
             blockIndex: response.block_index.length === 0 ? undefined : response.block_index[0],
+        }
+        return transaction;
+    }
+    if (hasOwnProperty(trs, "PurgeTransactionV")) {
+        let response = trs.PurgeTransactionV as TopUpTransactionCandid
+        let transaction: PurgeTransaction = {
+            approves: response.common.approves.map(candidToApprove),
+            batchUid: response.common.batch_uid.length === 0 ? undefined : response.common.batch_uid[0],
+            createdDate: response.common.created_date,
+            id: response.common.id,
+            initiator: response.common.initiator,
+            isVaultState: response.common.is_vault_state,
+            modifiedDate: response.common.modified_date,
+            state: candidToTransactionState(response.common.state),
+            transactionType: candidToTransactionType(response.common.transaction_type),
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0],
         }
         return transaction;
     }

@@ -117,6 +117,7 @@ export interface PolicyUpdateTransactionRequest {
     'amount_threshold' : bigint,
     'batch_uid' : [] | [string],
 }
+export interface PurgeTransaction { 'common' : BasicTransactionFields }
 export interface Quorum { 'modified_date' : bigint, 'quorum' : number }
 export interface QuorumUpdateTransaction {
     'common' : BasicTransactionFields,
@@ -143,6 +144,7 @@ export type TrType = { 'WalletUpdateName' : null } |
     { 'MemberCreate' : null } |
     { 'PolicyRemove' : null } |
     { 'VersionUpgrade' : null } |
+    { 'Purge' : null } |
     { 'WalletCreate' : null } |
     { 'PolicyCreate' : null } |
     { 'MemberRemove' : null } |
@@ -170,6 +172,7 @@ export type TransactionCandid = {
     { 'MemberCreateTransactionV' : MemberCreateTransaction } |
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'UpgradeTransactionV' : VersionUpgradeTransaction } |
+    { 'PurgeTransactionV' : PurgeTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
     { 'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction } |
     { 'MemberRemoveTransactionV' : MemberRemoveTransaction };
@@ -179,6 +182,7 @@ export type TransactionRequest = {
     {
         'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest
     } |
+    { 'PurgeTransactionRequestV' : {} } |
     {
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest
     } |
@@ -201,6 +205,7 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Approved' : null } |
     { 'Rejected' : null } |
     { 'Executed' : null } |
+    { 'Purged' : null } |
     { 'Pending' : null };
 export interface TransferTransaction {
     'block_index' : [] | [bigint],

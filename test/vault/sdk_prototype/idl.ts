@@ -4,6 +4,7 @@ export const idlFactory = ({ IDL }) => {
         'Approved' : IDL.Null,
         'Rejected' : IDL.Null,
         'Executed' : IDL.Null,
+        'Purged' : IDL.Null,
         'Pending' : IDL.Null,
     });
     const TransactionApproveRequest = IDL.Record({
@@ -20,6 +21,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberCreate' : IDL.Null,
         'PolicyRemove' : IDL.Null,
         'VersionUpgrade' : IDL.Null,
+        'Purge' : IDL.Null,
         'WalletCreate' : IDL.Null,
         'PolicyCreate' : IDL.Null,
         'MemberRemove' : IDL.Null,
@@ -130,6 +132,7 @@ export const idlFactory = ({ IDL }) => {
         'version' : IDL.Text,
         'common' : BasicTransactionFields,
     });
+    const PurgeTransaction = IDL.Record({ 'common' : BasicTransactionFields });
     const QuorumUpdateTransaction = IDL.Record({
         'common' : BasicTransactionFields,
         'quorum' : IDL.Nat8,
@@ -155,6 +158,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'UpgradeTransactionV' : VersionUpgradeTransaction,
+        'PurgeTransactionV' : PurgeTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
         'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction,
         'MemberRemoveTransactionV' : MemberRemoveTransaction,
@@ -268,6 +272,7 @@ export const idlFactory = ({ IDL }) => {
     const TransactionRequest = IDL.Variant({
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,
         'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest,
+        'PurgeTransactionRequestV' : IDL.Record({}),
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
         'TopUpTransactionRequestV' : TopUpTransactionRequest,
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,

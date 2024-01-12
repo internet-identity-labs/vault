@@ -11,6 +11,7 @@ use crate::transaction::member::member_update_role_transaction::{MemberUpdateRol
 use crate::transaction::policy::policy_create_transaction::{PolicyCreateTransactionBuilder, PolicyCreateTransactionRequest};
 use crate::transaction::policy::policy_remove_transaction::{PolicyRemoveTransactionBuilder, PolicyRemoveTransactionRequest};
 use crate::transaction::policy::policy_update_transaction::{PolicyUpdateTransactionBuilder, PolicyUpdateTransactionRequest};
+use crate::transaction::purge::purge_transaction::{PurgeTransactionBuilder, PurgeTransactionRequest};
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_builder::TransactionBuilder;
@@ -33,6 +34,7 @@ pub enum TransactionRequest {
     WalletUpdateNameTransactionRequestV(WalletUpdateNameTransactionRequest),
     WalletCreateTransactionRequestV(WalletCreateTransactionRequest),
     QuorumUpdateTransactionRequestV(QuorumUpdateTransactionRequest),
+    PurgeTransactionRequestV(PurgeTransactionRequest),
     VaultNamingUpdateTransactionRequestV(VaultNamingUpdateTransactionRequest),
     PolicyCreateTransactionRequestV(PolicyCreateTransactionRequest),
     PolicyUpdateTransactionRequestV(PolicyUpdateTransactionRequest),
@@ -86,6 +88,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::VersionUpgradeTransactionRequestV(request) => {
             VersionUpgradeTransactionBuilder::init(request).build()
+        }
+        TransactionRequest::PurgeTransactionRequestV(request) => {
+            PurgeTransactionBuilder::init(request).build()
         }
     };
     verify_caller(trs.get_accepted_roles());
