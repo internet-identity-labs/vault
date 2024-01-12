@@ -5,7 +5,7 @@ import {
     MemberUpdateRoleTransactionRequest,
     PolicyCreateTransactionRequest,
     PolicyRemoveTransactionRequest,
-    PolicyUpdateTransactionRequest,
+    PolicyUpdateTransactionRequest, PurgeTransactionRequest,
     QuorumTransactionRequest,
     TopUpTransactionRequest,
     TransferTransactionRequest,
@@ -84,6 +84,11 @@ export async function getTransactionByIdFromGetAllTrs(manager, trId) {
 
 export async function requestUpdateQuorumTransaction(manager, quorum): Promise<Array<Transaction>> {
     let memberR = new QuorumTransactionRequest(quorum);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestPurgeTransaction(manager): Promise<Array<Transaction>> {
+    let memberR = new PurgeTransactionRequest();
     return await manager.requestTransaction([memberR])
 }
 

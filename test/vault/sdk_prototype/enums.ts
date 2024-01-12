@@ -14,6 +14,7 @@ export enum TransactionType {
     Transfer = 'Transfer',
     TopUp = 'TopUp',
     VersionUpgrade = 'VersionUpgrade',
+    Purge = 'Purge',
 }
 
 export enum Currency {
@@ -30,6 +31,7 @@ export enum TransactionState {
     Rejected = "Rejected",
     Executed = "Executed",
     Blocked = "Blocked",
+    Purged = "Purged",
 }
 
 export enum VaultRole {

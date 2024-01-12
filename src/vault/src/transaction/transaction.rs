@@ -17,6 +17,7 @@ use crate::transaction::member::member_update_role_transaction::MemberUpdateRole
 use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
 use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
+use crate::transaction::purge::purge_transaction::PurgeTransaction;
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::is_blocked;
 use crate::transaction::transfer::top_up_transaction::TopUpTransaction;
@@ -191,11 +192,13 @@ pub enum TrType {
     Transfer,
     TopUp,
     VersionUpgrade,
+    Purge
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
     QuorumUpdateTransactionV(QuorumUpdateTransaction),
+    PurgeTransactionV(PurgeTransaction),
     VaultNamingUpdateTransactionV(VaultNamingUpdateTransaction),
     MemberCreateTransactionV(MemberCreateTransaction),
     MemberUpdateNameTransactionV(MemberUpdateNameTransaction),
@@ -232,6 +235,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::TransferTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::UpgradeTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::PurgeTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

@@ -141,6 +141,10 @@ type PolicyUpdateTransactionRequest = record {
     batch_uid : opt text;
 };
 
+type PurgeTransaction = record {
+    common : BasicTransactionFields
+};
+
 type Quorum = record {
     modified_date : nat64;
     quorum : nat8
@@ -176,6 +180,7 @@ type TrType = variant {
     MemberCreate;
     PolicyRemove;
     VersionUpgrade;
+    Purge;
     WalletCreate;
     PolicyCreate;
     MemberRemove;
@@ -205,6 +210,7 @@ type TransactionCandid = variant {
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     UpgradeTransactionV : VersionUpgradeTransaction;
+    PurgeTransactionV : PurgeTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
     WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
     MemberRemoveTransactionV : MemberRemoveTransaction;
@@ -213,6 +219,7 @@ type TransactionCandid = variant {
 type TransactionRequest = variant {
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
     VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
+    PurgeTransactionRequestV : record {};
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
@@ -232,6 +239,7 @@ type TransactionState = variant {
     Approved;
     Rejected;
     Executed;
+    Purged;
     Pending;
 };
 

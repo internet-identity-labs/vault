@@ -94,7 +94,7 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
         let trs = TransactionIterator::new(trss);
         trs.into_iter()
             .filter(|t| {
-                ![TransactionState::Executed, TransactionState::Rejected].contains(t.get_state())
+                ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Purged].contains(t.get_state())
             })
             .collect()
     });
