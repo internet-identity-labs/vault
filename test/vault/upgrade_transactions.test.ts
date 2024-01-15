@@ -31,7 +31,7 @@ describe("Upgrade Transactions", () => {
         DFX.USE_TEST_ADMIN();
         console.log(execute(`./test/resource/ledger.sh`))
 
-        console.log(execute(`dfx deploy vault_repo --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
+        console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {}; })' --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
         vault_repo_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(admin_identity.getPrincipal().toText(), vault_repo_id);
         await console.log(execute(`dfx canister call vault_repo sync_controllers`))

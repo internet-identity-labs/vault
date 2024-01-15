@@ -1,3 +1,5 @@
+mod config;
+
 use std::cell::RefCell;
 
 use api::call;
@@ -9,13 +11,9 @@ use ic_cdk_macros::*;
 use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, query_blocks};
 pub use semver::Version;
 use serde::{Deserialize, Serialize};
+use crate::config::{Conf, CONF};
 
 const FEE: u128 = 100_000_000_000;
-//0.5T - to be discussed
-const INITIAL_CYCLES_BALANCE: u128 = 500_000_000_000;
-//TODO stage/prod
-pub const REPO_CANISTER_ID: &str = "7jlkn-paaaa-aaaap-abvpa-cai";
-pub const DESTINATION_ADDRESS: &str = "4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e";
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct VaultCanister {
@@ -64,6 +62,11 @@ enum InstallMode {
     Upgrade,
 }
 
+// #[init]
+// async fn init(conf: Conf) {
+//     CONF.with(|c| c.replace(conf));
+// }
+
 #[update]
 async fn get_all_canisters() -> Vec<VaultCanister> {
     CANISTERS.with(|c| c.borrow().clone())
@@ -84,7 +87,7 @@ async fn update_canister_self(version: String) -> Result<(), String> {
         }
     };
     let (wasm, ): (VaultWasm, ) = match call::call(
-        Principal::from_text(REPO_CANISTER_ID).unwrap(),
+        get_repo_canister_id(),
         "get_by_version",
         (sem_ver.to_string(), ),
     ).await {
@@ -125,7 +128,7 @@ async fn create_canister_call(block_number: u64) -> Result<CreateResult, String>
     };
 
     let args = CreateCanisterArgs {
-        cycles: INITIAL_CYCLES_BALANCE + FEE,
+        cycles: get_initial_cycles_balance() + FEE,
         settings: set.clone(),
     };
 
@@ -161,11 +164,13 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
     #[derive(CandidType, Deserialize, Clone, Debug)]
     pub struct Conf {
         pub origins: Vec<String>,
+        pub management_canister: String,
     }
 
-    //TODO: handle logic with origins depends on the environment
+    let origins =  CONF.with(|c| c.borrow().clone().origins);
     let conf = Conf {
-        origins: vec!["http://localhost:4200".to_string(), "https://vaults-dev.nfid.one".to_string(), "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io".to_string()],
+        origins,
+        management_canister: id().to_string(),
     };
     let principal = caller();
 
@@ -181,7 +186,7 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
 
     //TODO maybe move to get_latest to avoid additional ICC or use ICQC
     let (versions, ): (Vec<String>, ) = match call::call(
-        Principal::from_text(REPO_CANISTER_ID).unwrap(),
+        get_repo_canister_id(),
         "get_available_versions",
         (),
     ).await {
@@ -199,7 +204,7 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
         .max().unwrap_or_else(|| trap("No semver versions found"));
 
     let (wasm, ): (VaultWasm, ) = match call::call(
-        Principal::from_text(REPO_CANISTER_ID).unwrap(),
+        get_repo_canister_id(),
         "get_by_version",
         (sem_ver.to_string(), ),
     ).await {
@@ -277,12 +282,15 @@ fn export_candid() -> String {
     __export_service()
 }
 
-//TODO dev/stage or config sc-10234?
 #[update]
 async fn get_trusted_origins() -> Vec<String> {
-    vec!["http://localhost:4200".to_string(), "https://vaults-dev.nfid.one".to_string(), "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io".to_string()]
+    CONF.with(|c| c.borrow().clone().origins)
 }
 
+#[update]
+async fn get_config() -> Conf {
+    CONF.with(|c| c.borrow().clone())
+}
 
 async fn verify_payment(block_number: u64) {
     CANISTERS.with(|c| {
@@ -311,10 +319,10 @@ async fn verify_payment(block_number: u64) {
             let operation = x.blocks[0].transaction.operation.clone().unwrap();
             match operation {
                 Operation::Transfer { to, amount, .. } => {
-                    if to.to_string() != DESTINATION_ADDRESS {
+                    if to.to_string() != get_destination_address() {
                         trap("Incorrect destination");
                     }
-                    if amount.e8s() < 100000000 {
+                    if amount.e8s() < get_payment_cycles() {
                         trap("Incorrect amount");
                     }
                 }
@@ -327,4 +335,20 @@ async fn verify_payment(block_number: u64) {
             trap(format!("Error: {:?}", e).as_str());
         }
     }
+}
+
+pub fn get_repo_canister_id() -> Principal {
+   CONF.with(|c| Principal::from_text(c.borrow().repo_canister_id.clone()).unwrap())
+}
+
+pub fn get_initial_cycles_balance() -> u128 {
+    CONF.with(|c| c.borrow().initial_cycles_balance)
+}
+
+pub fn get_destination_address() -> String {
+    CONF.with(|c| c.borrow().destination_address.clone())
+}
+
+pub fn get_payment_cycles() -> u64 {
+    CONF.with(|c| c.borrow().payment_cycles)
 }

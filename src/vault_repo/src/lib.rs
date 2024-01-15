@@ -19,16 +19,22 @@ pub struct VaultWasm {
 
 #[derive(CandidType, Deserialize, Clone, Debug, Hash, PartialEq)]
 pub struct Conf {
-    pub controllers: Option<Vec<Principal>>,
+    pub origins: Vec<String>,
+    pub controllers: Vec<Principal>,
 }
 
 thread_local! {
     pub static VAULT_VERSIONS: RefCell<Vec<VaultWasm >> = RefCell::new(Vec::default());
     pub static CONFIG: RefCell<Conf> = RefCell::new( Conf {
         controllers: Default::default(),
+        origins: Default::default(),
     });
 }
 
+#[init]
+async fn init(conf: Conf) {
+    CONFIG.with(|c| c.replace(conf));
+}
 
 #[derive(CandidType, Debug, Clone, Deserialize)]
 pub struct CanisterIdRequest {
@@ -46,7 +52,7 @@ async fn sync_controllers() -> Vec<String> {
         }, ),
     ).await;
     let controllers = res.unwrap().0.settings.controllers;
-    CONFIG.with(|c| c.borrow_mut().controllers.replace(controllers.clone()));
+    CONFIG.with(|c| c.borrow_mut().controllers = controllers.clone());
     controllers.iter().map(|x| x.to_text()).collect()
 }
 
@@ -138,18 +144,20 @@ fn get_wasm_hash(wasm: Vec<u8>) -> String {
     return format!("0x{:x}", result);
 }
 
-
 fn trap_if_not_authenticated_admin() {
     let princ = caller();
-    match CONFIG.with(|c| c.borrow_mut().controllers.clone())
-    {
-        None => {
-            trap("Unauthorised");
-        }
-        Some(controllers) => {
-            if !controllers.contains(&princ) {
-                trap(format!("Unauthorised {}", princ).as_str());
-            }
-        }
+    let controllers = CONFIG.with(|c| c.borrow_mut().controllers.clone());
+    if !controllers.contains(&princ) {
+        trap(format!("Unauthorised {}", princ).as_str());
     }
+}
+
+#[update]
+async fn get_trusted_origins() -> Vec<String> {
+    CONFIG.with(|c| c.borrow().clone().origins)
+}
+
+#[update]
+async fn get_config() -> Conf {
+    CONFIG.with(|c| c.borrow().clone())
 }
