@@ -62,10 +62,10 @@ enum InstallMode {
     Upgrade,
 }
 
-// #[init]
-// async fn init(conf: Conf) {
-//     CONF.with(|c| c.replace(conf));
-// }
+#[init]
+async fn init(conf: Conf) {
+    CONF.with(|c| c.replace(conf));
+}
 
 #[update]
 async fn get_all_canisters() -> Vec<VaultCanister> {
