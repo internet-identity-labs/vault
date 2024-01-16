@@ -11,7 +11,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::restore_member;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(MemberUpdateRoleTransaction);
@@ -25,7 +25,7 @@ pub struct MemberUpdateRoleTransaction {
 impl MemberUpdateRoleTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, member_id: String, role: VaultRole) -> Self {
         MemberUpdateRoleTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberUpdateRole, true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             member_id,
             role,
         }

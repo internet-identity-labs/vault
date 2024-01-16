@@ -175,26 +175,6 @@ impl PartialOrd for dyn ITransaction {
     }
 }
 
-//todo do we need this one?
-#[derive(Clone, Debug, CandidType, Deserialize, Serialize, Eq, Hash, PartialEq)]
-pub enum TrType {
-    QuorumUpdate,
-    MemberCreate,
-    MemberUpdateName,
-    MemberUpdateRole,
-    MemberRemove,
-    WalletCreate,
-    WalletUpdateName,
-    PolicyUpdate,
-    PolicyCreate,
-    PolicyRemove,
-    VaultNamingUpdate,
-    Transfer,
-    TopUp,
-    VersionUpgrade,
-    Purge
-}
-
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
     QuorumUpdateTransactionV(QuorumUpdateTransaction),

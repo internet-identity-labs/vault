@@ -6,7 +6,6 @@ type Approve = record {
 
 type BasicTransactionFields = record {
     id : nat64;
-    transaction_type : TrType;
     threshold : opt nat8;
     initiator : text;
     modified_date : nat64;
@@ -21,7 +20,7 @@ type BasicTransactionFields = record {
 
 type Conf = record {
     origins : vec text;
-    management_canister: text
+    management_canister : text
 };
 
 type Currency = variant {
@@ -174,24 +173,6 @@ type TopUpTransactionRequest = record {
     currency : Currency;
     wallet : text;
     amount : nat64;
-};
-
-type TrType = variant {
-    WalletUpdateName;
-    MemberCreate;
-    PolicyRemove;
-    VersionUpgrade;
-    Purge;
-    WalletCreate;
-    PolicyCreate;
-    MemberRemove;
-    PolicyUpdate;
-    MemberUpdateName;
-    VaultNamingUpdate;
-    MemberUpdateRole;
-    QuorumUpdate;
-    TopUp;
-    Transfer;
 };
 
 type TransactionApproveRequest = record {

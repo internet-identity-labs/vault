@@ -16,23 +16,6 @@ export const idlFactory = ({ IDL }) => {
         'BTC' : IDL.Null,
         'ETH' : IDL.Null,
     });
-    const TrType = IDL.Variant({
-        'WalletUpdateName' : IDL.Null,
-        'MemberCreate' : IDL.Null,
-        'PolicyRemove' : IDL.Null,
-        'VersionUpgrade' : IDL.Null,
-        'Purge' : IDL.Null,
-        'WalletCreate' : IDL.Null,
-        'PolicyCreate' : IDL.Null,
-        'MemberRemove' : IDL.Null,
-        'PolicyUpdate' : IDL.Null,
-        'MemberUpdateName' : IDL.Null,
-        'VaultNamingUpdate' : IDL.Null,
-        'MemberUpdateRole' : IDL.Null,
-        'QuorumUpdate' : IDL.Null,
-        'TopUp' : IDL.Null,
-        'Transfer' : IDL.Null,
-    });
     const VaultError = IDL.Variant({
         'QuorumNotReached' : IDL.Null,
         'WalletNotExists' : IDL.Null,
@@ -52,7 +35,6 @@ export const idlFactory = ({ IDL }) => {
     });
     const BasicTransactionFields = IDL.Record({
         'id' : IDL.Nat64,
-        'transaction_type' : TrType,
         'threshold' : IDL.Opt(IDL.Nat8),
         'initiator' : IDL.Text,
         'modified_date' : IDL.Nat64,
