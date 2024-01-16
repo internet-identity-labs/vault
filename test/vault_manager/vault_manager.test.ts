@@ -41,7 +41,7 @@ describe("VM Test", () => {
         }
         await actor.add_version(wasm);
 
-        console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
+        console.log(execute(`./test/resource/vault_manager.sh`))
     });
 
     after(() => {

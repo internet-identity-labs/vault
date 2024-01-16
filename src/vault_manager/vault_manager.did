@@ -1,3 +1,11 @@
+type Conf = record {
+    destination_address : text;
+    initial_cycles_balance : nat;
+    origins : vec text;
+    repo_canister_id : text;
+    payment_cycles : nat64;
+};
+
 type CreateResult = record {
     canister_id : principal
 };
@@ -7,11 +15,18 @@ type Result = variant {
     Err : text
 };
 
+type Result_1 = variant {
+    Ok;
+    Err : text
+};
+
 type VaultCanister = record {
     initiator : principal;
-    canister_id : principal
-};service : {
+    canister_id : principal;
+    block_number : nat64;
+};service : (Conf) -> {
     canister_balance : () -> (nat64) query;
     create_canister_call : (nat64) -> (Result);
     get_all_canisters : () -> (vec VaultCanister);
+    update_canister_self : (text) -> (Result_1);
 }
