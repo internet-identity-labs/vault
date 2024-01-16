@@ -8,7 +8,6 @@ export interface Approve {
 }
 export interface BasicTransactionFields {
     'id' : bigint,
-    'transaction_type' : TrType,
     'threshold' : [] | [number],
     'initiator' : string,
     'modified_date' : bigint,
@@ -20,7 +19,10 @@ export interface BasicTransactionFields {
     'created_date' : bigint,
     'batch_uid' : [] | [string],
 }
-export interface Conf { 'origins' : Array<string> }
+export interface Conf {
+    'origins' : Array<string>,
+    'management_canister' : string,
+}
 export type Currency = { 'ICP' : null };
 export interface Member {
     'modified_date' : bigint,
@@ -140,21 +142,6 @@ export interface TopUpTransactionRequest {
     'wallet' : string,
     'amount' : bigint,
 }
-export type TrType = { 'WalletUpdateName' : null } |
-    { 'MemberCreate' : null } |
-    { 'PolicyRemove' : null } |
-    { 'VersionUpgrade' : null } |
-    { 'Purge' : null } |
-    { 'WalletCreate' : null } |
-    { 'PolicyCreate' : null } |
-    { 'MemberRemove' : null } |
-    { 'PolicyUpdate' : null } |
-    { 'MemberUpdateName' : null } |
-    { 'VaultNamingUpdate' : null } |
-    { 'MemberUpdateRole' : null } |
-    { 'QuorumUpdate' : null } |
-    { 'TopUp' : null } |
-    { 'Transfer' : null };
 export interface TransactionApproveRequest {
     'transaction_id' : bigint,
     'state' : TransactionState,

@@ -1,7 +1,6 @@
 import {
     Network as NetworkCandid,
     TransactionState as TransactionStateCandid,
-    TrType,
     VaultRole as VaultRoleCandid
 } from "./service_vault";
 import {Network, TransactionState, TransactionType, VaultRole} from "./enums";
@@ -38,17 +37,6 @@ export function candidToTransactionState(trType: TransactionStateCandid): Transa
         }
     }
     throw Error("Invalid transaction state");
-}
-
-
-export function candidToTransactionType(trType: TrType): TransactionType {
-    const transactionTypeKeys = Object.values(TransactionType);
-    for (const key of transactionTypeKeys) {
-        if (hasOwnProperty(trType, key)) {
-            return TransactionType[key];
-        }
-    }
-    throw Error();
 }
 
 

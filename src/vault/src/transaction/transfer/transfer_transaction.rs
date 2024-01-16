@@ -13,7 +13,7 @@ use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transfer::transfer_common::TransferHelper;
 use crate::transfer_service::transfer;
@@ -36,7 +36,7 @@ pub struct TransferTransaction {
 impl TransferTransaction {
     fn new(state: TransactionState, address: String, currency: Currency,
            wallet: String, amount: u64, memo: Option<String>) -> Self {
-        let mut common = BasicTransactionFields::new(state, None, TrType::Transfer, false);
+        let mut common = BasicTransactionFields::new(state, None, false);
         common.memo = memo;
         TransferTransaction {
             common,

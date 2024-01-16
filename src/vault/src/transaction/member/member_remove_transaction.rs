@@ -10,7 +10,7 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(MemberRemoveTransaction);
@@ -23,7 +23,7 @@ pub struct MemberRemoveTransaction {
 impl MemberRemoveTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, id: String) -> Self {
         MemberRemoveTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberRemove, true),
+            common: BasicTransactionFields::new(state, batch_uid,  true),
             member_id: id,
         }
     }

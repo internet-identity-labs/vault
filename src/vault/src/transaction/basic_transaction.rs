@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::errors::VaultError;
-use crate::transaction::transaction::{ITransaction, TrType};
+use crate::transaction::transaction::ITransaction;
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::get_id;
 use crate::util::caller_to_address;
@@ -21,7 +21,6 @@ pub struct BasicTransactionFields {
     pub created_date: u64,
     pub modified_date: u64,
     pub memo: Option<String>,
-    pub transaction_type: TrType,
     pub is_vault_state: bool,
     pub batch_uid: Option<String>,
     pub threshold: Option<u8>,
@@ -29,9 +28,7 @@ pub struct BasicTransactionFields {
 }
 
 impl BasicTransactionFields {
-    pub fn new(state: TransactionState, batch_uid: Option<String>
-               , tr_type: TrType, is_vault_state: bool,
-    ) -> Self {
+    pub fn new(state: TransactionState, batch_uid: Option<String>, is_vault_state: bool) -> Self {
         BasicTransactionFields {
             id: get_id(),
             is_vault_state,
@@ -41,7 +38,6 @@ impl BasicTransactionFields {
             created_date: time(),
             modified_date: time(),
             memo: None,
-            transaction_type: tr_type,
             batch_uid: batch_uid,
             threshold: None,
             error: None,
@@ -81,9 +77,6 @@ pub trait BasicTransaction {
     }
     fn set_state(&mut self, ts: TransactionState) {
         self.get_common_mut().state = ts
-    }
-    fn get_type(&self) -> &TrType {
-        &self.get_common_ref().transaction_type
     }
 }
 

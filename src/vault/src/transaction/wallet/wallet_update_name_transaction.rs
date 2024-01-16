@@ -10,7 +10,7 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::wallet::wallet::restore_wallet;
 
@@ -25,7 +25,7 @@ pub struct WalletUpdateNameTransaction {
 impl WalletUpdateNameTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, uid: String, name: String) -> Self {
         WalletUpdateNameTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::WalletUpdateName, true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             uid,
             name,
         }

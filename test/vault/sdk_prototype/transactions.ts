@@ -18,13 +18,7 @@ import {
     WalletUpdateNameTransaction as WalletUpdateNameTransactionCandid
 } from "./service_vault";
 import {Approve, candidToApprove} from "./approve";
-import {
-    candidToNetwork,
-    candidToRole,
-    candidToTransactionState,
-    candidToTransactionType,
-    hasOwnProperty
-} from "./helper";
+import {candidToNetwork, candidToRole, candidToTransactionState, hasOwnProperty} from "./helper";
 
 export interface Transaction {
     id: bigint;
@@ -134,7 +128,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             quorum: response.quorum,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.QuorumUpdate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -152,7 +146,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             modifiedDate: response.common.modified_date,
             version: response.version,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.VersionUpgrade,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -171,7 +165,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             name: response.name.length === 0 ? undefined : response.name[0],
             description: response.description.length === 0 ? undefined : response.description[0],
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.VaultNamingUpdate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -191,7 +185,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.MemberCreate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -210,7 +204,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.MemberUpdateName,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -229,7 +223,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.MemberUpdateRole,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -247,7 +241,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.MemberRemove,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -267,7 +261,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.WalletCreate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -286,7 +280,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.WalletUpdateName,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -308,7 +302,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.PolicyCreate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
@@ -329,7 +323,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.PolicyUpdate,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -347,7 +341,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.PolicyRemove,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0]
         }
@@ -368,7 +362,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.Transfer,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             policy: response.policy.length === 0 ? undefined : response.policy[0],
@@ -390,7 +384,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.TopUp,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0],
@@ -409,7 +403,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             state: candidToTransactionState(response.common.state),
-            transactionType: candidToTransactionType(response.common.transaction_type),
+            transactionType: TransactionType.Purge,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             error: response.common.error.length === 0 ? undefined : response.common.error[0],

@@ -10,7 +10,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::member::members::restore_member;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(MemberUpdateNameTransaction);
@@ -24,7 +24,7 @@ pub struct MemberUpdateNameTransaction {
 impl MemberUpdateNameTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, member: String, name: String) -> Self {
         MemberUpdateNameTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::MemberUpdateName, true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             member_id: member,
             name,
         }

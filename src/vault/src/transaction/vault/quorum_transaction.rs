@@ -12,7 +12,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::vault::quorum::Quorum;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(QuorumUpdateTransaction);
@@ -25,7 +25,7 @@ pub struct QuorumUpdateTransaction {
 impl QuorumUpdateTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, quorum: u8) -> Self {
         QuorumUpdateTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::QuorumUpdate, true),
+            common: BasicTransactionFields::new(state, batch_uid,  true),
             quorum,
         }
     }

@@ -10,7 +10,7 @@ use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::policy::policy::Policy;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 
 impl_basic_for_transaction!(PolicyCreateTransaction);
@@ -28,7 +28,7 @@ impl PolicyCreateTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, uid: String, currency: Currency, amount_threshold: u64,
            member_threshold: u8, wallets: Vec<String>, ) -> Self {
         PolicyCreateTransaction {
-            common: BasicTransactionFields::new(state, batch_uid, TrType::PolicyCreate, true),
+            common: BasicTransactionFields::new(state, batch_uid,  true),
             uid,
             currency,
             amount_threshold,

@@ -7,7 +7,7 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::transaction::{ITransaction, TransactionCandid, TrType};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transaction_service::{get_unfinished_transactions, restore_transaction};
 
@@ -20,7 +20,7 @@ pub struct PurgeTransaction {
 impl PurgeTransaction {
     fn new(state: TransactionState) -> Self {
         PurgeTransaction {
-            common: BasicTransactionFields::new(state, None, TrType::Purge, false),
+            common: BasicTransactionFields::new(state, None,  false),
         }
     }
 }
