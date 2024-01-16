@@ -31,7 +31,7 @@ describe("Upgrade Transactions", () => {
         DFX.USE_TEST_ADMIN();
         console.log(execute(`./test/resource/ledger.sh`))
 
-        console.log(execute(`dfx deploy vault_repo --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
+        console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {}; })' --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
         vault_repo_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(admin_identity.getPrincipal().toText(), vault_repo_id);
         await console.log(execute(`dfx canister call vault_repo sync_controllers`))
@@ -47,7 +47,7 @@ describe("Upgrade Transactions", () => {
         console.log(execute(`./test/resource/ledger.sh`))
         let correctBytes = fromHexString("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e")
         console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
-        console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
+        console.log(execute(`./test/resource/vault_manager.sh`))
         vault_manager_canister = DFX.GET_CANISTER_ID("vault_manager");
         vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1));
         manager = new VaultManager()

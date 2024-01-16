@@ -52,7 +52,7 @@ impl TransactionBuilder for PurgeTransactionBuilder {
 #[async_trait]
 impl ITransaction for PurgeTransaction {
 
-    fn get_block_predicate(&mut self, tr: &Box<dyn ITransaction>) -> bool {
+    fn get_block_predicate(&mut self, _: &Box<dyn ITransaction>) -> bool {
         false
     }
 

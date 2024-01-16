@@ -21,7 +21,7 @@ describe("VM Test", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        await console.log(execute(`dfx deploy vault_repo --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
+        await console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {}; })' --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
         vault_canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), vault_canister_id);
         console.log(execute(`dfx canister call vault_repo sync_controllers`))
@@ -41,7 +41,7 @@ describe("VM Test", () => {
         }
         await actor.add_version(wasm);
 
-        console.log(execute(`dfx deploy vault_manager --specified-id=sgk26-7yaaa-aaaan-qaovq-cai`))
+        console.log(execute(`./test/resource/vault_manager.sh`))
     });
 
     after(() => {

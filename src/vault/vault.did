@@ -20,7 +20,8 @@ type BasicTransactionFields = record {
 };
 
 type Conf = record {
-    origins : vec text
+    origins : vec text;
+    management_canister: text
 };
 
 type Currency = variant {

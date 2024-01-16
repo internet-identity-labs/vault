@@ -15,7 +15,7 @@ describe("VR Test", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        await console.log(execute(`dfx deploy vault_repo`))
+        await console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {}; })' `))
         canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), canister_id);
         await console.log(execute(`dfx canister call vault_repo sync_controllers`))
