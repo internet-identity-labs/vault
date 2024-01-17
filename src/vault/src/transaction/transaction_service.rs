@@ -17,10 +17,12 @@ pub async fn execute_approved_transactions() {
     let mut unfinished_transactions = get_unfinished_transactions();
     unfinished_transactions.sort();
     let mut state = get_current_state();
-    while let Some(mut trs) = unfinished_transactions.pop() {
+    let mut i = unfinished_transactions.len();
+    while 0 < i {
+        let mut trs = unfinished_transactions[i - 1].clone();
         let state_before = trs.get_state().clone();
         trs.define_state();
-
+        let mut new_circle = false;
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
             //check that rejected transaction not in batch - if so reject whole batch and rollback the state
@@ -38,10 +40,18 @@ pub async fn execute_approved_transactions() {
                 let id_before_reject = rejected_batch[0].get_id() - 1;
                 state = get_vault_state(Some(id_before_reject)).await;
                 restore_trs(rejected_batch);
+                unfinished_transactions = get_unfinished_transactions();
+                unfinished_transactions.sort();
+                new_circle = true;
             }
         }
         if !state_before.eq(trs.get_state()) {
             restore_transaction(trs);
+        }
+        if new_circle {
+            i = unfinished_transactions.len();
+        } else {
+            i -= 1;
         }
     }
     restore_state(state);
@@ -57,7 +67,7 @@ fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
             transactions.retain(|existing| existing.get_id() != trs.get_id());
             transactions.push(trs);
         }
-    });
+    })
 }
 
 pub fn restore_transaction(transaction: Box<dyn ITransaction>) {
@@ -156,7 +166,7 @@ pub async fn stable_restore() {
     let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions
         .into_iter().map(|x| x.to_transaction())
         .collect();
-    trs.sort_by(|a,b| -> std::cmp::Ordering {
+    trs.sort_by(|a, b| -> std::cmp::Ordering {
         a.get_id().cmp(&b.get_id())
     });
     let state = define_state(trs.clone(), None).await;

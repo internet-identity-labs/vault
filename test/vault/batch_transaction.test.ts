@@ -34,10 +34,27 @@ describe("Batch Transactions", () => {
         DFX.STOP();
     });
 
+    it("Request batch transaction incorrect order - rejected", async function () {
+        let memberCreate = new MemberCreateTransactionRequest("memberAddress", "memberName", VaultRole.ADMIN);
+        let quorumTransactionRequest = new QuorumTransactionRequest(2);
+        let batchUid = "someRandomGeneratedUID_1"
+        memberCreate.batch_uid = batchUid
+        quorumTransactionRequest.batch_uid = batchUid
+        let res = await manager.requestTransaction([quorumTransactionRequest, memberCreate])
+        await manager.execute()
+        let state = await manager.getState();
+        let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
+        let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
+        expect(state.members.length).eq(1)
+        expect(state.quorum.quorum).eq(1)
+        expect(tr1.state).eq(TransactionState.Rejected)
+        expect(tr2.state).eq(TransactionState.Rejected)
+    });
+
     it("Request batch transaction - rejected", async function () {
         let memberCreate = new MemberCreateTransactionRequest("memberAddress", "memberName", VaultRole.ADMIN);
         let quorumTransactionRequest = new QuorumTransactionRequest(3);
-        let batchUid = "someRandomGeneratedUID_1"
+        let batchUid = "someRandomGeneratedUID_12"
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
