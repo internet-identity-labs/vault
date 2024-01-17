@@ -108,21 +108,6 @@ jobs:
               ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
               exit 1
             fi
-
-            if [ "${NETWORK_NAME}" == 'dev' ]; then
-              ARTIFACT_VERSION="${ARTIFACT_VERSION}-DEV"
-            fi
-            if [ "${NETWORK_NAME}" == 'stage' ]; then
-              ARTIFACT_VERSION="${ARTIFACT_VERSION}-STAGE"
-            fi
-            ARTIFACT_VERSION="${ARTIFACT_VERSION}-${{ github.run_id }}"
-
-            # Rechecking ARTIFACT_VERSION after modification
-            if ! [[ "${ARTIFACT_VERSION}" =~ ${REGEX} ]]; then
-              ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
-              exit 1
-            fi
-
             ARTIFACT_VERSION="-${ARTIFACT_VERSION}"
           else
             ARTIFACT_VERSION=''
@@ -216,7 +201,7 @@ jobs:
           path: ${{ github.workspace }}/${{ env.CANISTER_WASM }}
 
       - name: DEPLOY => Upload WASM to the Vault Repo.
-        if: ${{ (github.event.inputs.canister_name == 'vault') }}
+        if: ${{ (github.event.inputs.canister_name == 'vault') && (github.event.inputs.network_name != 'ic')}}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
