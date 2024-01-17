@@ -59,6 +59,12 @@ describe("VR Test", () => {
         expect(versions[1]).eq("0.0.2");
     });
 
+    it("Get latest", async function () {
+        let actor =  await getActor(canister_id, identity, idlFactory);
+        let wasm2 = await actor.get_latest_version() as VaultWasm;
+        expect(wasm2.version).eq("0.0.2");
+    });
+
 
     it("Check security", async function () {
         let not_admin = getIdentity("87654321876543218765432187654322")

@@ -120,8 +120,7 @@ async fn create_canister_call(block_number: u64) -> Result<CreateResult, String>
     verify_payment(block_number).await;
 
     let set = CanisterSettings {
-        //TODO add this canister as a controller + for now add a debug dude
-        controllers: Some(vec![id(), Principal::from_text("lh6kg-7ebfk-bwa26-zgl6l-l27vx-xnnr4-ow2n4-mm4cq-tfjky-rs5gq-5ae".to_string()).unwrap()]),
+        controllers: Some(vec![id()]),
         compute_allocation: None,
         memory_allocation: None,
         freezing_threshold: None,
@@ -184,29 +183,10 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
         }
     };
 
-    //TODO maybe move to get_latest to avoid additional ICC or use ICQC
-    let (versions, ): (Vec<String>, ) = match call::call(
-        get_repo_canister_id(),
-        "get_available_versions",
-        (),
-    ).await {
-        Ok(x) => x,
-        Err((code, msg)) => {
-            return Err(format!(
-                "An error happened during the call: {}: {}",
-                code as u8, msg
-            ));
-        }
-    };
-
-    let sem_ver = versions.into_iter()
-        .map(|v| Version::parse(&v).unwrap())
-        .max().unwrap_or_else(|| trap("No semver versions found"));
-
     let (wasm, ): (VaultWasm, ) = match call::call(
         get_repo_canister_id(),
-        "get_by_version",
-        (sem_ver.to_string(), ),
+        "get_latest_version",
+        (),
     ).await {
         Ok(x) => x,
         Err((code, msg)) => {

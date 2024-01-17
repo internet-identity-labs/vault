@@ -6,6 +6,7 @@ use ic_cdk::{call, caller, id, storage, trap};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use ic_cdk_macros::*;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -70,6 +71,23 @@ async fn get_available_versions() -> Vec<String> {
         vv.borrow().iter()
             .map(|vw| vw.version.clone())
             .collect()
+    )
+}
+
+#[query]
+async fn get_latest_version() -> VaultWasm {
+    let latest = VAULT_VERSIONS.with(|vv|
+        vv.borrow().iter()
+            .map(|vw| vw.version.clone())
+            .map(|v| Version::parse(&v).unwrap())
+            .max()
+            .unwrap_or_else(|| trap("No semver versions found")));
+
+    VAULT_VERSIONS.with(|vv|
+        vv.borrow().iter()
+            .find(|vw| vw.version == latest.to_string())
+            .map(|vw| vw.clone())
+            .unwrap_or_else(|| trap("Version not found"))
     )
 }
 

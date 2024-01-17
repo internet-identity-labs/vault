@@ -9,6 +9,8 @@ export const idlFactory = ({ IDL }) => {
         'canister_balance' : IDL.Func([], [IDL.Nat64], ['query']),
         'get_available_versions' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
         'get_by_version' : IDL.Func([IDL.Text], [VaultWasm], ['query']),
+        'get_latest_version' : IDL.Func([], [VaultWasm], ['query']),
+        'sync_controllers' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
     });
 };
 export const init = ({ IDL }) => { return []; };
