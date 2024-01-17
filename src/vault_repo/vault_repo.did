@@ -12,5 +12,6 @@ type VaultWasm = record {
     canister_balance : () -> (nat64) query;
     get_available_versions : () -> (vec text);
     get_by_version : (text) -> (VaultWasm) query;
+    get_latest_version : () -> (VaultWasm) query;
     sync_controllers : () -> (vec text);
 }

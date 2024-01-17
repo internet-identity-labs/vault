@@ -139,7 +139,6 @@ impl<'a> TransactionIterator<'a> {
     }
 }
 
-//TODO use a reference
 impl<'a> Iterator for TransactionIterator<'a> {
     type Item = Box<dyn ITransaction>;
 
