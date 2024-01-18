@@ -7,12 +7,17 @@ import {
 import {fromHexString, principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
-import {getTransactionByIdFromGetAllTrs, requestVersionUpgradeTransaction, verifyTransaction} from "./helper";
+import {
+    getTransactionByIdFromGetAllTrs,
+    requestCreateWalletTransaction,
+    requestVersionUpgradeTransaction,
+    verifyTransaction
+} from "./helper";
 import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {createCanister} from "../vault_manager/sdk/ochestrator";
-import {TransactionState, TransactionType} from "./sdk_prototype/enums";
+import {Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
 import {VersionUpgradeTransaction} from "./sdk_prototype/transactions";
 import {Approve} from "./sdk_prototype/approve";
 
@@ -52,9 +57,12 @@ describe("Upgrade Transactions", () => {
         vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1));
         manager = new VaultManager()
         await manager.init(vault_canister_id, admin, true)
+        await requestCreateWalletTransaction(manager, "walletName", Network.IC);
+        await requestCreateWalletTransaction(manager, "walletName2", Network.IC);
+        await manager.execute();
         let state = await manager.getState()
         expect(state.members.length).eq(1);
-
+        expect(state.wallets.length).eq(2);
     });
 
     after(() => {
@@ -91,6 +99,9 @@ describe("Upgrade Transactions", () => {
         expect(tr.state).eq(TransactionState.Executed)
         let version = await manager.getVersion();
         expect(version).eq("0.0.2")
+        let state = await manager.getState()
+        expect(state.members.length).eq(1);
+        expect(state.wallets.length).eq(2);
     });
 
 

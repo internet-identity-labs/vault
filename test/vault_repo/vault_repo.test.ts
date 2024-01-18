@@ -85,6 +85,17 @@ describe("VR Test", () => {
         }
 
     });
+
+    it("Get versions after upgrade", async function () {
+        DFX.UPGRADE_FORCE("vault_repo")
+        let actor =  await getActor(canister_id, identity, idlFactory);
+        let versions = await actor.get_available_versions() as string[];
+        expect(versions.length).eq(2);
+        versions.sort()
+        expect(versions[0]).eq("0.0.1");
+        expect(versions[1]).eq("0.0.2");
+    });
+
 })
 
 export function readWasmFile(filePath: string): Uint8Array {

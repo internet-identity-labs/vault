@@ -119,6 +119,14 @@ describe("VM Test", () => {
         expect(canisters.map(l => l.canister_id.toText()).find(l => l === canister.toText())).not.eq(undefined);
         expect(canisters[0].initiator.toText()).eq(identity.getPrincipal().toText());
     });
+
+
+    it("Get all canisters after upgrade", async function () {
+        DFX.UPGRADE_FORCE("vault_manager")
+        let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
+        expect(canisters.length).eq(2);
+    });
+
 })
 
 
