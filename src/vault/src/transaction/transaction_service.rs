@@ -55,9 +55,6 @@ pub async fn execute_approved_transactions() {
         }
     }
     restore_state(state);
-    TRANSACTIONS.with(|trss| {
-        trss.borrow_mut().sort();
-    });
 }
 
 fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
@@ -102,11 +99,13 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
     return TRANSACTIONS.with(|utrs| {
         let trss = utrs.borrow_mut();
         let trs = TransactionIterator::new(trss);
-        trs.into_iter()
+        let mut transactions: Vec<Box<dyn ITransaction>> = trs.into_iter()
             .filter(|t| {
                 ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Purged].contains(t.get_state())
             })
-            .collect()
+            .collect();
+        transactions.sort();
+        transactions
     });
 }
 
