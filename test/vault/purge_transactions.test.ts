@@ -53,6 +53,9 @@ describe("Purge Transactions", () => {
         let tr3 = await requestCreateMemberTransaction(manager, "memberAddress4", "memberName", VaultRole.ADMIN)
         await manager.execute();
         let tr = await requestPurgeTransaction(manager);
+        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress5", "memberName", VaultRole.ADMIN)
+        let tr5 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.ADMIN)
+        await manager.execute();
         let approveRequest: ApproveRequest = {
             trId: tr[0].id,
             state: TransactionState.Approved
@@ -63,8 +66,12 @@ describe("Purge Transactions", () => {
         expect(purgeTr.state).eq(TransactionState.Executed)
         let purgedMemberTransaction1 = await getTransactionByIdFromGetAllTrs(manager, tr2[0].id) as MemberCreateTransaction
         let purgedMemberTransaction2 = await getTransactionByIdFromGetAllTrs(manager, tr3[0].id) as MemberCreateTransaction
+        let purgedMemberTransaction3 = await getTransactionByIdFromGetAllTrs(manager, tr4[0].id) as MemberCreateTransaction
+        let purgedMemberTransaction4 = await getTransactionByIdFromGetAllTrs(manager, tr5[0].id) as MemberCreateTransaction
         expect(purgedMemberTransaction1.state).eq(TransactionState.Purged)
         expect(purgedMemberTransaction2.state).eq(TransactionState.Purged)
+        expect(purgedMemberTransaction3.state).eq(TransactionState.Pending)
+        expect(purgedMemberTransaction4.state).eq(TransactionState.Blocked)
         let state = await manager.getState();
         expect(state.members.length).eq(2)
     });
