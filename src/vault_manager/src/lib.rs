@@ -67,7 +67,7 @@ async fn init(conf: Conf) {
     CONF.with(|c| c.replace(conf));
 }
 
-#[update]
+#[query]
 async fn get_all_canisters() -> Vec<VaultCanister> {
     CANISTERS.with(|c| c.borrow().clone())
 }
@@ -117,7 +117,7 @@ async fn update_canister_self(version: String) -> Result<(), String> {
 
 #[update]
 async fn create_canister_call(block_number: u64) -> Result<CreateResult, String> {
-    verify_payment(block_number).await;
+    // verify_payment(block_number).await;
 
     let set = CanisterSettings {
         controllers: Some(vec![id()]),
