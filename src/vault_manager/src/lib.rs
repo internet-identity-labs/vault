@@ -67,7 +67,7 @@ async fn init(conf: Conf) {
     CONF.with(|c| c.replace(conf));
 }
 
-#[update]
+#[query]
 async fn get_all_canisters() -> Vec<VaultCanister> {
     CANISTERS.with(|c| c.borrow().clone())
 }
