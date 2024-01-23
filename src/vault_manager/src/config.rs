@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 
 use candid::CandidType;
-use candid::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct Conf {
     pub origins: Vec<String>,
     pub initial_cycles_balance: u128,

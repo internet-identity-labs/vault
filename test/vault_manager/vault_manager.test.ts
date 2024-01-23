@@ -125,6 +125,9 @@ describe("VM Test", () => {
         DFX.UPGRADE_FORCE("vault_manager")
         let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
         expect(canisters.length).eq(2);
+        let actor = await getActor(canister_id, identity, idlFactory);
+        let origins = await actor.get_trusted_origins() as Array<String>
+        expect(origins.length).eq(3);
     });
 
 })

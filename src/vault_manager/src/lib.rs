@@ -1,5 +1,3 @@
-mod config;
-
 use std::cell::RefCell;
 
 use api::call;
@@ -12,6 +10,8 @@ use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, quer
 pub use semver::Version;
 use serde::{Deserialize, Serialize};
 use crate::config::{Conf, CONF};
+
+mod config;
 
 const FEE: u128 = 100_000_000_000;
 
@@ -166,7 +166,7 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
         pub management_canister: String,
     }
 
-    let origins =  CONF.with(|c| c.borrow().clone().origins);
+    let origins = CONF.with(|c| c.borrow().clone().origins);
     let conf = Conf {
         origins,
         management_canister: id().to_string(),
@@ -234,6 +234,7 @@ async fn canister_balance() -> u64 {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 struct Memory {
     canisters: Vec<VaultCanister>,
+    config: Option<Conf>,
 }
 
 #[pre_upgrade]
@@ -241,8 +242,12 @@ pub fn stable_save() {
     let trs: Vec<VaultCanister> = CANISTERS.with(|trss| {
         trss.borrow().clone()
     });
+    let conf: Conf = CONF.with(|vv| {
+        vv.borrow().clone()
+    });
     let mem = Memory {
         canisters: trs,
+        config: Some(conf),
     };
     storage::stable_save((mem, )).unwrap();
 }
@@ -250,8 +255,17 @@ pub fn stable_save() {
 #[post_upgrade]
 pub fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    CANISTERS.with(|c| c.borrow_mut().extend(mo.canisters));
+    CANISTERS.with(|c| c.borrow_mut().extend(mo.canisters.clone()));
+    match mo.config {
+        None => {}
+        Some(conf) => {
+            CONF.with(|vv| {
+                vv.replace(conf);
+            });
+        }
+    }
 }
+
 
 #[test]
 fn sub_account_test() {}
@@ -318,7 +332,7 @@ async fn verify_payment(block_number: u64) {
 }
 
 pub fn get_repo_canister_id() -> Principal {
-   CONF.with(|c| Principal::from_text(c.borrow().repo_canister_id.clone()).unwrap())
+    CONF.with(|c| Principal::from_text(c.borrow().repo_canister_id.clone()).unwrap())
 }
 
 pub fn get_initial_cycles_balance() -> u128 {
