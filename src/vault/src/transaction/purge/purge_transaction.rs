@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::TransactionState;
+use crate::enums::{TransactionState, VaultRole};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -51,6 +51,9 @@ impl TransactionBuilder for PurgeTransactionBuilder {
 
 #[async_trait]
 impl ITransaction for PurgeTransaction {
+    fn get_accepted_roles(&self) -> Vec<VaultRole> {
+        return vec![VaultRole::Admin];
+    }
 
     fn get_block_predicate(&mut self, _: &Box<dyn ITransaction>) -> bool {
         false
