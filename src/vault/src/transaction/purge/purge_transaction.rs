@@ -20,7 +20,7 @@ pub struct PurgeTransaction {
 impl PurgeTransaction {
     fn new(state: TransactionState) -> Self {
         PurgeTransaction {
-            common: BasicTransactionFields::new(state, None,  false),
+            common: BasicTransactionFields::new(state, None, false),
         }
     }
 }
@@ -57,8 +57,8 @@ impl ITransaction for PurgeTransaction {
     }
 
     async fn execute(&mut self, state: VaultState) -> VaultState {
-        get_unfinished_transactions()
-            .into_iter()
+        get_unfinished_transactions().into_iter()
+            .filter(|tr| tr.get_id() < self.get_id())
             .for_each(|mut tr| {
                 tr.set_state(TransactionState::Purged);
                 restore_transaction(tr);
