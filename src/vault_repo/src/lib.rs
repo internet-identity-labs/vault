@@ -18,7 +18,7 @@ pub struct VaultWasm {
     hash: String,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug, Hash, PartialEq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, Hash, PartialEq)]
 pub struct Conf {
     pub origins: Vec<String>,
     pub controllers: Vec<Principal>,
@@ -126,6 +126,7 @@ async fn canister_balance() -> u64 {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 struct Memory {
     versions: Vec<VaultWasm>,
+    config: Option<Conf>
 }
 
 #[pre_upgrade]
@@ -133,8 +134,13 @@ pub fn stable_save() {
     let trs: Vec<VaultWasm> = VAULT_VERSIONS.with(|vv| {
         vv.borrow().clone()
     });
+    let conf: Conf = CONFIG.with(|vv| {
+        vv.borrow().clone()
+    });
+
     let mem = Memory {
         versions: trs,
+        config: Some(conf),
     };
     storage::stable_save((mem, )).unwrap();
 }
@@ -142,7 +148,16 @@ pub fn stable_save() {
 #[post_upgrade]
 pub fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    VAULT_VERSIONS.with(|vv| vv.borrow_mut().extend(mo.versions));
+    VAULT_VERSIONS.with(|vv| vv.borrow_mut().extend(mo.versions.clone()));
+    match mo.config {
+        None => {}
+        Some(conf) => {
+            CONFIG.with(|vv| {
+                vv.replace(conf);
+            });
+        }
+    }
+
 }
 
 #[test]

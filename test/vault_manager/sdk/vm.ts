@@ -12,4 +12,5 @@ export interface _SERVICE {
     'canister_balance' : ActorMethod<[], bigint>,
     'create_canister_call' : ActorMethod<[bigint], Result>,
     'get_all_canisters' : ActorMethod<[], Array<VaultCanister>>,
+    'get_trusted_origins' : ActorMethod<[], Array<string>>,
 }

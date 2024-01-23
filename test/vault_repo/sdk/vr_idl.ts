@@ -11,6 +11,7 @@ export const idlFactory = ({ IDL }) => {
         'get_by_version' : IDL.Func([IDL.Text], [VaultWasm], ['query']),
         'get_latest_version' : IDL.Func([], [VaultWasm], ['query']),
         'sync_controllers' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
+        'get_trusted_origins' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
     });
 };
 export const init = ({ IDL }) => { return []; };

@@ -17,4 +17,5 @@ export interface _SERVICE {
     'get_by_version' : ActorMethod<[string], VaultWasm>,
     'get_latest_version' : ActorMethod<[], VaultWasm>,
     'sync_controllers' : ActorMethod<[], Array<string>>,
+    'get_trusted_origins' : ActorMethod<[], Array<string>>,
 }
