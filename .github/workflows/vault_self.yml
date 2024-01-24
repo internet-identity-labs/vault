@@ -18,15 +18,15 @@ on:
           - vault_manager
           - vault_repo
           - vault
-      debug_messages:
-        description: 'Show debug messages'
-        type: choice
-        options: 
-          - 'false'
-          - 'true'
       artifact_version:
         description: 'The version of your VAULT artifact in SemVer format'
         type: string
+      uniq_artifact_version:
+        description: 'Add to the provided version uniq string'
+        type: choice
+        options: 
+          - 'true'
+          - 'false'
       confirmation:
         description: 'For the ic deployment - confirm your choice by typing "Yes"'
         type: string
@@ -34,8 +34,9 @@ on:
 env:
   NETWORK_NAME: ${{ github.event.inputs.network_name }}
   CANISTER_NAME: ${{ github.event.inputs.canister_name }}
-  CI_DEBUG: ${{ github.event.inputs.debug_messages }}
+  CI_DEBUG: true
   ARTIFACT_VERSION: ${{ github.event.inputs.artifact_version }}
+  UNIQ_ARTIFACT_VERSION: ${{ github.event.inputs.uniq_artifact_version }}
 
 
 jobs:
@@ -108,7 +109,16 @@ jobs:
               ci_echo_error "ARTIFACT_VERSION : '${ARTIFACT_VERSION}' - is not SemVer correct (https://semver.org/)" >&2
               exit 1
             fi
-            ARTIFACT_VERSION="-${ARTIFACT_VERSION}"
+
+            if [ "${UNIQ_ARTIFACT_VERSION}" == 'true' ]; then
+              ci_echo_warn "UNIQ_ARTIFACT_VERSION var was provided." >&2
+              UNIQ_VERSION_PART="$( date +%s-%Y%m%d%H%M%S )"
+              UNIQ_VERSION_PART="-${UNIQ_VERSION_PART}"
+            fi
+
+            ARTIFACT_VERSION="-${ARTIFACT_VERSION}${UNIQ_VERSION_PART}"
+            VERSION_FILE_PATH='src/vault/src/version_const.rs'
+            VERSION_FILE_CONTENT="pub const VERSION: &str = \"${ARTIFACT_VERSION#-}\";"
           else
             ARTIFACT_VERSION=''
           fi
@@ -127,6 +137,13 @@ jobs:
           echo "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >> $GITHUB_ENV
           echo "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >> $GITHUB_ENV
 
+          if [ "${CANISTER_NAME}" == 'vault' ]; then
+            echo "UNIQ_VERSION_PART=${UNIQ_VERSION_PART}" >> $GITHUB_ENV
+            echo "VERSION_FILE_PATH=${VERSION_FILE_PATH}" >> $GITHUB_ENV
+            echo "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >> $GITHUB_ENV
+          fi
+
+
       - name: PRE-BUILD => Print Vars.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
@@ -140,22 +157,36 @@ jobs:
           ci_echo_info "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >&2
           ci_echo_info "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >&2
 
+          if [ "${CANISTER_NAME}" == 'vault' ]; then
+            ci_echo_info "UNIQ_VERSION_PART=${UNIQ_VERSION_PART}" >&2
+            ci_echo_info "VERSION_FILE_PATH=${VERSION_FILE_PATH}" >&2
+            ci_echo_info "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >&2
+          fi
+
       - name: PRE-BUILD => Write identity.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
           mkdir -p "${ID_PATH}"
-          echo "${!IDENTITY_PEM_NAME_VAR}" > "${ID_PATH}/identity.pem"
 
           ci_echo_warn "Preparing encoded key..." >&2
-          ci_echo_info "Installing base64 package..." >&2
-          sudo apt-get update && sudo apt-get install -y coreutils moreutils
-
           ci_echo_info "Decoding..." >&2
-          base64 -d "${ID_PATH}/identity.pem" | sponge "${ID_PATH}/identity.pem"
+          echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
         env:
           DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
           PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
+
+      - name: PRE-BUILD => Write version file.
+        if: ${{ github.event.inputs.canister_name == 'vault' }}
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          ci_echo_warn "File '${VERSION_FILE_PATH}' will be overwrited." >&2
+          echo "${VERSION_FILE_CONTENT}" > "${VERSION_FILE_PATH}"
+          ci_echo_info "Done" >&2
+
+          ci_echo_title "New File content" >&2
+          cat "${VERSION_FILE_PATH}"
 
       - name: BUILD => Build the canister.
         run: |

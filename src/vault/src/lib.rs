@@ -18,6 +18,7 @@ use crate::transaction::transaction_approve_handler::{Approve, handle_approve, T
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
 use crate::util::{to_address, to_array};
+use crate::version_const::VERSION;
 
 mod util;
 mod enums;
@@ -27,8 +28,8 @@ mod config;
 mod transaction;
 mod state;
 mod errors;
+mod version_const;
 
-pub const VERSION: &str = "0.0.1";
 
 thread_local! {
     pub static HEART_COUNT: RefCell<u8> = RefCell::new(0);
