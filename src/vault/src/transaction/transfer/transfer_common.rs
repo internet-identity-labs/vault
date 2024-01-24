@@ -1,7 +1,7 @@
 use crate::errors::VaultError;
 use crate::errors::VaultError::CouldNotDefinePolicy;
 use crate::state::get_current_state;
-use crate::transaction::transaction::{get_vault_state_block_predicate, ITransaction, TransactionCandid};
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 
 /*
 if you make any changes to this file
@@ -40,7 +40,7 @@ pub trait TransferHelper: ITransaction {
         if tr.get_id() >= self.get_id() {
             return false;
         }
-        if get_vault_state_block_predicate(tr) {
+        if tr.get_common_ref().is_vault_state {
             return true;
         }
         if let TransactionCandid::TransferTransactionV(transfer) = tr.to_candid() {

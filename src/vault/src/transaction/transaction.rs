@@ -82,7 +82,11 @@ pub trait ITransaction: BasicTransaction {
         if tr.get_id() >= self.get_id() {
             return false;
         }
-        if get_vault_state_block_predicate(tr) {
+        if tr.get_common_ref().is_vault_state || match tr.to_candid() {
+            TransactionCandid::TransferTransactionV(_) => { true }
+            TransactionCandid::TopUpTransactionV(_) => { true }
+            _ => { false }
+        } {
             return true;
         }
         false
@@ -217,9 +221,4 @@ impl Candid for TransactionCandid {
             TransactionCandid::PurgeTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
-}
-
-
-pub fn get_vault_state_block_predicate(tr: &Box<dyn ITransaction>) -> bool {
-    return tr.get_common_ref().is_vault_state;
 }

@@ -11,9 +11,9 @@ use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
-use crate::transaction::vault::quorum::Quorum;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
+use crate::transaction::vault::quorum::Quorum;
 
 impl_basic_for_transaction!(QuorumUpdateTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
@@ -25,7 +25,7 @@ pub struct QuorumUpdateTransaction {
 impl QuorumUpdateTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, quorum: u8) -> Self {
         QuorumUpdateTransaction {
-            common: BasicTransactionFields::new(state, batch_uid,  true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             quorum,
         }
     }
@@ -64,7 +64,11 @@ impl TransactionBuilder for QuorumUpdateTransactionBuilder {
 #[async_trait]
 impl ITransaction for QuorumUpdateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
-        if state.members.iter()
+        if self.quorum == 0 {
+            self.set_state(Rejected);
+            self.common.error = Some(QuorumNotReached);
+            state
+        } else if state.members.iter()
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
             self.set_state(Rejected);
