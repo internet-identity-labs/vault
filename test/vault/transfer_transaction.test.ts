@@ -16,7 +16,7 @@ import {
 } from "./helper";
 import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
 import {TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
+import {Approve, ApproveRequest} from "./sdk_prototype/approve";
 import {hasOwnProperty} from "./sdk_prototype/helper";
 
 require('./bigintextension.js');
@@ -125,9 +125,26 @@ describe("Transfer Transactions", () => {
     });
 
     it("Trs pending because from another wallet", async function () {
+        let trs = await manager.getTransactions()
         let createWallet = await requestCreateWalletTransaction(manager, "testWallet2", Network.IC) as Array<WalletCreateTransaction>
+        let walletTransaction = await getTransactionByIdFromGetAllTrs(manager, createWallet[0].id)
+        //have to be blocked by previous transfer transactions
+        expect(walletTransaction.state).eq(TransactionState.Blocked)
+        let reject1: ApproveRequest = {
+            trId: trs[9].id,
+            state: TransactionState.Rejected
+        }
+        let reject2: ApproveRequest = {
+            trId: trs[10].id,
+            state: TransactionState.Rejected
+        }
+        await manager_member.approveTransaction([reject1, reject2])
+        await manager_member.execute()
         let walletUId2 = createWallet[0].uid
         await requestCreatePolicyTransaction(manager, 2, 10, [walletUId2])
+        await manager.execute()
+        //request transfer from existing wallet
+        await requestTransferTransaction(manager, address, walletUId, 200)
         await manager.execute()
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId2, 100)
         await manager.execute()
