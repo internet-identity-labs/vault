@@ -36,7 +36,7 @@ pub async fn execute_approved_transactions() {
                         t
                     })
                     .collect();
-                rejected_batch.sort();
+                rejected_batch.sort_by(|a, b| a.get_id().cmp(&b.get_id()));
                 //id of transaction before batch
                 let id_before_reject = rejected_batch[0].get_id() - 1;
                 state = get_vault_state(Some(id_before_reject)).await;
