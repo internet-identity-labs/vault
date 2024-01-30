@@ -2,6 +2,7 @@ export const idlFactory = ({ IDL }) => {
     const VaultWasm = IDL.Record({
         'wasm_module' : IDL.Vec(IDL.Nat8),
         'hash' : IDL.Text,
+        'description' : IDL.Opt(IDL.Text),
         'version' : IDL.Text,
     });
     return IDL.Service({

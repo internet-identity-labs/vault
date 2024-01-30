@@ -35,6 +35,7 @@ describe("VM Test", () => {
         let actor = await getActor(vault_canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.1"
@@ -96,6 +97,7 @@ describe("VM Test", () => {
         let actor = await getActor(vault_canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.2"

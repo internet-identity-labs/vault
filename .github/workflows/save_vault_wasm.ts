@@ -60,6 +60,7 @@ async function saveVaultWasm() {
     const version = process.env.VERSION;
     const canisterId = process.env.CANISTER_ID;
     const identitySeed = process.env.IDENTITY_SEED;
+    const description = process.env.DESCRIPTION;
 
     if (!wasmFilePath || !version || !canisterId || !identitySeed) {
         throw new Error("Please provide WASM_FILE_PATH, VERSION, CANISTER_ID, IDENTITY_SEED as environment variables.");
@@ -77,6 +78,7 @@ async function saveVaultWasm() {
             wasm_module: Array.from(wasmBytes),
             hash: hash,
             version: version,
+            description: description ? [description] : [],
         };
 
         console.log({principal});

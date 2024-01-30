@@ -16,6 +16,7 @@ pub struct VaultWasm {
     wasm_module: Vec<u8>,
     version: String,
     hash: String,
+    description: Option<String>,
 }
 
 #[derive(CandidType, Deserialize, Serialize, Clone, Debug, Hash, PartialEq)]
@@ -63,6 +64,7 @@ struct WalletStoreWASMArgs {
     wasm_module: Vec<u8>,
     version: String,
     hash: String,
+    description: Option<String>,
 }
 
 #[update]
@@ -114,6 +116,7 @@ async fn add_version(args: WalletStoreWASMArgs) {
             wasm_module: args.wasm_module,
             version: args.version,
             hash: args.hash,
+            description: args.description,
         })
     });
 }

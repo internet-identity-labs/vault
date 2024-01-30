@@ -8,6 +8,7 @@ export interface Conf {
 export interface VaultWasm {
     'wasm_module' : Uint8Array | number[],
     'hash' : string,
+    'description' : [] | [string],
     'version' : string,
 }
 export interface _SERVICE {

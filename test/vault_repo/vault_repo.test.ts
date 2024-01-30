@@ -30,6 +30,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: ["lorem"],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.1"
@@ -38,6 +39,7 @@ describe("VR Test", () => {
         let wasm2 = await actor.get_by_version("0.0.1") as VaultWasm;
         expect(wasm2.hash).eq(hash);
         expect(wasm2.version).eq("0.0.1");
+        expect(wasm2.description[0]).eq("lorem");
     });
 
     it("Get versions", async function () {
@@ -45,6 +47,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.2"
@@ -73,6 +76,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, not_admin, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.3"

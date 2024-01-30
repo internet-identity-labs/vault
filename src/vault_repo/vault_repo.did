@@ -6,7 +6,8 @@ type Conf = record {
 type VaultWasm = record {
     wasm_module : vec nat8;
     hash : text;
-    version : text
+    version : text;
+    description : opt text;
 };service : (Conf) -> {
     add_version : (VaultWasm) -> ();
     canister_balance : () -> (nat64) query;
