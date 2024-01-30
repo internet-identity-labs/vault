@@ -6,7 +6,11 @@ import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs} from "./helper";
 import {TransactionState, VaultRole} from "./sdk_prototype/enums";
-import {MemberCreateTransactionRequest, QuorumTransactionRequest} from "./sdk_prototype/transaction_requests";
+import {
+    MemberCreateTransactionRequest,
+    MemberRemoveTransactionRequest,
+    QuorumTransactionRequest
+} from "./sdk_prototype/transaction_requests";
 import {ApproveRequest} from "./sdk_prototype/approve";
 
 require('./bigintextension.js');
@@ -16,6 +20,7 @@ describe("Batch Transactions", () => {
     let admin_identity = getIdentity("87654321876543218765432187654321")
     let admin_identity2 = getIdentity("87654321876543218765432187654322")
     let admin_identity3 = getIdentity("87654321876543218765432187654323")
+    let admin_identity4 = getIdentity("87654321876543218765432187654324")
     let manager: VaultManager;
     let manager2: VaultManager;
     before(async () => {
@@ -49,6 +54,37 @@ describe("Batch Transactions", () => {
         expect(state.quorum.quorum).eq(1)
         expect(tr1.state).eq(TransactionState.Rejected)
         expect(tr2.state).eq(TransactionState.Rejected)
+    });
+
+
+    it("Request batch transaction - with member recreate", async function () {
+        let memberCreate = new MemberCreateTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any), "memberName", VaultRole.ADMIN);
+        let quorumTransactionRequest = new QuorumTransactionRequest(0);
+        let batchUid = "someRandomGeneratedUID_3"
+        memberCreate.batch_uid = batchUid
+        quorumTransactionRequest.batch_uid = batchUid
+        let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
+        await manager.execute()
+        let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
+        let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
+
+        let state = await manager.getState();
+        expect(state.members.length).eq(1)
+        expect(state.quorum.quorum).eq(1)
+        expect(tr1.state).eq(TransactionState.Rejected)
+        expect(tr2.state).eq(TransactionState.Rejected)
+        let memberReCreate = new MemberCreateTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any), "memberName", VaultRole.ADMIN);
+        res = await manager.requestTransaction([memberReCreate])
+        await manager.execute()
+        tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
+        state = await manager.getState();
+        expect(state.members.length).eq(2)
+        expect(tr1.state).eq(TransactionState.Executed)
+        let memberRemove = new MemberRemoveTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any));
+        await manager.requestTransaction([memberRemove])
+        await manager.execute()
+        state = await manager.getState();
+        expect(state.members.length).eq(1)
     });
 
     it("Request batch transaction - rejected", async function () {
