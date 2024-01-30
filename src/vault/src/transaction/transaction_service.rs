@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use candid::CandidType;
 use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
+use crate::config::{Conf, CONF};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Rejected};
@@ -144,6 +145,7 @@ pub fn get_id() -> u64 {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 struct Memory {
     transactions: Vec<TransactionCandid>,
+    config: Conf,
 }
 
 
@@ -154,7 +156,12 @@ pub fn stable_save() {
             .map(|a| a.to_candid())
             .collect()
     });
+    let conf: Conf = CONF.with(|conf| {
+        let a = conf.borrow();
+        a.clone()
+    });
     let mem = Memory {
+        config: conf,
         transactions: trs,
     };
     storage::stable_save((mem, )).unwrap();
@@ -162,6 +169,10 @@ pub fn stable_save() {
 
 pub async fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
+    CONF.with(|conf| {
+        conf.borrow_mut();
+        conf.replace(mo.config.clone())
+    });
     let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions
         .into_iter().map(|x| x.to_transaction())
         .collect();
