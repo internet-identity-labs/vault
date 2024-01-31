@@ -50,8 +50,9 @@ export const getIdentity = (seed: string): Ed25519KeyIdentity => {
 
 /**
  * Save Vault Wasm by adding a new version to the actor.
- * WASM_FILE_PATH  -
- * VERSION         -
+ * WASM_FILE_PATH  - Path to the WASM file (artifact)
+ * VERSION         - Version of the artifact
+ * DESCRIPTION     - Description to the version of the artifact
  * CANISTER_ID     - (id of vault_repo canister)
  * IDENTITY_SEED   -
  */
@@ -60,12 +61,13 @@ async function saveVaultWasm() {
     const version = process.env.VERSION;
     const canisterId = process.env.CANISTER_ID;
     const identitySeed = process.env.IDENTITY_SEED;
+    const description = process.env.DESCRIPTION;
 
     if (!wasmFilePath || !version || !canisterId || !identitySeed) {
         throw new Error("Please provide WASM_FILE_PATH, VERSION, CANISTER_ID, IDENTITY_SEED as environment variables.");
     }
 
-    console.log({wasmFilePath,version,canisterId});
+    console.log({wasmFilePath,version,canisterId,description});
     
     try {
         const wasmBytes = readWasmFile(wasmFilePath);
@@ -77,6 +79,7 @@ async function saveVaultWasm() {
             wasm_module: Array.from(wasmBytes),
             hash: hash,
             version: version,
+            description: description ? [description] : [],
         };
 
         console.log({principal});
@@ -86,7 +89,7 @@ async function saveVaultWasm() {
 
         // Check if the version is present in the actor
         const retrievedWasm = await actor.get_by_version(version) as VaultWasm;
-        console.log({retrievedWasmHash:retrievedWasm.hash, hash, retrievedWasmVersion:retrievedWasm.version, version});
+        console.log({retrievedWasmHash:retrievedWasm.hash, hash, retrievedWasmVersion:retrievedWasm.version, version, retrievedWasmDescription:retrievedWasm.description, description});
 
         if (retrievedWasm.hash === hash && retrievedWasm.version === version) {
             console.log("Wasm file saved successfully.");

@@ -16,6 +16,7 @@ pub struct VaultWasm {
     wasm_module: Vec<u8>,
     version: String,
     hash: String,
+    description: Option<String>,
 }
 
 #[derive(CandidType, Deserialize, Serialize, Clone, Debug, Hash, PartialEq)]
@@ -63,13 +64,25 @@ struct WalletStoreWASMArgs {
     wasm_module: Vec<u8>,
     version: String,
     hash: String,
+    description: Option<String>,
+}
+
+#[derive(CandidType, Deserialize)]
+struct VersionWrapper {
+    version: String,
+    description: Option<String>,
 }
 
 #[update]
-async fn get_available_versions() -> Vec<String> {
+async fn get_available_versions() -> Vec<VersionWrapper> {
     VAULT_VERSIONS.with(|vv|
         vv.borrow().iter()
-            .map(|vw| vw.version.clone())
+            .map(|vw| {
+                VersionWrapper {
+                    version: vw.version.clone(),
+                    description: vw.description.clone(),
+                }
+            })
             .collect()
     )
 }
@@ -114,6 +127,7 @@ async fn add_version(args: WalletStoreWASMArgs) {
             wasm_module: args.wasm_module,
             version: args.version,
             hash: args.hash,
+            description: args.description,
         })
     });
 }

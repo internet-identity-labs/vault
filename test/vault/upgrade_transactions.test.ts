@@ -44,6 +44,7 @@ describe("Upgrade Transactions", () => {
         let actor = await getActor(vault_repo_id, admin, vrIdl);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.1"
@@ -83,6 +84,7 @@ describe("Upgrade Transactions", () => {
         let actor = await getActor(vault_repo_id, admin, vrIdl);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.2"

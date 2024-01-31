@@ -3,7 +3,7 @@ import {DFX} from "../constanst/dfx.const";
 import {execute} from "../util/call.util";
 import * as fs from "fs";
 import {idlFactory} from "./sdk/vr_idl";
-import {VaultWasm} from "./sdk/vr";
+import {VaultWasm, VersionWrapper} from "./sdk/vr";
 import {sha256} from "ethers/lib/utils";
 import {expect} from "chai";
 import {fail} from "assert";
@@ -30,6 +30,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: ["lorem"],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.1"
@@ -38,6 +39,7 @@ describe("VR Test", () => {
         let wasm2 = await actor.get_by_version("0.0.1") as VaultWasm;
         expect(wasm2.hash).eq(hash);
         expect(wasm2.version).eq("0.0.1");
+        expect(wasm2.description[0]).eq("lorem");
     });
 
     it("Get versions", async function () {
@@ -45,6 +47,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, identity, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.2"
@@ -52,11 +55,12 @@ describe("VR Test", () => {
         await actor.add_version(wasm);
         let wasm2 = await actor.get_by_version("0.0.2") as VaultWasm;
         expect(wasm2.version).eq("0.0.2");
-        let versions = await actor.get_available_versions() as string[];
+        let versions = await actor.get_available_versions() as VersionWrapper[];
         expect(versions.length).eq(2);
-        versions.sort()
-        expect(versions[0]).eq("0.0.1");
-        expect(versions[1]).eq("0.0.2");
+        expect(versions[0].version).eq("0.0.1");
+        expect(versions[0].description[0]).eq("lorem");
+        expect(versions[1].version).eq("0.0.2");
+        expect(versions[1].description.length).eq(0);
     });
 
     it("Get latest", async function () {
@@ -73,6 +77,7 @@ describe("VR Test", () => {
         let actor =  await getActor(canister_id, not_admin, idlFactory);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
+            description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
             version: "0.0.3"
@@ -89,11 +94,11 @@ describe("VR Test", () => {
     it("Get versions after upgrade", async function () {
         DFX.UPGRADE_FORCE("vault_repo")
         let actor =  await getActor(canister_id, identity, idlFactory);
-        let versions = await actor.get_available_versions() as string[];
+        let versions = await actor.get_available_versions() as VersionWrapper[];
         expect(versions.length).eq(2);
         versions.sort()
-        expect(versions[0]).eq("0.0.1");
-        expect(versions[1]).eq("0.0.2");
+        expect(versions[0].version).eq("0.0.1");
+        expect(versions[1].version).eq("0.0.2");
         let origins = await actor.get_trusted_origins() as Array<String>
         expect(origins.length).eq(3);
     });
