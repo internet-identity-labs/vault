@@ -67,11 +67,22 @@ struct WalletStoreWASMArgs {
     description: Option<String>,
 }
 
+#[derive(CandidType, Deserialize)]
+struct VersionWrapper {
+    version: String,
+    description: Option<String>,
+}
+
 #[update]
-async fn get_available_versions() -> Vec<String> {
+async fn get_available_versions() -> Vec<VersionWrapper> {
     VAULT_VERSIONS.with(|vv|
         vv.borrow().iter()
-            .map(|vw| vw.version.clone())
+            .map(|vw| {
+                VersionWrapper {
+                    version: vw.version.clone(),
+                    description: vw.description.clone(),
+                }
+            })
             .collect()
     )
 }

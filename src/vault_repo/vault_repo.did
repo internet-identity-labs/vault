@@ -8,11 +8,18 @@ type VaultWasm = record {
     hash : text;
     version : text;
     description : opt text;
-};service : (Conf) -> {
+};
+
+type VersionWrapper = record {
+    version : text;
+    description : opt text;
+};
+
+service : (Conf) -> {
     add_version : (VaultWasm) -> ();
     canister_balance : () -> (nat64) query;
     get_available_versions : () -> (vec text);
     get_by_version : (text) -> (VaultWasm) query;
-    get_latest_version : () -> (VaultWasm) query;
+    get_latest_version : () -> (VersionWrapper) query;
     sync_controllers : () -> (vec text);
 }
