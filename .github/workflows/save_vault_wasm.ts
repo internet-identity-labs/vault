@@ -67,7 +67,7 @@ async function saveVaultWasm() {
         throw new Error("Please provide WASM_FILE_PATH, VERSION, CANISTER_ID, IDENTITY_SEED as environment variables.");
     }
 
-    console.log({wasmFilePath,version,canisterId});
+    console.log({wasmFilePath,version,canisterId,description});
     
     try {
         const wasmBytes = readWasmFile(wasmFilePath);
@@ -89,7 +89,7 @@ async function saveVaultWasm() {
 
         // Check if the version is present in the actor
         const retrievedWasm = await actor.get_by_version(version) as VaultWasm;
-        console.log({retrievedWasmHash:retrievedWasm.hash, hash, retrievedWasmVersion:retrievedWasm.version, version});
+        console.log({retrievedWasmHash:retrievedWasm.hash, hash, retrievedWasmVersion:retrievedWasm.version, version, retrievedWasmDescription:retrievedWasm.description, description});
 
         if (retrievedWasm.hash === hash && retrievedWasm.version === version) {
             console.log("Wasm file saved successfully.");
