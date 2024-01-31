@@ -21,6 +21,9 @@ on:
       artifact_version:
         description: 'The version of your VAULT artifact in SemVer format'
         type: string
+      artifact_description:
+        description: 'The description of your VAULT artifact'
+        type: string
       uniq_artifact_version:
         description: 'Add to the provided version uniq string'
         type: choice
@@ -36,6 +39,7 @@ env:
   CANISTER_NAME: ${{ github.event.inputs.canister_name }}
   CI_DEBUG: true
   ARTIFACT_VERSION: ${{ github.event.inputs.artifact_version }}
+  ARTIFACT_DESCRIPTION: ${{ github.event.inputs.artifact_description }}
   UNIQ_ARTIFACT_VERSION: ${{ github.event.inputs.uniq_artifact_version }}
 
 
@@ -138,6 +142,7 @@ jobs:
           echo "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >> $GITHUB_ENV
 
           if [ "${CANISTER_NAME}" == 'vault' ]; then
+            echo "ARTIFACT_DESCRIPTION=${ARTIFACT_DESCRIPTION}" >> $GITHUB_ENV
             echo "UNIQ_VERSION_PART=${UNIQ_VERSION_PART}" >> $GITHUB_ENV
             echo "VERSION_FILE_PATH=${VERSION_FILE_PATH}" >> $GITHUB_ENV
             echo "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >> $GITHUB_ENV
@@ -158,6 +163,7 @@ jobs:
           ci_echo_info "ARTIFACT_VERSION=${ARTIFACT_VERSION}" >&2
 
           if [ "${CANISTER_NAME}" == 'vault' ]; then
+            ci_echo_info "ARTIFACT_DESCRIPTION=${ARTIFACT_DESCRIPTION}" >&2
             ci_echo_info "UNIQ_VERSION_PART=${UNIQ_VERSION_PART}" >&2
             ci_echo_info "VERSION_FILE_PATH=${VERSION_FILE_PATH}" >&2
             ci_echo_info "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >&2
@@ -245,6 +251,7 @@ jobs:
           ci_echo_info "Saving WASM to the vault_repo canister." >&2
           export WASM_FILE_PATH="${{ github.workspace }}/${{ env.CANISTER_WASM }}"
           export VERSION="${ARTIFACT_VERSION#-}"
+          export DESCRIPTION="${ARTIFACT_DESCRIPTION}"
           export CANISTER_ID="${vault_canister_id}"
 
           # TODO: Change this for production to the secrets.
@@ -252,6 +259,7 @@ jobs:
 
           ci_echo_info "WASM_FILE_PATH=${WASM_FILE_PATH}" >&2
           ci_echo_info "VERSION=${VERSION}" >&2
+          ci_echo_info "DESCRIPTION=${DESCRIPTION}" >&2
           ci_echo_info "CANISTER_ID=${CANISTER_ID}" >&2
 
           ci_echo_debug "npm install typescript" >&2

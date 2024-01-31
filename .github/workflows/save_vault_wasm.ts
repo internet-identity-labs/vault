@@ -50,8 +50,9 @@ export const getIdentity = (seed: string): Ed25519KeyIdentity => {
 
 /**
  * Save Vault Wasm by adding a new version to the actor.
- * WASM_FILE_PATH  -
- * VERSION         -
+ * WASM_FILE_PATH  - Path to the WASM file (artifact)
+ * VERSION         - Version of the artifact
+ * DESCRIPTION     - Description to the version of the artifact
  * CANISTER_ID     - (id of vault_repo canister)
  * IDENTITY_SEED   -
  */
