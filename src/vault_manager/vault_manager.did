@@ -3,7 +3,7 @@ type Conf = record {
     initial_cycles_balance : nat;
     origins : vec text;
     repo_canister_id : text;
-    payment_cycles : nat64;
+    icp_price : nat64;
 };
 
 type CreateResult = record {
@@ -29,4 +29,5 @@ type VaultCanister = record {
     create_canister_call : (nat64) -> (Result);
     get_all_canisters : () -> (vec VaultCanister) query;
     update_canister_self : (text) -> (Result_1);
+    get_config : () -> (Conf) query;
 }

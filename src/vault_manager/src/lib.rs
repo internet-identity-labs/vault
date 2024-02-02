@@ -281,7 +281,7 @@ async fn get_trusted_origins() -> Vec<String> {
     CONF.with(|c| c.borrow().clone().origins)
 }
 
-#[update]
+#[query]
 async fn get_config() -> Conf {
     CONF.with(|c| c.borrow().clone())
 }
@@ -344,5 +344,5 @@ pub fn get_destination_address() -> String {
 }
 
 pub fn get_payment_cycles() -> u64 {
-    CONF.with(|c| c.borrow().payment_cycles)
+    CONF.with(|c| c.borrow().icp_price)
 }
