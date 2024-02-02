@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Conf {
     pub origins: Vec<String>,
     pub initial_cycles_balance: u128,
-    pub payment_cycles: u64,
+    pub icp_price: u64,
     pub repo_canister_id: String,
     pub destination_address: String,
 }
@@ -16,7 +16,7 @@ pub struct Conf {
 impl Default for Conf {
     fn default() -> Self {
         Conf {
-            payment_cycles: 100000000,
+            icp_price: 100000000,
             origins: Default::default(),
             initial_cycles_balance: 500_000_000_000,
             repo_canister_id: "7jlkn-paaaa-aaaap-abvpa-cai".to_string(),

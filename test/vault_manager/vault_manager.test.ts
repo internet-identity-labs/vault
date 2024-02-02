@@ -1,6 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {createCanister, getCanisters} from "./sdk/ochestrator";
+import {createCanister, getCanisters, getConfig} from "./sdk/ochestrator";
 import {VaultManager} from "../vault/sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {fromHexString, principalToAddress} from "ictool";
@@ -49,9 +49,17 @@ describe("VM Test", () => {
         DFX.STOP();
     });
 
+    it('Get config test', async function () {
+        canister_id = DFX.GET_CANISTER_ID("vault_manager");
+        let config = await getConfig(canister_id, identity);
+        expect(config.origins.length).eq(3);
+        expect(config.initial_cycles_balance).eq(500000000000n);
+        expect(config.destination_address).eq("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e");
+        expect(config.icp_price).eq(100000000n);
+    });
+
 
     it("Create Vault from the VaultManagerCanister", async function () {
-        canister_id = DFX.GET_CANISTER_ID("vault_manager");
         canister = await createCanister(canister_id, identity, BigInt(1));
         let vaultManager = new VaultManager()
         await vaultManager.init(canister, identity, true)
