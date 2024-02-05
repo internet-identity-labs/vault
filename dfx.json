@@ -43,31 +43,31 @@
   "networks": {
     "test": {
       "providers": [
-        "https://ic0.app/"
+        "https://icp0.io/"
       ],
       "type": "persistent"
     },
     "dev": {
       "providers": [
-        "https://ic0.app/"
+        "https://icp0.io/"
       ],
       "type": "persistent"
     },
     "fiduciary": {
       "providers": [
-        "https://ic0.app/"
+        "https://icp0.io/"
       ],
       "type": "persistent"
     },
     "stage": {
       "providers": [
-        "https://ic0.app/"
+        "https://icp0.io/"
       ],
       "type": "persistent"
     },
     "prod": {
       "providers": [
-        "https://ic0.app/"
+        "https://icp0.io/"
       ],
       "type": "persistent"
     },

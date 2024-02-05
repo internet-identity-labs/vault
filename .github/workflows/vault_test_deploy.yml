@@ -1,0 +1,127 @@
+# Redeploy vault to the canister which used by vault-frontend for tests
+name: Deploy Vault Test
+on: 
+  workflow_dispatch:
+
+env:
+  NETWORK_NAME: test
+  CANISTER_NAME: vault
+  CI_DEBUG: true
+
+
+jobs:
+  Deploy:
+    runs-on:
+      group: dfx-runner
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: INPUT => Checks.
+        if: ${{ (github.event.inputs.network_name == 'ic') && (github.event.inputs.confirmation != 'Yes') }}
+        run: |
+          echo "[ERROR] You have try release to network 'ic' without or with wrong confirmation phrase" >&2
+          exit 1
+
+      - name: Checkout repo.
+        uses: actions/checkout@v3
+
+      - name: Checkout CI repo.
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: internet-identity-labs/ci_libs
+          ref: main
+          path: ci_libs
+
+      - name: Cache Cargo dependencies.
+        uses: actions/cache@v3
+        with:
+          path: |
+            /home/ubuntu/.cargo/registry/
+            /home/ubuntu/.cargo/cargo_target/
+            src/vault/target/
+            target/
+          key: ${{ runner.os }}-cargo-vault
+ 
+      - name: Versions
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+          
+          ci_versions
+
+      - name: PRE-BUILD => Populate env vars.
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          ci_echo_debug "Getting values from dfx.json" >&2
+          if ! canister_data=$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}"); then
+            ci_echo_error "Can't found canister '${CANISTER_NAME}' data from dfx.json" >&2
+            exit 1
+          fi
+
+          ci_echo_debug "Getting dfx identity for network '${NETWORK_NAME}'" >&2
+
+          ID_NAME="dev_admin"
+          IDENTITY_PEM_NAME_VAR="DEV_ADMIN_KEY"
+
+          ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
+
+          ci_echo_debug "Populating env variables" >&2
+          CANISTER_DID="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.candid")"
+          CANISTER_WASM="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.wasm")"
+          CANISTER_BRANCH="${GITHUB_REF_NAME////-}"
+            
+          echo "CANISTER_DID=${CANISTER_DID}" >> $GITHUB_ENV
+          echo "CANISTER_WASM=${CANISTER_WASM}" >> $GITHUB_ENV
+          echo "CANISTER_BRANCH=${CANISTER_BRANCH}" >> $GITHUB_ENV
+          echo "ID_NAME=${ID_NAME}" >> $GITHUB_ENV
+          echo "ID_PATH=${ID_PATH}" >> $GITHUB_ENV
+          echo "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >> $GITHUB_ENV
+
+      - name: PRE-BUILD => Print Vars.
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+          ci_echo_info "NETWORK_NAME=${NETWORK_NAME}" >&2
+          ci_echo_info "CANISTER_NAME=${CANISTER_NAME}" >&2
+          ci_echo_info "CANISTER_DID=${CANISTER_DID}" >&2
+          ci_echo_info "CANISTER_WASM=${CANISTER_WASM}" >&2
+          ci_echo_info "CANISTER_BRANCH=${CANISTER_BRANCH}" >&2
+          ci_echo_info "ID_NAME=${ID_NAME}" >&2
+          ci_echo_info "ID_PATH=${ID_PATH}" >&2
+          ci_echo_info "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >&2
+
+      - name: PRE-BUILD => Write identity.
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          mkdir -p "${ID_PATH}"
+
+          ci_echo_warn "Preparing encoded key..." >&2
+          ci_echo_info "Decoding..." >&2
+          echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
+        env:
+          DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
+
+      - name: BUILD => Build the canister.
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          dfx identity use "${ID_NAME}"
+
+          rm -rf .dfx;
+          ci_echo_debug "dfx build --network '${NETWORK_NAME}' '${CANISTER_NAME}'" >&2
+          dfx build --network "${NETWORK_NAME}" "${CANISTER_NAME}"
+
+      - name: DEPLOY => Install the canister.
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+
+          dfx identity use "${ID_NAME}"
+
+          ci_echo_debug "echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "gknwf-6bime-skguh-ck2jn-bxqam-otcti-vb2z3-thrwy-rguna-mhhjh-gae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; management_canister = "sgk26-7yaaa-aaaan-qaovq-cai" })' --network "${NETWORK_NAME}" --mode reinstall" >&2
+          if ! result=$(echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "gknwf-6bime-skguh-ck2jn-bxqam-otcti-vb2z3-thrwy-rguna-mhhjh-gae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; management_canister = "sgk26-7yaaa-aaaan-qaovq-cai" })' --network "${NETWORK_NAME}" --mode reinstall); then
+            ci_echo_error "Install failed ${result}" >&2
+            exit 1
+          fi
