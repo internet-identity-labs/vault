@@ -14,7 +14,7 @@ on:
         required: true
         type: choice
         options:
-          - vault
+          - vault_manager
       compress_backup:
         description: 'Compress backup'
         type: choice
@@ -129,14 +129,10 @@ jobs:
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
           mkdir -p "${ID_PATH}"
-          echo "${!IDENTITY_PEM_NAME_VAR}" > "${ID_PATH}/identity.pem"
 
           ci_echo_warn "Preparing encoded key..." >&2
-          ci_echo_info "Installing base64 package..." >&2
-          sudo apt-get update && sudo apt-get install -y coreutils moreutils
-
           ci_echo_info "Decoding..." >&2
-          base64 -d "${ID_PATH}/identity.pem" | sponge "${ID_PATH}/identity.pem"
+          echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
         env:
           DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
           PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
@@ -144,16 +140,14 @@ jobs:
       - name: BACKUP => Backup.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
-          source ./ci_libs/canister_backup_restore.sh
+          source ${{ github.workspace }}/ci_libs/canister_backup_restore.sh
 
           if [ "${NETWORK_NAME}" == 'ic' ]; then
             CI_DEBUG=true
           fi
 
-          dfx identity use "${ID_NAME}"
-
           ci_echo_debug "ci_canister_backup '${CANISTER_NAME}' '${NETWORK_NAME}' '${BACKUP_FOLDER}' '${BACKUP_CHUNK_SIZE}' '${COMPRESS_BACKUP}'" >&2
           ci_canister_backup "${CANISTER_NAME}" "${NETWORK_NAME}" "${BACKUP_FOLDER}" "${BACKUP_CHUNK_SIZE}" "${COMPRESS_BACKUP}"
         env:
-          BACKUP_FOLDER: /home/ubuntu/backup/
-          BACKUP_CHUNK_SIZE: 1500
+          BACKUP_FOLDER: /home/ubuntu/backup
+          BACKUP_CHUNK_SIZE: 3000
