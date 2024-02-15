@@ -97,8 +97,10 @@ describe("Upgrade Transactions", () => {
         }catch (e) {
             console.log(e)
         }
-        let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
+        await manager.execute();
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id) as VersionUpgradeTransaction;
         expect(tr.state).eq(TransactionState.Executed)
+        expect(tr.initial_version).eq("0.0.1")
         let version = await manager.getVersion();
         expect(version).eq("0.0.2")
         let state = await manager.getState()
@@ -124,6 +126,7 @@ describe("Upgrade Transactions", () => {
 
         let expectedTrs: VersionUpgradeTransaction = {
             version: "0.0.1",
+            initial_version: "0.0.1",
             modifiedDate: 0n,
             threshold: 1,
             approves: [expectedApprove],

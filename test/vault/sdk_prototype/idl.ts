@@ -112,6 +112,7 @@ export const idlFactory = ({ IDL }) => {
     });
     const VersionUpgradeTransaction = IDL.Record({
         'version' : IDL.Text,
+        'initial_version' : IDL.Text,
         'common' : BasicTransactionFields,
     });
     const PurgeTransaction = IDL.Record({ 'common' : BasicTransactionFields });

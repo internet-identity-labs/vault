@@ -112,11 +112,19 @@ pub trait ITransaction: BasicTransaction {
         self.define_state();
     }
 
+    fn update_modified_date(&mut self) {
+        self.get_common_mut().modified_date = ic_cdk::api::time();
+    }
+
     fn get_accepted_roles(&self) -> Vec<VaultRole> {
         return if self.is_vault_state() {
             vec![VaultRole::Admin]
         } else { vec![VaultRole::Admin, VaultRole::Member] };
     }
+
+    //TODO: have the transaction handle its own storage (after release)
+    // fn restore_self() {
+    // }
 
     fn to_candid(&self) -> TransactionCandid;
 }

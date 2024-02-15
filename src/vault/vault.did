@@ -20,7 +20,7 @@ type BasicTransactionFields = record {
 
 type Conf = record {
     origins : vec text;
-    management_canister : text
+    repo_canister : text
 };
 
 type Currency = variant {
@@ -288,6 +288,7 @@ type VaultState = record {
 
 type VersionUpgradeTransaction = record {
     version : text;
+    initial_version : text;
     common : BasicTransactionFields;
 };
 

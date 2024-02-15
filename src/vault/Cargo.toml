@@ -7,9 +7,6 @@ edition = "2018"
 [lib]
 crate-type = ["cdylib"]
 
-[build-dependencies]
-candid = "0.9.9"
-
 [dependencies]
 semver="1.0.20"
 bytemuck = "1.12.3"

@@ -19,10 +19,7 @@ export interface BasicTransactionFields {
     'created_date' : bigint,
     'batch_uid' : [] | [string],
 }
-export interface Conf {
-    'origins' : Array<string>,
-    'management_canister' : string,
-}
+export interface Conf { 'origins' : Array<string>, 'repo_canister' : string }
 export type Currency = { 'ICP' : null };
 export interface Member {
     'modified_date' : bigint,
@@ -242,6 +239,7 @@ export interface VaultState {
 }
 export interface VersionUpgradeTransaction {
     'version' : string,
+    'initial_version' : string,
     'common' : BasicTransactionFields,
 }
 export interface VersionUpgradeTransactionRequest { 'version' : string }

@@ -61,6 +61,7 @@ export interface QuorumUpdateTransaction extends Transaction {
 
 export interface VersionUpgradeTransaction extends Transaction {
     version: string
+    initial_version: string
 }
 
 export interface VaultUpdateNamingTransaction extends Transaction {
@@ -145,6 +146,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             isVaultState: response.common.is_vault_state,
             modifiedDate: response.common.modified_date,
             version: response.version,
+            initial_version: response.initial_version,
             state: candidToTransactionState(response.common.state),
             transactionType: TransactionType.VersionUpgrade,
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
