@@ -25,6 +25,7 @@ pub async fn execute_approved_transactions() {
         trs.define_state();
         let mut new_circle = false;
         if trs.get_state().eq(&Approved) {
+            state = trs.execute(state).await;
             trs.update_modified_date();
             //check that rejected transaction not in batch - if so reject whole batch and rollback the state
             if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {

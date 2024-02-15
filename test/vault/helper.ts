@@ -1,4 +1,5 @@
 import {
+    ControllersUpdateTransactionRequest,
     MemberCreateTransactionRequest,
     MemberRemoveTransactionRequest,
     MemberUpdateNameTransactionRequest,
@@ -19,6 +20,7 @@ import {Transaction} from "./sdk_prototype/transactions";
 import {Currency, TransactionState} from "./sdk_prototype/enums";
 import {Approve} from "./sdk_prototype/approve";
 import {generateRandomString} from "./sdk_prototype/helper";
+import {Principal} from "@dfinity/principal";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
@@ -58,6 +60,11 @@ export async function requestUpdatePolicyTransaction(manager, membersTr, amountT
 
 export async function requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
     let transactionRequest = new MemberCreateTransactionRequest(memberAddress, memberName, memberRole);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestUpdateControllersTransaction(manager, principals: Array<Principal>): Promise<Array<Transaction>> {
+    let transactionRequest = new ControllersUpdateTransactionRequest (principals);
     return await manager.requestTransaction([transactionRequest])
 }
 

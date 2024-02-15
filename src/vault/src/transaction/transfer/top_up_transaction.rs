@@ -117,7 +117,7 @@ impl TopUpTransactionBuilder {
 }
 
 impl TransactionBuilder for TopUpTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = TopUpTransaction::new(
             state,
             self.request.currency.clone(),

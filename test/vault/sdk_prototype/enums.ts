@@ -15,6 +15,7 @@ export enum TransactionType {
     TopUp = 'TopUp',
     VersionUpgrade = 'VersionUpgrade',
     Purge = 'Purge',
+    ControllerUpdate = 'ControllerUpdate',
 }
 
 export enum Currency {

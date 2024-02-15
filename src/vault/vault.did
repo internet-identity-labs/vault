@@ -23,6 +23,16 @@ type Conf = record {
     repo_canister : text
 };
 
+type ControllersUpdateTransaction = record {
+    principals : vec principal;
+    common : BasicTransactionFields;
+    current_controllers : vec principal;
+};
+
+type ControllersUpdateTransactionRequest = record {
+    principals : vec principal;
+};
+
 type Currency = variant {
     ICP
 };
@@ -181,6 +191,7 @@ type TransactionApproveRequest = record {
 };
 
 type TransactionCandid = variant {
+    ControllersUpdateTransactionV : ControllersUpdateTransaction;
     WalletCreateTransactionV : WalletCreateTransaction;
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
@@ -202,6 +213,7 @@ type TransactionRequest = variant {
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
     VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
     PurgeTransactionRequestV : record {};
+    ControllersUpdateTransactionRequestV : ControllersUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
@@ -254,6 +266,9 @@ type VaultError = variant {
     MemberNotExists;
     MemberAlreadyExists;
     ThresholdDefineError : record {
+        message : text
+    };
+    ControllersUpdateError : record {
         message : text
     };
     UIDAlreadyExists;
@@ -336,4 +351,5 @@ type WalletUpdateNameTransactionRequest = record {
     get_transactions_all : () -> (vec TransactionCandid) query;
     get_version : () -> (text) query;
     request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
+    get_controllers : () -> (vec principal);
 }

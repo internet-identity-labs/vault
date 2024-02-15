@@ -79,7 +79,7 @@ impl WalletCreateTransactionBuilder {
 
 
 impl TransactionBuilder for WalletCreateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletCreateTransaction::new(state,
                                                self.request.batch_uid.clone(),
                                                self.request.uid.clone(),

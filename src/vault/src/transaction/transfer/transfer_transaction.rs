@@ -106,7 +106,7 @@ impl TransferTransactionBuilder {
 }
 
 impl TransactionBuilder for TransferTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = TransferTransaction::new(
             state,
             self.request.address.clone(),

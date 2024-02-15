@@ -70,6 +70,9 @@ describe("VM Test", () => {
         let canisters = await getCanisters(canister_id, identity);
         expect(canisters.length).eq(1);
         expect(canisters[0].canister_id.toText()).eq(canister.toText());
+        let controllers = await vaultManager.getControllers();
+        expect(controllers[0].toText()).eq(canister.toText());
+        expect(controllers.length).eq(1);
     });
 
 

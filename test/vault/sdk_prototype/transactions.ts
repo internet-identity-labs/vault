@@ -1,5 +1,6 @@
 import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./enums";
 import {
+    ControllersUpdateTransaction as ControllersUpdateTransactionCandid,
     MemberCreateTransaction as MemberCreateTransactionCandid,
     MemberRemoveTransaction as MemberRemoveTransactionCandid,
     MemberUpdateNameTransaction as MemberUpdateNameTransactionCandid,
@@ -19,6 +20,7 @@ import {
 } from "./service_vault";
 import {Approve, candidToApprove} from "./approve";
 import {candidToNetwork, candidToRole, candidToTransactionState, hasOwnProperty} from "./helper";
+import {Principal} from "@dfinity/principal";
 
 export interface Transaction {
     id: bigint;
@@ -111,6 +113,10 @@ export interface TopUpTransaction extends Transaction {
 export interface WalletUpdateNameTransaction extends Transaction {
     name: string,
     uid: string
+}
+
+export interface ControllersUpdateTransaction extends Transaction {
+    principals: Array<Principal>
 }
 
 export interface PurgeTransaction extends Transaction {
@@ -412,5 +418,24 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
         }
         return transaction;
     }
-    throw Error("Unexpected enum value")
+    if (hasOwnProperty(trs, "ControllersUpdateTransactionV")) {
+        let response = trs.ControllersUpdateTransactionV as ControllersUpdateTransactionCandid
+        let transaction: ControllersUpdateTransaction = {
+            principals: response.principals,
+            approves: response.common.approves.map(candidToApprove),
+            batchUid: response.common.batch_uid.length === 0 ? undefined : response.common.batch_uid[0],
+            createdDate: response.common.created_date,
+            id: response.common.id,
+            initiator: response.common.initiator,
+            isVaultState: response.common.is_vault_state,
+            modifiedDate: response.common.modified_date,
+            state: candidToTransactionState(response.common.state),
+            transactionType: TransactionType.ControllerUpdate,
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0]
+        }
+        return transaction;
+    }
+    throw Error("Unexpected transaction type: " + JSON.stringify(trs))
 }

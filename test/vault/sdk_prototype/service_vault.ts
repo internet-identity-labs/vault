@@ -20,6 +20,14 @@ export interface BasicTransactionFields {
     'batch_uid' : [] | [string],
 }
 export interface Conf { 'origins' : Array<string>, 'repo_canister' : string }
+export interface ControllersUpdateTransaction {
+    'principals' : Array<Principal>,
+    'common' : BasicTransactionFields,
+    'current_controllers' : Array<Principal>,
+}
+export interface ControllersUpdateTransactionRequest {
+    'principals' : Array<Principal>,
+}
 export type Currency = { 'ICP' : null };
 export interface Member {
     'modified_date' : bigint,
@@ -144,8 +152,9 @@ export interface TransactionApproveRequest {
     'state' : TransactionState,
 }
 export type TransactionCandid = {
-    'WalletCreateTransactionV' : WalletCreateTransaction
+    'ControllersUpdateTransactionV' : ControllersUpdateTransaction
 } |
+    { 'WalletCreateTransactionV' : WalletCreateTransaction } |
     { 'PolicyCreateTransactionV' : PolicyCreateTransaction } |
     { 'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction } |
     { 'TopUpTransactionV' : TopUpTransaction } |
@@ -167,6 +176,9 @@ export type TransactionRequest = {
         'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest
     } |
     { 'PurgeTransactionRequestV' : {} } |
+    {
+        'ControllersUpdateTransactionRequestV' : ControllersUpdateTransactionRequest
+    } |
     {
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest
     } |
@@ -215,6 +227,7 @@ export type VaultError = { 'QuorumNotReached' : null } |
     { 'MemberNotExists' : null } |
     { 'MemberAlreadyExists' : null } |
     { 'ThresholdDefineError' : { 'message' : string } } |
+    { 'ControllersUpdateError' : { 'message' : string } } |
     { 'UIDAlreadyExists' : null } |
     { 'PolicyNotExists' : null };
 export interface VaultNamingUpdateTransaction {
@@ -278,6 +291,7 @@ export interface _SERVICE {
         Array<TransactionCandid>
     >,
     'canister_balance' : ActorMethod<[], bigint>,
+    'get_controllers' : ActorMethod<[], Array<Principal>>,
     'execute' : ActorMethod<[], undefined>,
     'get_state' : ActorMethod<[[] | [bigint]], VaultState>,
     'get_transactions_all' : ActorMethod<[], Array<TransactionCandid>>,

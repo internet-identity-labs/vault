@@ -78,7 +78,7 @@ impl WalletUpdateNameTransactionBuilder {
 }
 
 impl TransactionBuilder for WalletUpdateNameTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = WalletUpdateNameTransaction::new(state,
                                                    self.request.batch_uid.clone(),
                                                    self.request.uid.clone(),

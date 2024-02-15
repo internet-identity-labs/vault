@@ -12,6 +12,7 @@ import {TransactionRequest} from "./transaction_requests";
 import {Transaction, transactionCandidToTransaction} from "./transactions";
 import {candidToVault, Vault} from "./vault";
 import {ApproveRequest, approveToCandid} from "./approve";
+import {Principal} from "@dfinity/principal";
 
 export interface VaultManagerI {
     getTransactions(): Promise<Array<Transaction>>;
@@ -44,6 +45,10 @@ export class VaultManager implements VaultManagerI {
 
     async getVersion(): Promise<string> {
         return await this.actor.get_version() as string
+    }
+
+    async getControllers(): Promise<Array<Principal>> {
+        return await this.actor.get_controllers() as Array<Principal>
     }
 
     async requestTransaction(request: Array<TransactionRequest>): Promise<Array<Transaction>> {
