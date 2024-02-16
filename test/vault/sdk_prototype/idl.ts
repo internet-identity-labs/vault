@@ -11,11 +11,6 @@ export const idlFactory = ({ IDL }) => {
         'transaction_id' : IDL.Nat64,
         'state' : TransactionState,
     });
-    const Network = IDL.Variant({
-        'IC' : IDL.Null,
-        'BTC' : IDL.Null,
-        'ETH' : IDL.Null,
-    });
     const VaultError = IDL.Variant({
         'QuorumNotReached' : IDL.Null,
         'WalletNotExists' : IDL.Null,
@@ -25,6 +20,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberNotExists' : IDL.Null,
         'MemberAlreadyExists' : IDL.Null,
         'ThresholdDefineError' : IDL.Record({ 'message' : IDL.Text }),
+        'ControllersUpdateError' : IDL.Record({ 'message' : IDL.Text }),
         'UIDAlreadyExists' : IDL.Null,
         'PolicyNotExists' : IDL.Null,
     });
@@ -45,6 +41,16 @@ export const idlFactory = ({ IDL }) => {
         'is_vault_state' : IDL.Bool,
         'created_date' : IDL.Nat64,
         'batch_uid' : IDL.Opt(IDL.Text),
+    });
+    const ControllersUpdateTransaction = IDL.Record({
+        'principals' : IDL.Vec(IDL.Principal),
+        'common' : BasicTransactionFields,
+        'current_controllers' : IDL.Vec(IDL.Principal),
+    });
+    const Network = IDL.Variant({
+        'IC' : IDL.Null,
+        'BTC' : IDL.Null,
+        'ETH' : IDL.Null,
     });
     const WalletCreateTransaction = IDL.Record({
         'uid' : IDL.Text,
@@ -130,6 +136,7 @@ export const idlFactory = ({ IDL }) => {
         'common' : BasicTransactionFields,
     });
     const TransactionCandid = IDL.Variant({
+        'ControllersUpdateTransactionV' : ControllersUpdateTransaction,
         'WalletCreateTransactionV' : WalletCreateTransaction,
         'PolicyCreateTransactionV' : PolicyCreateTransaction,
         'MemberUpdateRoleTransactionV' : MemberUpdateRoleTransaction,
@@ -189,6 +196,9 @@ export const idlFactory = ({ IDL }) => {
         'name' : IDL.Opt(IDL.Text),
         'description' : IDL.Opt(IDL.Text),
         'batch_uid' : IDL.Opt(IDL.Text),
+    });
+    const ControllersUpdateTransactionRequest = IDL.Record({
+        'principals' : IDL.Vec(IDL.Principal),
     });
     const MemberUpdateNameTransactionRequest = IDL.Record({
         'name' : IDL.Text,
@@ -256,6 +266,7 @@ export const idlFactory = ({ IDL }) => {
         'QuorumUpdateTransactionRequestV' : QuorumUpdateTransactionRequest,
         'VaultNamingUpdateTransactionRequestV' : VaultNamingUpdateTransactionRequest,
         'PurgeTransactionRequestV' : IDL.Record({}),
+        'ControllersUpdateTransactionRequestV' : ControllersUpdateTransactionRequest,
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
         'TopUpTransactionRequestV' : TopUpTransactionRequest,
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
@@ -284,6 +295,7 @@ export const idlFactory = ({ IDL }) => {
             ['query'],
         ),
         'get_version' : IDL.Func([], [IDL.Text], ['query']),
+        'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], []),
         'request_transaction' : IDL.Func(
             [IDL.Vec(TransactionRequest)],
             [IDL.Vec(TransactionCandid)],

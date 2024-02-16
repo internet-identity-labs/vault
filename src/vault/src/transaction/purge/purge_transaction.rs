@@ -41,7 +41,7 @@ impl PurgeTransactionBuilder {
 }
 
 impl TransactionBuilder for PurgeTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PurgeTransaction::new(
             state,
         );

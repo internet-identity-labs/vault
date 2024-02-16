@@ -19,6 +19,7 @@ use crate::transaction::transaction_service::store_transaction;
 use crate::transaction::transfer::top_up_transaction::{TopUpTransactionBuilder, TopUpTransactionRequest};
 use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuilder, TransferTransactionRequest};
 use crate::transaction::upgrade::upgrade_transaction::{VersionUpgradeTransactionBuilder, VersionUpgradeTransactionRequest};
+use crate::transaction::vault::controllers_transaction::{ControllersUpdateTransactionBuilder, ControllersUpdateTransactionRequest};
 use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
 use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
 use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
@@ -42,55 +43,59 @@ pub enum TransactionRequest {
     TransferTransactionRequestV(TransferTransactionRequest),
     TopUpTransactionRequestV(TopUpTransactionRequest),
     VersionUpgradeTransactionRequestV(VersionUpgradeTransactionRequest),
+    ControllersUpdateTransactionRequestV(ControllersUpdateTransactionRequest)
 }
 
 
 pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionCandid {
     let mut trs: Box<dyn ITransaction> = match trr {
         TransactionRequest::MemberCreateTransactionRequestV(request) => {
-            MemberCreateTransactionBuilder::init(request).build()
+            MemberCreateTransactionBuilder::init(request).build().await
         }
         TransactionRequest::MemberUpdateNameTransactionRequestV(r) => {
-            MemberUpdateNameTransactionBuilder::init(r).build()
+            MemberUpdateNameTransactionBuilder::init(r).build().await
         }
         TransactionRequest::MemberUpdateRoleTransactionRequestV(r) => {
-            MemberUpdateRoleTransactionBuilder::init(r).build()
+            MemberUpdateRoleTransactionBuilder::init(r).build().await
         }
         TransactionRequest::QuorumUpdateTransactionRequestV(r) => {
-            QuorumUpdateTransactionBuilder::init(r).build()
+            QuorumUpdateTransactionBuilder::init(r).build().await
         }
         TransactionRequest::WalletCreateTransactionRequestV(trs) => {
-            WalletCreateTransactionBuilder::init(trs).build()
+            WalletCreateTransactionBuilder::init(trs).build().await
         }
         TransactionRequest::WalletUpdateNameTransactionRequestV(request) => {
-            WalletUpdateNameTransactionBuilder::init(request).build()
+            WalletUpdateNameTransactionBuilder::init(request).build().await
         }
         TransactionRequest::MemberRemoveTransactionRequestV(request) => {
-            MemberRemoveTransactionBuilder::init(request).build()
+            MemberRemoveTransactionBuilder::init(request).build().await
         }
         TransactionRequest::PolicyCreateTransactionRequestV(request) => {
-            PolicyCreateTransactionBuilder::init(request).build()
+            PolicyCreateTransactionBuilder::init(request).build().await
         }
         TransactionRequest::PolicyUpdateTransactionRequestV(request) => {
-            PolicyUpdateTransactionBuilder::init(request).build()
+            PolicyUpdateTransactionBuilder::init(request).build().await
         }
         TransactionRequest::PolicyRemoveTransactionRequestV(request) => {
-            PolicyRemoveTransactionBuilder::init(request).build()
+            PolicyRemoveTransactionBuilder::init(request).build().await
         }
         TransactionRequest::VaultNamingUpdateTransactionRequestV(request) => {
-            VaultNamingUpdateTransactionBuilder::init(request).build()
+            VaultNamingUpdateTransactionBuilder::init(request).build().await
         }
         TransactionRequest::TransferTransactionRequestV(request) => {
-            TransferTransactionBuilder::init(request).build()
+            TransferTransactionBuilder::init(request).build().await
         }
         TransactionRequest::TopUpTransactionRequestV(request) => {
-            TopUpTransactionBuilder::init(request).build()
+            TopUpTransactionBuilder::init(request).build().await
         }
         TransactionRequest::VersionUpgradeTransactionRequestV(request) => {
-            VersionUpgradeTransactionBuilder::init(request).build()
+            VersionUpgradeTransactionBuilder::init(request).build().await
         }
         TransactionRequest::PurgeTransactionRequestV(request) => {
-            PurgeTransactionBuilder::init(request).build()
+            PurgeTransactionBuilder::init(request).build().await
+        }
+        TransactionRequest::ControllersUpdateTransactionRequestV(request) => {
+            ControllersUpdateTransactionBuilder::init(request).build().await
         }
     };
     verify_caller(trs.get_accepted_roles());

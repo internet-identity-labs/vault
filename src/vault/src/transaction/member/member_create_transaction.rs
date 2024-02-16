@@ -83,7 +83,7 @@ impl MemberCreateTransactionBuilder {
 }
 
 impl TransactionBuilder for MemberCreateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberCreateTransaction::new(
             state,
             self.request.batch_uid.clone(),

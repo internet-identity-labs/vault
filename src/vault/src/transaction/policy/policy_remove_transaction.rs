@@ -47,7 +47,7 @@ impl PolicyRemoveTransactionBuilder {
 }
 
 impl TransactionBuilder for PolicyRemoveTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyRemoveTransaction::new(
             self.request.uid.clone(),
             state,

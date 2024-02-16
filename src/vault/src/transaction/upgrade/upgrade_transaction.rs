@@ -54,7 +54,7 @@ impl VersionUpgradeTransactionBuilder {
 }
 
 impl TransactionBuilder for VersionUpgradeTransactionBuilder {
-    fn build_dyn_transaction(&mut self, mut state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, mut state: TransactionState) -> Box<dyn ITransaction> {
         let initial_version = Version::parse(VERSION).unwrap();
         let expected_version = Version::parse(&self.request.version).unwrap();
         if expected_version <= initial_version {

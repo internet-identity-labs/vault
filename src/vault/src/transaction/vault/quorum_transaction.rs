@@ -51,7 +51,7 @@ impl QuorumUpdateTransactionBuilder {
 }
 
 impl TransactionBuilder for QuorumUpdateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = QuorumUpdateTransaction::new(
             state,
             self.request.batch_uid.clone(),

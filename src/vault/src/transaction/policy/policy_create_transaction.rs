@@ -112,7 +112,7 @@ impl PolicyCreateTransactionBuilder {
 }
 
 impl TransactionBuilder for PolicyCreateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyCreateTransaction::new(
             state,
             self.request.batch_uid.clone(),

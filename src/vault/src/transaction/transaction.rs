@@ -23,6 +23,7 @@ use crate::transaction::transaction_service::is_blocked;
 use crate::transaction::transfer::top_up_transaction::TopUpTransaction;
 use crate::transaction::transfer::transfer_transaction::TransferTransaction;
 use crate::transaction::upgrade::upgrade_transaction::VersionUpgradeTransaction;
+use crate::transaction::vault::controllers_transaction::ControllersUpdateTransaction;
 use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
@@ -189,6 +190,7 @@ impl PartialOrd for dyn ITransaction {
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionCandid {
     QuorumUpdateTransactionV(QuorumUpdateTransaction),
+    ControllersUpdateTransactionV(ControllersUpdateTransaction),
     PurgeTransactionV(PurgeTransaction),
     VaultNamingUpdateTransactionV(VaultNamingUpdateTransaction),
     MemberCreateTransactionV(MemberCreateTransaction),
@@ -227,6 +229,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::UpgradeTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::PurgeTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::ControllersUpdateTransactionV(tr) => { Box::new(tr.to_owned())}
         }
     }
 }

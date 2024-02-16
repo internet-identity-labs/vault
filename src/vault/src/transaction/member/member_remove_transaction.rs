@@ -49,7 +49,7 @@ pub struct MemberRemoveTransactionBuilder {
 }
 
 impl TransactionBuilder for MemberRemoveTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberRemoveTransaction::new(
             state, self.request.batch_uid.clone(),
             self.request.member_id.clone(),

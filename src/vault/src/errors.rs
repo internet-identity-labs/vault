@@ -13,4 +13,5 @@ pub enum VaultError {
     CanisterReject { message: String },
     QuorumNotReached,
     ThresholdDefineError { message: String },
+    ControllersUpdateError { message: String },
 }
