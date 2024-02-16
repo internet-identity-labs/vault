@@ -15,6 +15,8 @@ import {
 import {TransactionState, VaultRole} from "./sdk_prototype/enums";
 import {ECDSAKeyIdentity, Ed25519KeyIdentity, Secp256k1KeyIdentity} from "@dfinity/identity";
 import {ApproveRequest} from "./sdk_prototype/approve";
+import {fail} from "assert";
+import {Principal} from "@dfinity/principal";
 
 require('./bigintextension.js');
 
@@ -53,7 +55,13 @@ describe("Controller Transactions", () => {
         let principal2 = Ed25519KeyIdentity.generate().getPrincipal();
         await requestCreateMemberTransaction(manager, principalToAddress(principal1 as any), "memberName", VaultRole.ADMIN)
         await requestCreateMemberTransaction(manager, principalToAddress(principal2 as any), "memberName", VaultRole.ADMIN)
-        let tr = await requestUpdateControllersTransaction(manager, [principal1, principal2])
+        try {
+            await requestUpdateControllersTransaction(manager, [principal1, principal2, ])
+            fail("Should throw error")
+        }catch (e) {
+            expect(e.message).contains("The Vault canister needs to be included in the list of controllers to enable self-updating.")
+        }
+        let tr = await requestUpdateControllersTransaction(manager, [principal1, principal2, Principal.fromText(canister_id)])
         let approveRequest: ApproveRequest = {
             trId: tr[0].id,
             state: TransactionState.Approved
@@ -68,19 +76,18 @@ describe("Controller Transactions", () => {
         await console.log(execute(`dfx canister update-settings vault --add-controller ` + canister_id))
         let principal1 = Ed25519KeyIdentity.generate().getPrincipal();
         let principal2 = (await ECDSAKeyIdentity.generate()).getPrincipal();
-        let tr = await requestUpdateControllersTransaction(manager, [principal1, principal2])
+        let tr = await requestUpdateControllersTransaction(manager, [principal1, principal2, Principal.fromText(canister_id)])
         let approveRequest: ApproveRequest = {
             trId: tr[0].id,
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approveRequest])
         await manager.execute();
-        let executedTransaction = await getTransactionByIdFromGetAllTrs(manager, tr[0].id);
-
         let controllers = await manager.getControllers();
-        let expectedPrincipals = [principal1.toText(), principal2.toText()]
-        expect(expectedPrincipals).contains(controllers[0].toText());
-        expect(expectedPrincipals).contains(controllers[1].toText());
+        let actualPrincipals = controllers.map(c => c.toText());
+        expect(actualPrincipals).contains(principal1.toText());
+        expect(actualPrincipals).contains(principal2.toText());
+        expect(actualPrincipals).contains(canister_id);
     });
 
 })

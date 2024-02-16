@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::{CanisterSettings, update_settings, UpdateSettingsArgument};
-use ic_cdk::{id};
+use ic_cdk::{id, trap};
 use ic_cdk::api::call::{RejectionCode};
 use serde::{Deserialize, Serialize};
 
@@ -53,6 +53,12 @@ impl ControllersUpdateTransactionBuilder {
 
 impl TransactionBuilder for ControllersUpdateTransactionBuilder {
     async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+        let principals = self.request.principals.clone();
+        if !principals.into_iter()
+            .map(|p| p.to_text())
+            .any(|p| p.eq(&id().to_text())) {
+            trap("The Vault canister needs to be included in the list of controllers to enable self-updating.");
+        }
         let current_controllers = get_controllers().await;
         let trs = ControllersUpdateTransaction::new(
             state,
