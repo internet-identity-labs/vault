@@ -4,7 +4,8 @@
   "description": "Identity Manager Identity Tests",
   "scripts": {
     "test": "npx mocha",
-    "vault-upload": "node .github/workflows/save_vault_wasm.js"
+    "vault-upload": "node .github/workflows/save_vault_wasm.js",
+    "vault-backup": "node .github/workflows/backup_vault_manager.js"
   },
   "engines": {
     "node": ">=14.15.0"

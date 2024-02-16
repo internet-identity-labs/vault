@@ -1,12 +1,12 @@
-name: CRON Backup Vault
+name: CRON Backup Vault Manager
 on:
   schedule:
       # Runs "every hour at 10 minutes" (see https://crontab.guru)
       - cron: '10 * * * *'
 
 env:
-  NETWORK_NAME: 'ic'
-  CANISTER_NAME: 'vault'
+  NETWORK_NAME: 'dev'
+  CANISTER_NAME: 'vault_manager'
   COMPRESS_BACKUP: 'true'
   CI_DEBUG: 'true'
 
@@ -87,14 +87,10 @@ jobs:
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
           mkdir -p "${ID_PATH}"
-          echo "${!IDENTITY_PEM_NAME_VAR}" > "${ID_PATH}/identity.pem"
 
           ci_echo_warn "Preparing encoded key..." >&2
-          ci_echo_info "Installing base64 package..." >&2
-          sudo apt-get update && sudo apt-get install -y coreutils moreutils
-
           ci_echo_info "Decoding..." >&2
-          base64 -d "${ID_PATH}/identity.pem" | sponge "${ID_PATH}/identity.pem"
+          echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
         env:
           DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
           PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
@@ -102,12 +98,14 @@ jobs:
       - name: BACKUP => Backup.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
-          source ./ci_libs/canister_backup_restore.sh
+          source ${{ github.workspace }}/ci_libs/canister_backup_restore.sh
 
-          dfx identity use "${ID_NAME}"
+          if [ "${NETWORK_NAME}" == 'ic' ]; then
+            CI_DEBUG=true
+          fi
 
           ci_echo_debug "ci_canister_backup '${CANISTER_NAME}' '${NETWORK_NAME}' '${BACKUP_FOLDER}' '${BACKUP_CHUNK_SIZE}' '${COMPRESS_BACKUP}'" >&2
           ci_canister_backup "${CANISTER_NAME}" "${NETWORK_NAME}" "${BACKUP_FOLDER}" "${BACKUP_CHUNK_SIZE}" "${COMPRESS_BACKUP}"
         env:
-          BACKUP_FOLDER: /home/ubuntu/backup/
+          BACKUP_FOLDER: /home/ubuntu/backup
           BACKUP_CHUNK_SIZE: 3000
