@@ -8,7 +8,6 @@ set -euo pipefail
 if ! command -v ic-wasm; then
   echo could not find ic-wasm
   cargo install ic-wasm
-  exit 1
 fi
 
 REPO_DIR="$(dirname "$0")"
