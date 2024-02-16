@@ -13,7 +13,7 @@ import {
     requestUpdateQuorumTransaction
 } from "./helper";
 import {TransactionState, VaultRole} from "./sdk_prototype/enums";
-import {ECDSAKeyIdentity, Ed25519KeyIdentity, Secp256k1KeyIdentity} from "@dfinity/identity";
+import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {ApproveRequest} from "./sdk_prototype/approve";
 import {fail} from "assert";
 import {Principal} from "@dfinity/principal";
@@ -75,7 +75,7 @@ describe("Controller Transactions", () => {
     it("Add canister self as a controller and execute", async function () {
         await console.log(execute(`dfx canister update-settings vault --add-controller ` + canister_id))
         let principal1 = Ed25519KeyIdentity.generate().getPrincipal();
-        let principal2 = (await ECDSAKeyIdentity.generate()).getPrincipal();
+        let principal2 = member.getPrincipal();
         let tr = await requestUpdateControllersTransaction(manager, [principal1, principal2, Principal.fromText(canister_id)])
         let approveRequest: ApproveRequest = {
             trId: tr[0].id,
