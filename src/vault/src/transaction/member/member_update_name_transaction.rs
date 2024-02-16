@@ -77,7 +77,7 @@ impl MemberUpdateNameTransactionBuilder {
 }
 
 impl TransactionBuilder for MemberUpdateNameTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberUpdateNameTransaction::new(
             state,
             self.request.batch_uid.clone(),

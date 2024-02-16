@@ -26,6 +26,7 @@ pub async fn execute_approved_transactions() {
         let mut new_circle = false;
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
+            trs.update_modified_date();
             //check that rejected transaction not in batch - if so reject whole batch and rollback the state
             if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
                 let mut rejected_batch: Vec<Box<dyn ITransaction>> = get_all_transactions()
@@ -58,19 +59,21 @@ pub async fn execute_approved_transactions() {
     restore_state(state);
 }
 
-fn restore_trs(trsss: Vec<Box<dyn ITransaction>>) {
+fn restore_trs(trs_to_restore: Vec<Box<dyn ITransaction>>) {
     TRANSACTIONS.with(|transactions| {
         let mut transactions = transactions.borrow_mut();
-        for trs in trsss {
+        for mut trs in trs_to_restore {
             transactions.retain(|existing| existing.get_id() != trs.get_id());
+            trs.update_modified_date();
             transactions.push(trs);
         }
     })
 }
 
-pub fn restore_transaction(transaction: Box<dyn ITransaction>) {
+pub fn restore_transaction(mut transaction: Box<dyn ITransaction>) {
     TRANSACTIONS.with(|trss| {
         let mut transactions = trss.borrow_mut();
+        transaction.update_modified_date();
         transactions.retain(|existing| existing.get_id() != transaction.get_id());
         transactions.push(transaction);
         transactions.sort()

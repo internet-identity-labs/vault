@@ -1,6 +1,7 @@
 import {TransactionRequest as TransactionRequestCandid} from "./service_vault";
 import {Currency, Network, VaultRole} from "./enums";
 import {networkToCandid, roleToCandid} from "./helper";
+import {Principal} from "@dfinity/principal";
 
 export abstract class TransactionRequest {
     abstract toCandid(): TransactionRequestCandid
@@ -118,6 +119,22 @@ export class MemberCreateTransactionRequest implements TransactionRequest {
             MemberCreateTransactionRequestV: {
                 member_id: this.member_id, name: this.name, role: roleToCandid(this.role),
                 batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
+            }
+        }
+    }
+}
+
+export class ControllersUpdateTransactionRequest implements TransactionRequest {
+    principals: Array<Principal>
+
+    constructor(principals: Array<Principal>) {
+        this.principals = principals
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            ControllersUpdateTransactionRequestV: {
+                principals: this.principals
             }
         }
     }

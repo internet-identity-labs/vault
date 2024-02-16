@@ -33,12 +33,3 @@ pub fn restore_wallet(wallet: Wallet, mut state: VaultState) -> VaultState {
     state
 }
 
-
-pub async fn generate_address() -> String {
-    let raw_rand: Vec<u8> = match call(Principal::management_canister(), "raw_rand", ()).await {
-        Ok((res, )) => res,
-        Err((_, err)) => trap(&format!("failed to get sub: {}", err)),
-    };
-    hex::encode(raw_rand)
-}
-

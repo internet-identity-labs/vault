@@ -11,7 +11,6 @@ crate-type = ["cdylib"]
 candid = "0.9.9"
 
 [dependencies]
-sha256 = "1.1.1"
 ic-kit = "0.4.8"
 bytemuck = "1.12.3"
 candid = "0.9.9"

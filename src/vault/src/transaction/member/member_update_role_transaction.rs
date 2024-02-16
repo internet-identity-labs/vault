@@ -52,7 +52,7 @@ impl MemberUpdateRoleTransactionBuilder {
 }
 
 impl TransactionBuilder for MemberUpdateRoleTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = MemberUpdateRoleTransaction::new(
             state,
             self.request.batch_uid.clone(),

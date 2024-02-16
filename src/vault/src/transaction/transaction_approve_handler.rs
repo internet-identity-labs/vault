@@ -59,6 +59,7 @@ pub fn handle_approve(tr_id: u64, state: TransactionState) -> TransactionCandid 
                 status: state,
             };
             trs.handle_approve(approve);
+            trs.update_modified_date();
             restore_transaction(trs.clone());
             trs.to_candid()
         }

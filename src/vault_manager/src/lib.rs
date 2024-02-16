@@ -3,7 +3,8 @@ use std::cell::RefCell;
 use api::call;
 use candid::{export_service, Principal};
 use candid::CandidType;
-use ic_cdk::{api, caller, id, storage, trap};
+use ic_cdk::{api, call, caller, id, storage, trap};
+use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterSettings, InstallCodeArgument};
 use ic_cdk_macros::*;
 use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, query_blocks};
@@ -73,49 +74,6 @@ async fn get_all_canisters() -> Vec<VaultCanister> {
 }
 
 #[update]
-async fn update_canister_self(version: String) -> Result<(), String> {
-    let canister = caller();
-    let sem_ver = match Version::parse(&version) {
-        Ok(x) => {
-            x
-        }
-        Err(msg) => {
-            return Err(format!(
-                "Failed to parse semver!: {}",
-                msg
-            ));
-        }
-    };
-    let (wasm, ): (VaultWasm, ) = match call::call(
-        get_repo_canister_id(),
-        "get_by_version",
-        (sem_ver.to_string(), ),
-    ).await {
-        Ok(x) => x,
-        Err((code, msg)) => {
-            ic_cdk::eprintln!("Error while getting wasm: [{:?}] {}", code, msg);
-            return Err(format!(
-                "An error happened during the get_by_version call: {}: {}",
-                code as u8, msg
-            ));
-        }
-    };
-    let arg = InstallCodeArgument {
-        mode: CanisterInstallMode::Upgrade,
-        canister_id: canister,
-        wasm_module: wasm.wasm_module,
-        arg: vec![],
-    };
-    let result = ic_cdk::api::management_canister::main::install_code(arg).await;
-    ic_cdk::println!("Upgrade result: {:?}", result);
-    if let Err((code, msg)) = result {
-        ic_cdk::eprintln!("Error while upgrading canister: [{:?}] {}", code, msg);
-        return Err("Error while upgrading canister".to_string());
-    }
-    Ok(())
-}
-
-#[update]
 async fn create_canister_call(block_number: u64) -> Result<CreateResult, String> {
     verify_payment(block_number).await;
 
@@ -156,20 +114,42 @@ async fn create_canister_call(block_number: u64) -> Result<CreateResult, String>
     };
 
     install_wallet(&create_result.canister_id, block_number).await?;
+
+    let _ = update_settings(UpdateSettingsArg {
+        canister_id: create_result.canister_id.clone(),
+        settings: CanisterSettings {
+            controllers: Some(vec![create_result.canister_id]),
+            compute_allocation: None,
+            freezing_threshold: None,
+            memory_allocation: None,
+        },
+    }).await;
     Ok(create_result)
+}
+
+#[derive(Clone, CandidType, Deserialize)]
+pub struct UpdateSettingsArg {
+    pub canister_id: Principal,
+    pub settings: CanisterSettings,
+}
+
+pub async fn update_settings(args: UpdateSettingsArg) -> CallResult<((), )> {
+    let update_settings_result =
+        call(Principal::management_canister(), "update_settings", (args, )).await;
+    return update_settings_result;
 }
 
 async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<(), String> {
     #[derive(CandidType, Deserialize, Clone, Debug)]
     pub struct Conf {
         pub origins: Vec<String>,
-        pub management_canister: String,
+        pub repo_canister: String,
     }
 
     let origins = CONF.with(|c| c.borrow().clone().origins);
     let conf = Conf {
         origins,
-        management_canister: id().to_string(),
+        repo_canister: "7jlkn-paaaa-aaaap-abvpa-cai".to_string(),
     };
     let principal = caller();
 

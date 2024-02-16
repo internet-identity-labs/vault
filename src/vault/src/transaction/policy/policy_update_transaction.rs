@@ -94,7 +94,7 @@ impl PolicyUpdateTransactionBuilder {
 }
 
 impl TransactionBuilder for PolicyUpdateTransactionBuilder {
-    fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
+    async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
         let trs = PolicyUpdateTransaction::new(
             state,
             self.request.batch_uid.clone(),

@@ -39,6 +39,7 @@ describe("Policy Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         const admin = getIdentity("87654321876543218765432187654321");
+        console.log(admin.getPrincipal().toText())
         const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
         admin_actor_1 = await getActor(canister_id, admin, idlFactory);

@@ -4,7 +4,10 @@ extern crate maplit;
 use std::cell::RefCell;
 use std::string::ToString;
 
-use candid::{export_service, Principal};
+use candid::{export_service, CandidType, Principal};
+use ic_cdk::{call, id};
+use ic_cdk::api::call::CallResult;
+use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use ic_cdk::api::time;
 use ic_cdk_macros::*;
 
@@ -19,6 +22,8 @@ use crate::transaction::transaction_request_handler::{handle_transaction_request
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
 use crate::util::{to_address, to_array};
 use crate::version_const::VERSION;
+use serde::{Deserialize};
+
 
 mod util;
 mod enums;
@@ -140,4 +145,23 @@ pub async fn post_upgrade() {
 #[update]
 async fn get_trusted_origins() -> Vec<String> {
     CONF.with(|c| c.borrow().clone().origins)
+}
+
+#[derive(CandidType, Debug, Clone, Deserialize)]
+pub struct CanisterIdRequest {
+    #[serde(rename = "canister_id")]
+    pub canister_id: Principal,
+}
+
+#[update]
+async fn get_controllers() -> Vec<Principal> {
+    let res: CallResult<(CanisterStatusResponse, )> = call(
+        Principal::management_canister(),
+        "canister_status",
+        (CanisterIdRequest {
+            canister_id: id(),
+        }, ),
+    ).await;
+
+    res.unwrap().0.settings.controllers
 }
