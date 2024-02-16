@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if ! command -v ic-wasm; then
-  echo could not find ic-wasm
+  echo "could not find ic-wasm" >&2
   cargo install ic-wasm
 fi
 
