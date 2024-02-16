@@ -26,6 +26,10 @@ export interface VaultManagerI {
     execute();
 
     canisterBalance(): Promise<bigint>;
+
+    getVersion(): Promise<string>
+
+    getControllers(): Promise<Array<Principal>>
 }
 
 export class VaultManager implements VaultManagerI {
