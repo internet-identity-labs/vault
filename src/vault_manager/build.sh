@@ -6,9 +6,8 @@ set -euo pipefail
 # because of https://github.com/dfinity/cdk-rs/issues/181
 # Once the issue is fixed, we can ensure that the correct version is installed
 if ! command -v ic-wasm; then
-  echo could not find ic-wasm
+  echo "could not find ic-wasm" >&2
   cargo install ic-wasm
-  exit 1
 fi
 
 REPO_DIR="$(dirname "$0")"
