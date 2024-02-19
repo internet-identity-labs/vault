@@ -27,7 +27,7 @@ pub struct ControllersUpdateTransaction {
 impl ControllersUpdateTransaction {
     fn new(state: TransactionState, principals: Vec<Principal>,  current_controllers: Vec<Principal>,) -> Self {
         ControllersUpdateTransaction {
-            common: BasicTransactionFields::new(state, None, true),
+            common: BasicTransactionFields::new(state, None, false),
             current_controllers,
             principals,
         }
