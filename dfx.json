@@ -47,6 +47,24 @@
       ],
       "type": "persistent"
     },
+    "test_local_1": {
+      "providers": [
+        "https://icp0.io/"
+      ],
+      "type": "persistent"
+    },
+    "test_local_2": {
+      "providers": [
+        "https://icp0.io/"
+      ],
+      "type": "persistent"
+    },
+    "test_local_3": {
+      "providers": [
+        "https://icp0.io/"
+      ],
+      "type": "persistent"
+    },
     "dev": {
       "providers": [
         "https://icp0.io/"
