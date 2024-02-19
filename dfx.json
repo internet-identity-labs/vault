@@ -47,19 +47,7 @@
       ],
       "type": "persistent"
     },
-    "test_local_1": {
-      "providers": [
-        "https://icp0.io/"
-      ],
-      "type": "persistent"
-    },
-    "test_local_2": {
-      "providers": [
-        "https://icp0.io/"
-      ],
-      "type": "persistent"
-    },
-    "test_local_3": {
+    "test_clean_job": {
       "providers": [
         "https://icp0.io/"
       ],
