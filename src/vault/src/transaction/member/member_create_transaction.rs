@@ -45,7 +45,7 @@ impl ITransaction for MemberCreateTransaction {
             created_date: time(),
         };
         if state.members.iter()
-            .any(|m| m.member_id.eq(&self.member_id)) {
+            .any(|m| m.member_id.eq_ignore_ascii_case(&self.member_id)) {
             self.set_state(TransactionState::Rejected);
             self.common.error = Some(MemberAlreadyExists);
             state

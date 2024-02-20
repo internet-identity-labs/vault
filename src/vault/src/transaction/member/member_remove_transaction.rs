@@ -62,7 +62,7 @@ impl TransactionBuilder for MemberRemoveTransactionBuilder {
 impl ITransaction for MemberRemoveTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
         match state.members.iter()
-            .find(|mbr| mbr.member_id.eq(&self.member_id)) {
+            .find(|mbr| mbr.member_id.eq_ignore_ascii_case(&self.member_id)) {
             None => {
                 self.set_state(Rejected);
                 self.common.error = Some(MemberNotExists);

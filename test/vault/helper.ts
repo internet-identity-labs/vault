@@ -26,7 +26,7 @@ import {Principal} from "@dfinity/principal";
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
     expect(expected.state).eq(actual.state)
     expect(expected.batchUid).eq(actual.batchUid)
-    expect(expected.initiator).eq(actual.initiator)
+    expect(expected.initiator.toLowerCase()).eq(actual.initiator.toLowerCase())
     expect(expected.isVaultState).eq(actual.isVaultState)
     expect(expected.transactionType).eq(trType)
     expect(expected.memo).eq(actual.memo)

@@ -28,7 +28,7 @@ describe("Transfer Transactions", () => {
     let manager: VaultManager;
     let manager_member: VaultManager;
     let address = principalToAddress(admin_identity.getPrincipal() as any)
-    let member_address = principalToAddress(member_identity.getPrincipal() as any)
+    let member_address = principalToAddress(member_identity.getPrincipal() as any).toUpperCase()
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();

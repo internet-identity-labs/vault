@@ -47,6 +47,14 @@ impl ITransaction for PolicyUpdateTransaction {
             Some(policy) => {
                 match state.policies.iter()
                     .filter(|l| l.uid != self.uid)
+                    .filter(|other_policy| {
+                        for w in policy.wallets.clone() {
+                            if other_policy.wallets.contains(&w) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
                     .find(|pp| pp.amount_threshold.eq(&self.amount_threshold)) {
                     None => {}
                     Some(_) => {
