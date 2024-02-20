@@ -37,7 +37,7 @@ export function verifyTransaction(expected: Transaction, actual: Transaction, tr
         expect(expected.threshold).eq(actual.threshold)
     }
     for (const app of expected.approves) {
-        const found = actual.approves.find((l) => l.signer === app.signer);
+        const found = actual.approves.find((l) => l.signer.toLowerCase() === app.signer.toLowerCase());
         verifyApprove(app, found)
     }
 }
@@ -133,5 +133,5 @@ export async function requestTopUpTransaction(manager, wallet, amount): Promise<
 
 export function verifyApprove(expected: Approve, actual: Approve) {
     expect(expected.status).eq(actual.status)
-    expect(expected.signer).eq(actual.signer)
+    expect(expected.signer.toLowerCase()).eq(actual.signer.toLowerCase())
 }
