@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use candid::CandidType;
 use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
+use nfid_certified::update_trusted_origins;
 use crate::config::{Conf, CONF};
 
 use crate::enums::TransactionState;
@@ -174,6 +175,7 @@ pub async fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
     CONF.with(|conf| {
         conf.borrow_mut();
+        update_trusted_origins(mo.config.origins.clone());
         conf.replace(mo.config.clone())
     });
     let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions

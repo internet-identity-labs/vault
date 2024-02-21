@@ -1,5 +1,4 @@
-use candid::{CandidType, Principal};
-use ic_cdk::{call, trap};
+use candid::{CandidType};
 use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 

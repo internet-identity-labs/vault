@@ -22,4 +22,9 @@ service : (Conf) -> {
     get_by_version : (text) -> (VaultWasm) query;
     get_latest_version : () -> (VersionWrapper) query;
     sync_controllers : () -> (vec text);
+    get_trusted_origins_certified: () -> (record {
+        response: vec text;
+        certificate: vec nat8;
+        witness: vec nat8;
+    }) query;
 }

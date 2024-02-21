@@ -3,5 +3,7 @@ members = [
     "src/vault",
     "src/vault_manager",
     "src/vault_repo",
+    "src/libraries/nfid_certified",
 ]
+resolver = "2"
 exclude = []
