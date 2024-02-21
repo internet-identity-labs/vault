@@ -117,6 +117,7 @@ export interface WalletUpdateNameTransaction extends Transaction {
 
 export interface ControllersUpdateTransaction extends Transaction {
     principals: Array<Principal>
+    current_controllers: Array<Principal>
 }
 
 export interface PurgeTransaction extends Transaction {
@@ -422,6 +423,7 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
         let response = trs.ControllersUpdateTransactionV as ControllersUpdateTransactionCandid
         let transaction: ControllersUpdateTransaction = {
             principals: response.principals,
+            current_controllers: response.current_controllers,
             approves: response.common.approves.map(candidToApprove),
             batchUid: response.common.batch_uid.length === 0 ? undefined : response.common.batch_uid[0],
             createdDate: response.common.created_date,

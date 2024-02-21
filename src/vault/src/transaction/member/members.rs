@@ -32,7 +32,7 @@ pub fn get_caller_role() -> VaultRole {
     let caller = caller_to_address();
     let role = STATE.with(|mrs| {
         mrs.borrow().members.iter()
-            .find(|m| m.member_id.eq(&caller))
+            .find(|m| m.member_id.eq_ignore_ascii_case(&caller))
             .map(|m| m.role)
     });
     match role {

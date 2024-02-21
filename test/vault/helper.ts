@@ -26,7 +26,7 @@ import {Principal} from "@dfinity/principal";
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
     expect(expected.state).eq(actual.state)
     expect(expected.batchUid).eq(actual.batchUid)
-    expect(expected.initiator).eq(actual.initiator)
+    expect(expected.initiator.toLowerCase()).eq(actual.initiator.toLowerCase())
     expect(expected.isVaultState).eq(actual.isVaultState)
     expect(expected.transactionType).eq(trType)
     expect(expected.memo).eq(actual.memo)
@@ -37,7 +37,7 @@ export function verifyTransaction(expected: Transaction, actual: Transaction, tr
         expect(expected.threshold).eq(actual.threshold)
     }
     for (const app of expected.approves) {
-        const found = actual.approves.find((l) => l.signer === app.signer);
+        const found = actual.approves.find((l) => l.signer.toLowerCase() === app.signer.toLowerCase());
         verifyApprove(app, found)
     }
 }
@@ -133,5 +133,5 @@ export async function requestTopUpTransaction(manager, wallet, amount): Promise<
 
 export function verifyApprove(expected: Approve, actual: Approve) {
     expect(expected.status).eq(actual.status)
-    expect(expected.signer).eq(actual.signer)
+    expect(expected.signer.toLowerCase()).eq(actual.signer.toLowerCase())
 }

@@ -156,6 +156,7 @@ describe("Policy Transactions", () => {
     it("UpdatePolicy amount exist - rejected", async function () {
         let resp = await requestCreateWalletTransaction(manager, walletName_2, Network.IC);
         walletUid_2 = (resp[0] as WalletCreateTransaction).uid
+        let policyCreateResponsePredefined = await requestCreatePolicyTransaction(manager, 3, 3n, [walletUid_2])
         let policyCreateResponse = await requestCreatePolicyTransaction(manager, 4, 4n, [walletUid_2])
         policyUid2 = (policyCreateResponse[0] as WalletCreateTransaction).uid
         await manager.execute()
@@ -168,11 +169,11 @@ describe("Policy Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyUpdateResponse[0].id)
         verifyPolicyUpdateTransaction(expected, tr)
         let state = await manager.getState()
-        expect(state.policies.length).eq(2)
-        expect(state.policies[1].amountThreshold).eq(4n)
-        expect(state.policies[1].memberThreshold).eq(4)
-        expect(state.policies[1].wallets.length).eq(1)
-        expect(state.policies[1].wallets[0]).eq(walletUid_2)
+        expect(state.policies.length).eq(3)
+        expect(state.policies[2].amountThreshold).eq(4n)
+        expect(state.policies[2].memberThreshold).eq(4)
+        expect(state.policies[2].wallets.length).eq(1)
+        expect(state.policies[2].wallets[0]).eq(walletUid_2)
     });
 
     it("RemovePolicy not exist rejected", async function () {
@@ -183,7 +184,7 @@ describe("Policy Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
         let state = await manager.getState()
-        expect(state.policies.length).eq(2)
+        expect(state.policies.length).eq(3)
     });
 
     it("RemovePolicy executed", async function () {
@@ -194,7 +195,7 @@ describe("Policy Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
         let state = await manager.getState()
-        expect(state.policies.length).eq(1)
+        expect(state.policies.length).eq(2)
         expect(state.policies[0]).not.eq(policyUid2)
     });
 
