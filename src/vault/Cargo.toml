@@ -26,6 +26,7 @@ maplit = "1.0.2"
 serde_json = "1.0.82"
 async-trait = "0.1.74"
 lazy_static = "1.4"
+nfid_certified= { path = "../libraries/nfid_certified" }
 
 [dev-dependencies]
 tempfile = "3.2.0"

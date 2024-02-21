@@ -8,7 +8,7 @@ use candid::{export_service, CandidType, Principal};
 use ic_cdk::{call, id};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use ic_cdk::api::time;
+use ic_cdk::api::{time};
 use ic_cdk_macros::*;
 
 use crate::config::{Conf, CONF};
@@ -22,9 +22,10 @@ use crate::transaction::transaction_request_handler::{handle_transaction_request
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
 use crate::util::{to_address, to_array};
 use crate::version_const::VERSION;
+
+use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
+
 use serde::{Deserialize};
-
-
 mod util;
 mod enums;
 mod security_service;
@@ -42,6 +43,7 @@ thread_local! {
 
 #[init]
 async fn init(initiator: Principal, conf: Conf) {
+    update_trusted_origins(conf.origins.clone());
     CONF.with(|c| c.replace(conf));
     let member_id = to_address(initiator);
     let mut mc = MemberCreateTransaction::new(
@@ -164,4 +166,10 @@ async fn get_controllers() -> Vec<Principal> {
     ).await;
 
     res.unwrap().0.settings.controllers
+}
+
+
+#[query]
+async fn get_trusted_origins_certified() -> CertifiedResponse {
+    get_trusted_origins_cert()
 }

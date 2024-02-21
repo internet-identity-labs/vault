@@ -10,6 +10,8 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
+
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct VaultWasm {
     #[serde(with = "serde_bytes")]
@@ -166,6 +168,7 @@ pub fn stable_restore() {
     match mo.config {
         None => {}
         Some(conf) => {
+            update_trusted_origins(conf.origins.clone());
             CONFIG.with(|vv| {
                 vv.replace(conf);
             });
@@ -207,4 +210,10 @@ async fn get_trusted_origins() -> Vec<String> {
 #[update]
 async fn get_config() -> Conf {
     CONFIG.with(|c| c.borrow().clone())
+}
+
+
+#[query]
+async fn get_trusted_origins_certified() -> CertifiedResponse {
+    get_trusted_origins_cert()
 }

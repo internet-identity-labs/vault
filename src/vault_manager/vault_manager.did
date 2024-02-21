@@ -30,4 +30,9 @@ type VaultCanister = record {
     get_all_canisters : () -> (vec VaultCanister) query;
     update_canister_self : (text) -> (Result_1);
     get_config : () -> (Conf) query;
+    get_trusted_origins_certified: () -> (record {
+        response: vec text;
+        certificate: vec nat8;
+        witness: vec nat8;
+    }) query;
 }

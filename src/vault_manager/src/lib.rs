@@ -12,6 +12,8 @@ pub use semver::Version;
 use serde::{Deserialize, Serialize};
 use crate::config::{Conf, CONF};
 
+use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
+
 mod config;
 
 const FEE: u128 = 100_000_000_000;
@@ -65,6 +67,7 @@ enum InstallMode {
 
 #[init]
 async fn init(conf: Conf) {
+    update_trusted_origins(conf.origins.clone());
     CONF.with(|c| c.replace(conf));
 }
 
@@ -240,6 +243,7 @@ pub fn stable_restore() {
         None => {}
         Some(conf) => {
             CONF.with(|vv| {
+                update_trusted_origins(conf.origins.clone());
                 vv.replace(conf);
             });
         }
@@ -325,4 +329,10 @@ pub fn get_destination_address() -> String {
 
 pub fn get_payment_cycles() -> u64 {
     CONF.with(|c| c.borrow().icp_price)
+}
+
+
+#[query]
+async fn get_trusted_origins_certified() -> CertifiedResponse {
+    get_trusted_origins_cert()
 }

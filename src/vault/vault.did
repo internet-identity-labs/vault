@@ -352,4 +352,9 @@ type WalletUpdateNameTransactionRequest = record {
     get_version : () -> (text) query;
     request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
     get_controllers : () -> (vec principal);
+    get_trusted_origins_certified: () -> (record {
+        response: vec text;
+        certificate: vec nat8;
+        witness: vec nat8;
+    }) query;
 }
