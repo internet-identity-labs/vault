@@ -25,10 +25,10 @@ jobs:
           exit 1
 
       - name: Checkout repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout CI repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
           repository: internet-identity-labs/ci_libs
@@ -36,7 +36,7 @@ jobs:
           path: ci_libs
 
       - name: Cache Cargo dependencies.
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             /home/ubuntu/.cargo/registry/
@@ -68,6 +68,11 @@ jobs:
 
           ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
 
+          INSTALL_ARGUMENTS=$(cat <<EOF
+          (principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
+          EOF
+          )
+
           ci_echo_debug "Populating env variables" >&2
           CANISTER_DID="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.candid")"
           CANISTER_WASM="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.wasm")"
@@ -80,6 +85,8 @@ jobs:
           echo "ID_PATH=${ID_PATH}" >> $GITHUB_ENV
           echo "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >> $GITHUB_ENV
 
+          echo "INSTALL_ARGUMENTS=${INSTALL_ARGUMENTS}" >> $GITHUB_ENV
+
       - name: PRE-BUILD => Print Vars.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
@@ -91,6 +98,8 @@ jobs:
           ci_echo_info "ID_NAME=${ID_NAME}" >&2
           ci_echo_info "ID_PATH=${ID_PATH}" >&2
           ci_echo_info "IDENTITY_PEM_NAME_VAR=${IDENTITY_PEM_NAME_VAR}" >&2
+
+          ci_echo_info "INSTALL_ARGUMENTS=${INSTALL_ARGUMENTS}" >&2
 
       - name: PRE-BUILD => Write identity.
         run: |
@@ -114,14 +123,17 @@ jobs:
           ci_echo_debug "dfx build --network '${NETWORK_NAME}' '${CANISTER_NAME}'" >&2
           dfx build --network "${NETWORK_NAME}" "${CANISTER_NAME}"
 
-      - name: DEPLOY => Install the canister.
+      - name: INSTALL => Install the canister.
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
           dfx identity use "${ID_NAME}"
 
-          ci_echo_debug "echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall" >&2
-          if ! result=$(echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall); then
+          ci_echo_debug "echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument '${INSTALL_ARGUMENTS}'} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME}" >&2
+          if ! result=$( echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument "${INSTALL_ARGUMENTS}"} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME} ); then
             ci_echo_error "Install failed ${result}" >&2
             exit 1
           fi
+
+          ci_echo_debug "Command output was '${result}'" >&2
+          ci_echo_success "Canister '${CANISTER_NAME}' was installed" >&2
