@@ -12,16 +12,23 @@ pub struct Wallet {
     pub network: Network,
     pub modified_date: u64,
     pub created_date: u64,
+    pub wallet_type: WalletType
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub enum WalletType {
+    Quorum, Policy
 }
 
 impl Wallet {
-    pub fn new(uid: String, name: String, network: Network) -> Self {
+    pub fn new(uid: String, name: String, network: Network, wallet_type: WalletType) -> Self {
         Wallet {
             uid,
             name,
             network,
             modified_date: time(),
             created_date: time(),
+            wallet_type
         }
     }
 }

@@ -99,6 +99,11 @@ type Network = variant {
     ETH
 };
 
+type WalletType = variant {
+    Policy;
+    Quorum
+};
+
 type Policy = record {
     uid : text;
     member_threshold : nat8;
@@ -193,6 +198,7 @@ type TransactionApproveRequest = record {
 type TransactionCandid = variant {
     ControllersUpdateTransactionV : ControllersUpdateTransaction;
     WalletCreateTransactionV : WalletCreateTransaction;
+    WalletCreateTransactionV2 : WalletCreateTransactionV2;
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
     TopUpTransactionV : TopUpTransaction;
@@ -217,6 +223,7 @@ type TransactionRequest = variant {
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
+    WalletCreateTransactionRequestV2 : WalletCreateTransactionRequestV2;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
     TransferTransactionRequestV : TransferTransactionRequest;
@@ -326,11 +333,27 @@ type WalletCreateTransaction = record {
     common : BasicTransactionFields;
 };
 
+type WalletCreateTransactionV2 = record {
+    uid : text;
+    name : text;
+    network : Network;
+    common : BasicTransactionFields;
+    wallet_type : WalletType;
+};
+
 type WalletCreateTransactionRequest = record {
     uid : text;
     name : text;
     network : Network;
     batch_uid : opt text;
+};
+
+type WalletCreateTransactionRequestV2 = record {
+    uid : text;
+    name : text;
+    network : Network;
+    batch_uid : opt text;
+    wallet_type : WalletType;
 };
 
 type WalletUpdateNameTransaction = record {

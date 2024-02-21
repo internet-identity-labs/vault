@@ -28,6 +28,7 @@ use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
+use crate::transaction::wallet::wallet_create_transaction_V2::WalletCreateTransactionV2;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
 
 #[async_trait]
@@ -198,6 +199,7 @@ pub enum TransactionCandid {
     MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
     MemberRemoveTransactionV(MemberRemoveTransaction),
     WalletCreateTransactionV(WalletCreateTransaction),
+    WalletCreateTransactionV2(WalletCreateTransactionV2),
     WalletUpdateNameTransactionV(WalletUpdateNameTransaction),
     PolicyCreateTransactionV(PolicyCreateTransaction),
     PolicyUpdateTransactionV(PolicyUpdateTransaction),
@@ -220,6 +222,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::MemberUpdateRoleTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::MemberRemoveTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::WalletCreateTransactionV(tr) => Box::new(tr.to_owned()),
+            TransactionCandid::WalletCreateTransactionV2(tr) => Box::new(tr.to_owned()),
             TransactionCandid::WalletUpdateNameTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyCreateTransactionV(tr) => Box::new(tr.to_owned()),
             TransactionCandid::PolicyUpdateTransactionV(tr) => Box::new(tr.to_owned()),

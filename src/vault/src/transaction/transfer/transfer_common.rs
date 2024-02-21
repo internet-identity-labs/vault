@@ -1,7 +1,9 @@
 use crate::errors::VaultError;
-use crate::errors::VaultError::CouldNotDefinePolicy;
-use crate::state::get_current_state;
+use crate::errors::VaultError::{CouldNotDefinePolicy, WalletNotExists};
+use crate::state::{get_current_state, VaultState};
+use crate::transaction::policy::policy::Policy;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
+use crate::transaction::wallet::wallet::{Wallet, WalletType};
 
 /*
 if you make any changes to this file
@@ -16,22 +18,37 @@ pub trait TransferHelper: ITransaction {
 
     fn define_transfer_threshold(&mut self) -> Result<u8, VaultError> {
         let state = get_current_state();
-        let wallet = self.get_wallet();
+        let wallet_uid = self.get_wallet();
         let amount = self.get_amount();
-        let policy = state.policies.iter()
-            .filter(|p| p.wallets.contains(&wallet))
-            .filter(|p| p.amount_threshold < amount)
-            .max_by(|a, b| {
-                a.amount_threshold.cmp(&b.amount_threshold)
-            });
-        match policy {
-            None => {
-                Err(CouldNotDefinePolicy)
+
+        let wallet = state.wallets.iter()
+            .find(|w| w.uid.eq(&wallet_uid));
+
+        if wallet.is_none() {
+            return Err(WalletNotExists);
+        }
+
+        match wallet.unwrap().wallet_type {
+            WalletType::Quorum => {
+                Ok(state.quorum.quorum)
             }
-            Some(x) => {
-                self.set_policy(Some(x.uid.clone()));
-                self.set_threshold(x.member_threshold);
-                Ok(x.member_threshold)
+            WalletType::Policy => {
+                let policy = state.policies.iter()
+                    .filter(|p| p.wallets.contains(&wallet_uid))
+                    .filter(|p| p.amount_threshold < amount)
+                    .max_by(|a, b| {
+                        a.amount_threshold.cmp(&b.amount_threshold)
+                    });
+                match policy {
+                    None => {
+                        Err(CouldNotDefinePolicy)
+                    }
+                    Some(x) => {
+                        self.set_policy(Some(x.uid.clone()));
+                        self.set_threshold(x.member_threshold);
+                        Ok(x.member_threshold)
+                    }
+                }
             }
         }
     }
