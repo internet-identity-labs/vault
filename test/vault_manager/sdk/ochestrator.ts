@@ -1,11 +1,11 @@
 import {getActor} from "../../util/deployment.util";
 import {idlFactory} from "./vm_idl";
 import {SignIdentity} from "@dfinity/agent";
-import {Conf, Result, VaultCanister} from "./vm";
+import {Conf, Result, VaultCanister, VaultType} from "./vm";
 
-export async function createCanister(canister_id: string, identity: SignIdentity, transactionBlock: BigInt) {
+export async function createCanister(canister_id: string, identity: SignIdentity, transactionBlock: BigInt, vaultType: Array<VaultType>) {
     let actor = await getActor(canister_id, identity, idlFactory);
-    let result = await actor.create_canister_call(transactionBlock) as Result;
+    let result = await actor.create_canister_call(transactionBlock, vaultType) as Result;
     // @ts-ignore
     if (result.Err) {
         // @ts-ignore
