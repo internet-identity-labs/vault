@@ -15,6 +15,11 @@ type Result = variant {
     Err : text
 };
 
+type VaultType = variant {
+    Pro;
+    Light
+};
+
 type Result_1 = variant {
     Ok;
     Err : text
@@ -24,15 +29,11 @@ type VaultCanister = record {
     initiator : principal;
     canister_id : principal;
     block_number : nat64;
+    vault_tupe: VaultType;
 };service : (Conf) -> {
     canister_balance : () -> (nat64) query;
-    create_canister_call : (nat64) -> (Result);
+    create_canister_call : (nat64, opt VaultType) -> (Result);
     get_all_canisters : () -> (vec VaultCanister) query;
     update_canister_self : (text) -> (Result_1);
     get_config : () -> (Conf) query;
-    get_trusted_origins_certified: () -> (record {
-        response: vec text;
-        certificate: vec nat8;
-        witness: vec nat8;
-    }) query;
 }

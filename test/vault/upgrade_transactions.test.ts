@@ -55,7 +55,7 @@ describe("Upgrade Transactions", () => {
         console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
         console.log(execute(`./test/resource/vault_manager.sh`))
         vault_manager_canister = DFX.GET_CANISTER_ID("vault_manager");
-        vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1));
+        vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1), []);
         manager = new VaultManager()
         await manager.init(vault_canister_id, admin, true)
         await requestCreateWalletTransaction(manager, "walletName", Network.IC);

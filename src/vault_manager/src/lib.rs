@@ -10,9 +10,10 @@ use ic_cdk_macros::*;
 use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, query_blocks};
 pub use semver::Version;
 use serde::{Deserialize, Serialize};
-use crate::config::{Conf, CONF};
 
 use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
+
+use crate::config::{Conf, CONF};
 
 mod config;
 
@@ -23,6 +24,7 @@ pub struct VaultCanister {
     canister_id: Principal,
     initiator: Principal,
     block_number: u64,
+    vault_type: VaultType,
 }
 
 thread_local! {
@@ -65,6 +67,12 @@ enum InstallMode {
     Upgrade,
 }
 
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug)]
+enum VaultType {
+    Pro,
+    Light,
+}
+
 #[init]
 async fn init(conf: Conf) {
     update_trusted_origins(conf.origins.clone());
@@ -77,7 +85,9 @@ async fn get_all_canisters() -> Vec<VaultCanister> {
 }
 
 #[update]
-async fn create_canister_call(block_number: u64) -> Result<CreateResult, String> {
+async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>) -> Result<CreateResult, String> {
+    let vault_type = vault_type.unwrap_or_else(|| VaultType::Pro);
+
     verify_payment(block_number).await;
 
     let set = CanisterSettings {
@@ -116,7 +126,14 @@ async fn create_canister_call(block_number: u64) -> Result<CreateResult, String>
         }
     };
 
-    install_wallet(&create_result.canister_id, block_number).await?;
+    install_wallet(&create_result.canister_id).await?;
+
+    CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
+        canister_id: create_result.canister_id.clone(),
+        initiator: caller(),
+        block_number: block_number.clone(),
+        vault_type,
+    }));
 
     let _ = update_settings(UpdateSettingsArg {
         canister_id: create_result.canister_id.clone(),
@@ -142,7 +159,7 @@ pub async fn update_settings(args: UpdateSettingsArg) -> CallResult<((), )> {
     return update_settings_result;
 }
 
-async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<(), String> {
+async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
     #[derive(CandidType, Deserialize, Clone, Debug)]
     pub struct Conf {
         pub origins: Vec<String>,
@@ -200,12 +217,6 @@ async fn install_wallet(canister_id: &Principal, block_number: u64) -> Result<()
         }
     };
 
-    CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
-        canister_id: canister_id.clone(),
-        initiator: principal,
-        block_number,
-    }));
-
     Ok(())
 }
 
@@ -216,20 +227,37 @@ async fn canister_balance() -> u64 {
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 struct Memory {
-    canisters: Vec<VaultCanister>,
+    canisters: Vec<VaultCanisterMemory>,
     config: Option<Conf>,
+}
+
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct VaultCanisterMemory {
+    canister_id: Principal,
+    initiator: Principal,
+    block_number: u64,
+    vault_type: Option<VaultType>,
 }
 
 #[pre_upgrade]
 pub fn stable_save() {
-    let trs: Vec<VaultCanister> = CANISTERS.with(|trss| {
-        trss.borrow().clone()
+    let vaults: Vec<VaultCanister> = CANISTERS.with(|vaultss| {
+        vaultss.borrow().clone()
     });
-    let conf: Conf = CONF.with(|vv| {
-        vv.borrow().clone()
+    let conf: Conf = CONF.with(|c| {
+        c.borrow().clone()
     });
+
+    let vaults_memory = vaults.iter().map(|x| VaultCanisterMemory {
+        canister_id: x.canister_id.clone(),
+        initiator: x.initiator.clone(),
+        block_number: x.block_number.clone(),
+        vault_type: Some(x.vault_type.clone()),
+    }).collect();
+
     let mem = Memory {
-        canisters: trs,
+        canisters: vaults_memory,
         config: Some(conf),
     };
     storage::stable_save((mem, )).unwrap();
@@ -238,7 +266,16 @@ pub fn stable_save() {
 #[post_upgrade]
 pub fn stable_restore() {
     let (mo, ): (Memory, ) = storage::stable_restore().unwrap();
-    CANISTERS.with(|c| c.borrow_mut().extend(mo.canisters.clone()));
+    let vaults: Vec<VaultCanister> = mo.canisters.iter().map(|x| VaultCanister {
+        canister_id: x.canister_id.clone(),
+        initiator: x.initiator.clone(),
+        block_number: x.block_number.clone(),
+        vault_type: x.vault_type.clone().unwrap_or_else(|| VaultType::Pro),
+    }).collect();
+
+    CANISTERS.with(|c| c.borrow_mut().extend(
+        vaults)
+    );
     match mo.config {
         None => {}
         Some(conf) => {
@@ -315,19 +352,19 @@ async fn verify_payment(block_number: u64) {
     }
 }
 
-pub fn get_repo_canister_id() -> Principal {
+fn get_repo_canister_id() -> Principal {
     CONF.with(|c| Principal::from_text(c.borrow().repo_canister_id.clone()).unwrap())
 }
 
-pub fn get_initial_cycles_balance() -> u128 {
+fn get_initial_cycles_balance() -> u128 {
     CONF.with(|c| c.borrow().initial_cycles_balance)
 }
 
-pub fn get_destination_address() -> String {
+fn get_destination_address() -> String {
     CONF.with(|c| c.borrow().destination_address.clone())
 }
 
-pub fn get_payment_cycles() -> u64 {
+fn get_payment_cycles() -> u64 {
     CONF.with(|c| c.borrow().icp_price)
 }
 

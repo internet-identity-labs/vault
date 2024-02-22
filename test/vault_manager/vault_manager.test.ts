@@ -60,7 +60,7 @@ describe("VM Test", () => {
 
 
     it("Create Vault from the VaultManagerCanister", async function () {
-        canister = await createCanister(canister_id, identity, BigInt(1));
+        canister = await createCanister(canister_id, identity, BigInt(1), []);
         let vaultManager = new VaultManager()
         await vaultManager.init(canister, identity, true)
         let state = await vaultManager.getState()
@@ -70,6 +70,8 @@ describe("VM Test", () => {
         let canisters = await getCanisters(canister_id, identity);
         expect(canisters.length).eq(1);
         expect(canisters[0].canister_id.toText()).eq(canister.toText());
+        // @ts-ignore
+        expect(canisters[0].vault_type.Pro).eq(null);
         let controllers = await vaultManager.getControllers();
         expect(controllers[0].toText()).eq(canister.toText());
         expect(controllers.length).eq(1);
@@ -80,7 +82,7 @@ describe("VM Test", () => {
         let incorrectBytes = fromHexString("6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632")
         console.log(DFX.LEDGER_FILL_BALANCE(incorrectBytes.toString().replaceAll(',', ';')))
         try {
-            await createCanister(canister_id, identity, BigInt(3));
+            await createCanister(canister_id, identity, BigInt(3), []);
             fail("Should throw error")
         } catch (e) {
             expect(e.message).contains("Incorrect destination");
@@ -89,13 +91,13 @@ describe("VM Test", () => {
         console.log(call(`dfx canister call ledger transfer "(record { to=vec { ${correctBytes.toString().replaceAll(',', ';')} };
           amount=record { e8s=50_000_000 }; fee=record { e8s=10_000 : nat64 }; memo=0:nat64; } )"`))
         try {
-            await createCanister(canister_id, identity, BigInt(4));
+            await createCanister(canister_id, identity, BigInt(4), []);
             fail("Should throw error")
         } catch (e) {
             expect(e.message).contains("Incorrect amount");
         }
         try {
-            await createCanister(canister_id, identity, BigInt(1));
+            await createCanister(canister_id, identity, BigInt(1), []);
             fail("Should throw error")
         } catch (e) {
             expect(e.message).contains("Block already used");
@@ -115,13 +117,15 @@ describe("VM Test", () => {
         }
         await actor.add_version(wasm);
 
-        canister = await createCanister(canister_id, identity, BigInt(2));
+        canister = await createCanister(canister_id, identity, BigInt(2), [{ Light: null }]);
 
         let vaultManager = new VaultManager()
         await vaultManager.init(canister, identity, true)
-
+        expect(await vaultManager.getVersion()).eq("0.0.2");
         let canisters = await getCanisters(canister_id, identity);
         expect(canisters.length).eq(2);
+        // @ts-ignore
+        expect(canisters[1].vault_type.Light).eq(null);
     });
 
 
