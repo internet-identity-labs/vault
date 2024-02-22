@@ -4,7 +4,7 @@ use ic_cdk::id;
 use ic_ledger_types::{AccountIdentifier, BlockIndex, Subaccount};
 use serde::{Deserialize, Serialize};
 
-use crate::{impl_basic_for_transaction, impl_transfer_for_transaction};
+use crate::{impl_basic_for_transaction, impl_transfer_common_for_transaction};
 use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::errors::VaultError;
@@ -14,7 +14,7 @@ use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_builder::TransactionBuilder;
-use crate::transaction::transfer::transfer_common::TransferHelper;
+use crate::transaction::transfer::transfer_common::TransferCommon;
 use crate::transfer_service::transfer;
 
 const CYCLE_MINTER_CANISTER_ID: &str = "rkp4c-7iaaa-aaaaa-aaaca-cai";
@@ -27,7 +27,7 @@ if you make any changes to this file
 */
 
 impl_basic_for_transaction!(TopUpTransaction);
-impl_transfer_for_transaction!(TopUpTransaction);
+impl_transfer_common_for_transaction!(TopUpTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct TopUpTransaction {
     common: BasicTransactionFields,

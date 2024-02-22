@@ -78,6 +78,34 @@ export class TransferTransactionRequest implements TransactionRequest {
     }
 }
 
+export class TransferQuorumTransactionRequest implements TransactionRequest {
+    currency: Currency;
+    address: string;
+    wallet: string;
+    amount: bigint;
+    memo: string | undefined;
+
+    constructor(currency: Currency, address: string, wallet: string, amount: bigint) {
+        this.currency = currency
+        this.address = address
+        this.wallet = wallet
+        this.amount = amount
+    }
+
+    toCandid(): TransactionRequestCandid {
+        return {
+            TransferQuorumTransactionRequestV: {
+                //TODO
+                currency: {'ICP': null},
+                address: this.address,
+                wallet: this.wallet,
+                amount: this.amount,
+                memo: this.memo !== undefined ? [this.memo] : []
+            }
+        }
+    }
+}
+
 export class TopUpTransactionRequest implements TransactionRequest {
     currency: Currency;
     wallet: string;

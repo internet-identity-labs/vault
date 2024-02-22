@@ -12,6 +12,7 @@ import {
     TopUpTransaction as TopUpTransactionCandid,
     TransactionCandid,
     TransferTransaction as TransferTransactionCandid,
+    TransferQuorumTransaction as TransferQuorumTransactionCandid,
     VaultError,
     VaultNamingUpdateTransaction as VaultNamingUpdateTransactionCandid,
     VersionUpgradeTransaction as VersionUpgradeCandid,
@@ -101,6 +102,15 @@ export interface TransferTransaction extends Transaction {
     wallet: string,
     amount: bigint,
     policy: string | undefined
+    blockIndex: bigint | undefined
+}
+
+export interface TransferQuorumTransaction extends Transaction {
+    currency: Currency,
+    address: string,
+    wallet: string,
+    amount: bigint,
+    blockIndex: bigint | undefined
 }
 
 export interface TopUpTransaction extends Transaction {
@@ -375,7 +385,31 @@ export function transactionCandidToTransaction(trs: TransactionCandid): Transact
             threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
             memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
             policy: response.policy.length === 0 ? undefined : response.policy[0],
-            error: response.common.error.length === 0 ? undefined : response.common.error[0]
+            error: response.common.error.length === 0 ? undefined : response.common.error[0],
+            blockIndex: response.block_index.length === 0 ? undefined : response.block_index[0],
+        }
+        return transaction;
+    }
+    if (hasOwnProperty(trs, "TransferQuorumTransactionV")) {
+        let response = trs.TransferQuorumTransactionV as TransferQuorumTransactionCandid
+        let transaction: TransferQuorumTransaction = {
+            address: response.address,
+            amount: response.amount,
+            currency: Currency.ICP, //TODO
+            wallet: response.wallet,
+            approves: response.common.approves.map(candidToApprove),
+            batchUid: response.common.batch_uid.length === 0 ? undefined : response.common.batch_uid[0],
+            createdDate: response.common.created_date,
+            id: response.common.id,
+            initiator: response.common.initiator,
+            isVaultState: response.common.is_vault_state,
+            modifiedDate: response.common.modified_date,
+            state: candidToTransactionState(response.common.state),
+            transactionType: TransactionType.TransferQuorum,
+            threshold: response.common.threshold.length === 0 ? undefined : response.common.threshold[0],
+            memo: response.common.memo.length === 0 ? undefined : response.common.memo[0],
+            error: response.common.error.length === 0 ? undefined : response.common.error[0],
+            blockIndex: response.block_index.length === 0 ? undefined : response.block_index[0],
         }
         return transaction;
     }

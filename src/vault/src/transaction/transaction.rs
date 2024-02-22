@@ -21,6 +21,7 @@ use crate::transaction::purge::purge_transaction::PurgeTransaction;
 use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_service::is_blocked;
 use crate::transaction::transfer::top_up_transaction::TopUpTransaction;
+use crate::transaction::transfer::transfer_quorum_transaction::TransferQuorumTransaction;
 use crate::transaction::transfer::transfer_transaction::TransferTransaction;
 use crate::transaction::upgrade::upgrade_transaction::VersionUpgradeTransaction;
 use crate::transaction::vault::controllers_transaction::ControllersUpdateTransaction;
@@ -203,6 +204,7 @@ pub enum TransactionCandid {
     PolicyUpdateTransactionV(PolicyUpdateTransaction),
     PolicyRemoveTransactionV(PolicyRemoveTransaction),
     TransferTransactionV(TransferTransaction),
+    TransferQuorumTransactionV(TransferQuorumTransaction),
     TopUpTransactionV(TopUpTransaction),
     UpgradeTransactionV(VersionUpgradeTransaction),
 }
@@ -229,7 +231,8 @@ impl Candid for TransactionCandid {
             TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::UpgradeTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::PurgeTransactionV(tr) => { Box::new(tr.to_owned()) }
-            TransactionCandid::ControllersUpdateTransactionV(tr) => { Box::new(tr.to_owned())}
+            TransactionCandid::ControllersUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::TransferQuorumTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

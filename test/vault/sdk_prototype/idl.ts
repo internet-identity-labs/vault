@@ -1,4 +1,8 @@
 export const idlFactory = ({ IDL }) => {
+    const Conf = IDL.Record({
+        'origins' : IDL.Vec(IDL.Text),
+        'repo_canister' : IDL.Text,
+    });
     const TransactionState = IDL.Variant({
         'Blocked' : IDL.Null,
         'Approved' : IDL.Null,
@@ -12,6 +16,7 @@ export const idlFactory = ({ IDL }) => {
         'state' : TransactionState,
     });
     const VaultError = IDL.Variant({
+        'ControllersUpdateError' : IDL.Record({ 'message' : IDL.Text }),
         'QuorumNotReached' : IDL.Null,
         'WalletNotExists' : IDL.Null,
         'CouldNotDefinePolicy' : IDL.Null,
@@ -20,7 +25,6 @@ export const idlFactory = ({ IDL }) => {
         'MemberNotExists' : IDL.Null,
         'MemberAlreadyExists' : IDL.Null,
         'ThresholdDefineError' : IDL.Record({ 'message' : IDL.Text }),
-        'ControllersUpdateError' : IDL.Record({ 'message' : IDL.Text }),
         'UIDAlreadyExists' : IDL.Null,
         'PolicyNotExists' : IDL.Null,
     });
@@ -122,6 +126,14 @@ export const idlFactory = ({ IDL }) => {
         'common' : BasicTransactionFields,
     });
     const PurgeTransaction = IDL.Record({ 'common' : BasicTransactionFields });
+    const TransferQuorumTransaction = IDL.Record({
+        'block_index' : IDL.Opt(IDL.Nat64),
+        'currency' : Currency,
+        'address' : IDL.Text,
+        'wallet' : IDL.Text,
+        'common' : BasicTransactionFields,
+        'amount' : IDL.Nat64,
+    });
     const QuorumUpdateTransaction = IDL.Record({
         'common' : BasicTransactionFields,
         'quorum' : IDL.Nat8,
@@ -149,6 +161,7 @@ export const idlFactory = ({ IDL }) => {
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'UpgradeTransactionV' : VersionUpgradeTransaction,
         'PurgeTransactionV' : PurgeTransaction,
+        'TransferQuorumTransactionV' : TransferQuorumTransaction,
         'QuorumUpdateTransactionV' : QuorumUpdateTransaction,
         'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction,
         'MemberRemoveTransactionV' : MemberRemoveTransaction,
@@ -226,6 +239,13 @@ export const idlFactory = ({ IDL }) => {
         'member_id' : IDL.Text,
         'batch_uid' : IDL.Opt(IDL.Text),
     });
+    const TransferQuorumTransactionRequest = IDL.Record({
+        'memo' : IDL.Opt(IDL.Text),
+        'currency' : Currency,
+        'address' : IDL.Text,
+        'wallet' : IDL.Text,
+        'amount' : IDL.Nat64,
+    });
     const TransferTransactionRequest = IDL.Record({
         'memo' : IDL.Opt(IDL.Text),
         'currency' : Currency,
@@ -272,6 +292,7 @@ export const idlFactory = ({ IDL }) => {
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
         'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest,
         'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest,
+        'TransferQuorumTransactionRequestV' : TransferQuorumTransactionRequest,
         'TransferTransactionRequestV' : TransferTransactionRequest,
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest,
         'WalletUpdateNameTransactionRequestV' : WalletUpdateNameTransactionRequest,
@@ -288,14 +309,25 @@ export const idlFactory = ({ IDL }) => {
         ),
         'canister_balance' : IDL.Func([], [IDL.Nat64], ['query']),
         'execute' : IDL.Func([], [], []),
+        'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], []),
         'get_state' : IDL.Func([IDL.Opt(IDL.Nat64)], [VaultState], ['query']),
         'get_transactions_all' : IDL.Func(
             [],
             [IDL.Vec(TransactionCandid)],
             ['query'],
         ),
+        'get_trusted_origins_certified' : IDL.Func(
+            [],
+            [
+                IDL.Record({
+                    'certificate' : IDL.Vec(IDL.Nat8),
+                    'witness' : IDL.Vec(IDL.Nat8),
+                    'response' : IDL.Vec(IDL.Text),
+                }),
+            ],
+            ['query'],
+        ),
         'get_version' : IDL.Func([], [IDL.Text], ['query']),
-        'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], []),
         'request_transaction' : IDL.Func(
             [IDL.Vec(TransactionRequest)],
             [IDL.Vec(TransactionCandid)],
@@ -303,4 +335,10 @@ export const idlFactory = ({ IDL }) => {
         ),
     });
 };
-export const init = ({ IDL }) => { return []; };
+export const init = ({ IDL }) => {
+    const Conf = IDL.Record({
+        'origins' : IDL.Vec(IDL.Text),
+        'repo_canister' : IDL.Text,
+    });
+    return [IDL.Principal, Conf];
+};

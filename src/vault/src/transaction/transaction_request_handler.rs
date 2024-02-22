@@ -17,6 +17,7 @@ use crate::transaction::transaction_approve_handler::Approve;
 use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transaction_service::store_transaction;
 use crate::transaction::transfer::top_up_transaction::{TopUpTransactionBuilder, TopUpTransactionRequest};
+use crate::transaction::transfer::transfer_quorum_transaction::{TransferQuorumTransactionBuilder, TransferQuorumTransactionRequest};
 use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuilder, TransferTransactionRequest};
 use crate::transaction::upgrade::upgrade_transaction::{VersionUpgradeTransactionBuilder, VersionUpgradeTransactionRequest};
 use crate::transaction::vault::controllers_transaction::{ControllersUpdateTransactionBuilder, ControllersUpdateTransactionRequest};
@@ -41,9 +42,10 @@ pub enum TransactionRequest {
     PolicyUpdateTransactionRequestV(PolicyUpdateTransactionRequest),
     PolicyRemoveTransactionRequestV(PolicyRemoveTransactionRequest),
     TransferTransactionRequestV(TransferTransactionRequest),
+    TransferQuorumTransactionRequestV(TransferQuorumTransactionRequest),
     TopUpTransactionRequestV(TopUpTransactionRequest),
     VersionUpgradeTransactionRequestV(VersionUpgradeTransactionRequest),
-    ControllersUpdateTransactionRequestV(ControllersUpdateTransactionRequest)
+    ControllersUpdateTransactionRequestV(ControllersUpdateTransactionRequest),
 }
 
 
@@ -96,6 +98,9 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::ControllersUpdateTransactionRequestV(request) => {
             ControllersUpdateTransactionBuilder::init(request).build().await
+        }
+        TransactionRequest::TransferQuorumTransactionRequestV(request) => {
+            TransferQuorumTransactionBuilder::init(request).build().await
         }
     };
     verify_caller(trs.get_accepted_roles());
