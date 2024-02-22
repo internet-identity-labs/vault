@@ -57,7 +57,9 @@ impl ITransaction for TransferQuorumTransaction {
 
     fn define_threshold(&mut self) -> Result<u8, VaultError> {
         let state = get_current_state();
-        Ok(state.quorum.quorum)
+        let t = state.quorum.quorum;
+        self.set_threshold(t.clone());
+        Ok(t)
     }
 
     fn to_candid(&self) -> TransactionCandid {

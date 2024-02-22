@@ -157,16 +157,17 @@ describe("Transfer Transactions", () => {
 
     it("Request quorum policy transfer transaction", async function () {
         await requestPurgeTransaction(manager)
+        await manager.execute()
         let createWallet = await requestCreateWalletTransaction(manager, "testWallet5", Network.IC) as Array<WalletCreateTransaction>
         let walletUId4 = createWallet[0].uid
         await manager.execute()
         let trRequestResponse = await requestQuorumTransferTransaction(manager, address, walletUId4, 100)
         await manager.execute()
-        let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as [TransferQuorumTransaction]
-        expect(tr[0].threshold).eq(1)
-        expect(tr[0].state).eq(TransactionState.Rejected)
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
+        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.threshold).eq(1)
         // @ts-ignore
-        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 99989900 } }")
+        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 0 } }")
     });
 
     it("Trs blocked because of vault trs", async function () {
