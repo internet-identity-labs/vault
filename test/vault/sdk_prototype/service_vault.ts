@@ -166,6 +166,7 @@ export type TransactionCandid = {
     { 'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction } |
     { 'UpgradeTransactionV' : VersionUpgradeTransaction } |
     { 'PurgeTransactionV' : PurgeTransaction } |
+    { 'TransferQuorumTransactionV' : TransferQuorumTransaction } |
     { 'QuorumUpdateTransactionV' : QuorumUpdateTransaction } |
     { 'WalletUpdateNameTransactionV' : WalletUpdateNameTransaction } |
     { 'MemberRemoveTransactionV' : MemberRemoveTransaction };
@@ -186,6 +187,7 @@ export type TransactionRequest = {
     { 'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest } |
     { 'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest } |
     { 'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest } |
+    { 'TransferQuorumTransactionRequestV' : TransferQuorumTransactionRequest } |
     { 'TransferTransactionRequestV' : TransferTransactionRequest } |
     {
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest
@@ -203,6 +205,21 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Executed' : null } |
     { 'Purged' : null } |
     { 'Pending' : null };
+export interface TransferQuorumTransaction {
+    'block_index' : [] | [bigint],
+    'currency' : Currency,
+    'address' : string,
+    'wallet' : string,
+    'common' : BasicTransactionFields,
+    'amount' : bigint,
+}
+export interface TransferQuorumTransactionRequest {
+    'memo' : [] | [string],
+    'currency' : Currency,
+    'address' : string,
+    'wallet' : string,
+    'amount' : bigint,
+}
 export interface TransferTransaction {
     'block_index' : [] | [bigint],
     'currency' : Currency,
@@ -219,7 +236,8 @@ export interface TransferTransactionRequest {
     'wallet' : string,
     'amount' : bigint,
 }
-export type VaultError = { 'QuorumNotReached' : null } |
+export type VaultError = { 'ControllersUpdateError' : { 'message' : string } } |
+    { 'QuorumNotReached' : null } |
     { 'WalletNotExists' : null } |
     { 'CouldNotDefinePolicy' : null } |
     { 'ThresholdAlreadyExists' : null } |
@@ -227,7 +245,6 @@ export type VaultError = { 'QuorumNotReached' : null } |
     { 'MemberNotExists' : null } |
     { 'MemberAlreadyExists' : null } |
     { 'ThresholdDefineError' : { 'message' : string } } |
-    { 'ControllersUpdateError' : { 'message' : string } } |
     { 'UIDAlreadyExists' : null } |
     { 'PolicyNotExists' : null };
 export interface VaultNamingUpdateTransaction {
@@ -291,10 +308,18 @@ export interface _SERVICE {
         Array<TransactionCandid>
     >,
     'canister_balance' : ActorMethod<[], bigint>,
-    'get_controllers' : ActorMethod<[], Array<Principal>>,
     'execute' : ActorMethod<[], undefined>,
+    'get_controllers' : ActorMethod<[], Array<Principal>>,
     'get_state' : ActorMethod<[[] | [bigint]], VaultState>,
     'get_transactions_all' : ActorMethod<[], Array<TransactionCandid>>,
+    'get_trusted_origins_certified' : ActorMethod<
+        [],
+        {
+            'certificate' : Uint8Array | number[],
+            'witness' : Uint8Array | number[],
+            'response' : Array<string>,
+        }
+    >,
     'get_version' : ActorMethod<[], string>,
     'request_transaction' : ActorMethod<
         [Array<TransactionRequest>],

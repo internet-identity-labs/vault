@@ -198,6 +198,7 @@ type TransactionCandid = variant {
     TopUpTransactionV : TopUpTransaction;
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     TransferTransactionV : TransferTransaction;
+    TransferQuorumTransactionV : TransferQuorumTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
@@ -220,6 +221,7 @@ type TransactionRequest = variant {
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
     TransferTransactionRequestV : TransferTransactionRequest;
+    TransferQuorumTransactionRequestV : TransferQuorumTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
@@ -245,6 +247,23 @@ type TransferTransaction = record {
     common : BasicTransactionFields;
     amount : nat64;
     policy : opt text;
+};
+
+type TransferQuorumTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
+type TransferQuorumTransactionRequest = record {
+    memo : opt text;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    amount : nat64;
 };
 
 type TransferTransactionRequest = record {

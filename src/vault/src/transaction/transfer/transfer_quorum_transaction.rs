@@ -3,10 +3,11 @@ use candid::CandidType;
 use ic_ledger_types::BlockIndex;
 use serde::{Deserialize, Serialize};
 
-use crate::{impl_basic_for_transaction, impl_transfer_executor_for_transaction, impl_transfer_common_for_transaction};
-use crate::enums::{Currency, TransactionState};
+use crate::{impl_basic_for_transaction, impl_transfer_executor_for_transaction};
+use crate::enums::{Currency, TransactionState, VaultRole};
+use crate::enums::TransactionState::Rejected;
 use crate::errors::VaultError;
-use crate::state::VaultState;
+use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
@@ -14,13 +15,12 @@ use crate::transaction::transaction_builder::TransactionBuilder;
 use crate::transaction::transfer::transfer_executor_common::TransferExecutor;
 use crate::transaction::transfer::transfer_common::TransferCommon;
 
-impl_transfer_executor_for_transaction!(TransferTransaction);
-impl_basic_for_transaction!(TransferTransaction);
-impl_transfer_common_for_transaction!(TransferTransaction);
+
+impl_basic_for_transaction!(TransferQuorumTransaction);
+impl_transfer_executor_for_transaction!(TransferQuorumTransaction);
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub struct TransferTransaction {
+pub struct TransferQuorumTransaction {
     common: BasicTransactionFields,
-    policy: Option<String>,
     wallet: String,
     block_index: Option<BlockIndex>,
     amount: u64,
@@ -29,15 +29,14 @@ pub struct TransferTransaction {
 }
 
 
-impl TransferTransaction {
+impl TransferQuorumTransaction {
     fn new(state: TransactionState, address: String, currency: Currency,
            wallet: String, amount: u64, memo: Option<String>) -> Self {
         let mut common = BasicTransactionFields::new(state, None, false);
         common.memo = memo;
-        TransferTransaction {
+        TransferQuorumTransaction {
             common,
             wallet,
-            policy: None,
             currency,
             block_index: None,
             amount,
@@ -47,18 +46,23 @@ impl TransferTransaction {
 }
 
 #[async_trait]
-impl ITransaction for TransferTransaction {
+impl ITransaction for TransferQuorumTransaction {
     fn get_block_predicate(&mut self, tr: &Box<dyn ITransaction>) -> bool {
         self.get_transfer_block_predicate(tr)
     }
 
+    fn get_accepted_roles(&self) -> Vec<VaultRole> {
+        vec![VaultRole::Admin]
+    }
+
     fn define_threshold(&mut self) -> Result<u8, VaultError> {
-        self.define_transfer_threshold()
+        let state = get_current_state();
+        Ok(state.quorum.quorum)
     }
 
     fn to_candid(&self) -> TransactionCandid {
-        let trs: TransferTransaction = self.clone();
-        TransactionCandid::TransferTransactionV(trs)
+        let trs: TransferQuorumTransaction = self.clone();
+        TransactionCandid::TransferQuorumTransactionV(trs)
     }
 
     async fn execute(&mut self, state: VaultState) -> VaultState {
@@ -67,7 +71,7 @@ impl ITransaction for TransferTransaction {
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub struct TransferTransactionRequest {
+pub struct TransferQuorumTransactionRequest {
     wallet: String,
     amount: u64,
     currency: Currency,
@@ -75,21 +79,21 @@ pub struct TransferTransactionRequest {
     memo: Option<String>,
 }
 
-pub struct TransferTransactionBuilder {
-    request: TransferTransactionRequest,
+pub struct TransferQuorumTransactionBuilder {
+    request: TransferQuorumTransactionRequest,
 }
 
-impl TransferTransactionBuilder {
-    pub fn init(request: TransferTransactionRequest) -> Self {
-        return TransferTransactionBuilder {
+impl TransferQuorumTransactionBuilder {
+    pub fn init(request: TransferQuorumTransactionRequest) -> Self {
+        return TransferQuorumTransactionBuilder {
             request
         };
     }
 }
 
-impl TransactionBuilder for TransferTransactionBuilder {
+impl TransactionBuilder for TransferQuorumTransactionBuilder {
     async fn build_dyn_transaction(&mut self, state: TransactionState) -> Box<dyn ITransaction> {
-        let trs = TransferTransaction::new(
+        let trs = TransferQuorumTransaction::new(
             state,
             self.request.address.clone(),
             self.request.currency.clone(),
@@ -98,6 +102,22 @@ impl TransactionBuilder for TransferTransactionBuilder {
             self.request.memo.clone(),
         );
         Box::new(trs)
+    }
+}
+
+
+impl TransferCommon for TransferQuorumTransaction {
+    fn get_wallet(&self) -> String {
+        self.wallet.clone()
+    }
+
+    fn get_amount(&self) -> u64 {
+        self.amount.clone()
+    }
+
+    fn set_policy(&mut self, x: Option<String>) {
+        self.set_state(Rejected);
+        self.common.error = Some(VaultError::CouldNotDefinePolicy);
     }
 }
 

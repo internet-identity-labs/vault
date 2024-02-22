@@ -6,9 +6,11 @@ import {
     MemberUpdateRoleTransactionRequest,
     PolicyCreateTransactionRequest,
     PolicyRemoveTransactionRequest,
-    PolicyUpdateTransactionRequest, PurgeTransactionRequest,
+    PolicyUpdateTransactionRequest,
+    PurgeTransactionRequest,
     QuorumTransactionRequest,
     TopUpTransactionRequest,
+    TransferQuorumTransactionRequest,
     TransferTransactionRequest,
     VaultNamingTransactionRequest,
     VersionUpgradeTransactionRequest,
@@ -64,7 +66,7 @@ export async function requestCreateMemberTransaction(manager, memberAddress, mem
 }
 
 export async function requestUpdateControllersTransaction(manager, principals: Array<Principal>): Promise<Array<Transaction>> {
-    let transactionRequest = new ControllersUpdateTransactionRequest (principals);
+    let transactionRequest = new ControllersUpdateTransactionRequest(principals);
     return await manager.requestTransaction([transactionRequest])
 }
 
@@ -123,6 +125,11 @@ export async function requestVersionUpgradeTransaction(manager, version): Promis
 
 export async function requestTransferTransaction(manager, address, wallet, amount): Promise<Array<Transaction>> {
     let memberR = new TransferTransactionRequest(Currency.ICP, address, wallet, amount);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestQuorumTransferTransaction(manager, address, wallet, amount): Promise<Array<Transaction>> {
+    let memberR = new TransferQuorumTransactionRequest(Currency.ICP, address, wallet, amount);
     return await manager.requestTransaction([memberR])
 }
 

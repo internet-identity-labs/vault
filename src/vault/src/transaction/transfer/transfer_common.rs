@@ -9,7 +9,7 @@ if you make any changes to this file
  top_up_transaction.test.ts
 */
 
-pub trait TransferHelper: ITransaction {
+pub trait TransferCommon: ITransaction {
     fn get_wallet(&self) -> String;
     fn get_amount(&self) -> u64;
     fn set_policy(&mut self, x: Option<String>);
@@ -49,15 +49,18 @@ pub trait TransferHelper: ITransaction {
         if let TransactionCandid::TopUpTransactionV(transfer) = tr.to_candid() {
             return transfer.get_wallet() == self.get_wallet();
         }
+        if let TransactionCandid::TransferQuorumTransactionV(transfer) = tr.to_candid() {
+            return transfer.get_wallet() == self.get_wallet();
+        }
         false
     }
 }
 
 
 #[macro_export]
-macro_rules! impl_transfer_for_transaction {
+macro_rules! impl_transfer_common_for_transaction {
     ($type:ty) => {
-        impl TransferHelper for $type {
+        impl TransferCommon for $type {
            fn get_wallet(&self) -> String {
               self.wallet.clone()
               }

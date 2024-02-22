@@ -10,12 +10,14 @@ import {
     requestCreateMemberTransaction,
     requestCreatePolicyTransaction,
     requestCreateWalletTransaction,
+    requestPurgeTransaction,
+    requestQuorumTransferTransaction,
     requestTransferTransaction,
     requestUpdateQuorumTransaction,
     verifyTransaction
 } from "./helper";
 import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
-import {TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
+import {TransferQuorumTransaction, TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
 import {Approve, ApproveRequest} from "./sdk_prototype/approve";
 import {hasOwnProperty} from "./sdk_prototype/helper";
 
@@ -61,6 +63,7 @@ describe("Transfer Transactions", () => {
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
         expected = buildExpectedTransferTransaction(TransactionState.Executed)
         verifyTransferTransaction(expected, tr)
+        expect(tr.blockIndex).eq(2n)
     });
 
     it("Trs approved and rejected ", async function () {
@@ -152,6 +155,20 @@ describe("Transfer Transactions", () => {
         expect(tr.state).eq(TransactionState.Pending)
     });
 
+    it("Request quorum policy transfer transaction", async function () {
+        await requestPurgeTransaction(manager)
+        let createWallet = await requestCreateWalletTransaction(manager, "testWallet5", Network.IC) as Array<WalletCreateTransaction>
+        let walletUId4 = createWallet[0].uid
+        await manager.execute()
+        let trRequestResponse = await requestQuorumTransferTransaction(manager, address, walletUId4, 100)
+        await manager.execute()
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as [TransferQuorumTransaction]
+        expect(tr[0].threshold).eq(1)
+        expect(tr[0].state).eq(TransactionState.Rejected)
+        // @ts-ignore
+        expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 99989900 } }")
+    });
+
     it("Trs blocked because of vault trs", async function () {
         let createWallet = await requestCreateWalletTransaction(manager, "testWallet3", Network.IC) as Array<WalletCreateTransaction>
         let walletUId = createWallet[0].uid
@@ -186,7 +203,8 @@ describe("Transfer Transactions", () => {
             isVaultState: false,
             modifiedDate: 0n,
             state,
-            transactionType: TransactionType.Transfer
+            transactionType: TransactionType.Transfer,
+            blockIndex: undefined
         }
         return expectedTrs
     }
