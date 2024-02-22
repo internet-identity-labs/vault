@@ -59,10 +59,10 @@ jobs:
           exit 1
 
       - name: Checkout repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout CI repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
           repository: internet-identity-labs/ci_libs
@@ -70,7 +70,7 @@ jobs:
           path: ci_libs
 
       - name: Cache Cargo dependencies.
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             /home/ubuntu/.cargo/registry/
@@ -127,6 +127,28 @@ jobs:
             ARTIFACT_VERSION=''
           fi
 
+          # INSTALL ARGUMENT SECTION
+          case ${NETWORK_NAME} in
+            dev)
+
+              case ${CANISTER_NAME} in
+                vault_manager)
+                  INSTALL_ARGUMENTS=$(cat <<EOF
+          (record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; initial_cycles_balance = 500_000_000_000 : nat; icp_price = 100_000_000 : nat64; repo_canister_id = "7jlkn-paaaa-aaaap-abvpa-cai"; destination_address = "4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e" } )
+          EOF
+          )
+                ;;
+
+                vault_repo)
+                  INSTALL_ARGUMENTS=$(cat <<EOF
+          (record { controllers = vec {}; origins = vec {}; })
+          EOF
+          )
+                ;;
+              esac
+
+              ;;
+          esac
 
           ci_echo_debug "Populating env variables" >&2
           CANISTER_DID="$(cat dfx.json | jq -er ".canisters.${CANISTER_NAME}.candid")"
@@ -148,6 +170,8 @@ jobs:
             echo "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >> $GITHUB_ENV
           fi
 
+          echo "INSTALL_ARGUMENTS=${INSTALL_ARGUMENTS}" >> $GITHUB_ENV
+
 
       - name: PRE-BUILD => Print Vars.
         run: |
@@ -168,6 +192,8 @@ jobs:
             ci_echo_info "VERSION_FILE_PATH=${VERSION_FILE_PATH}" >&2
             ci_echo_info "VERSION_FILE_CONTENT=${VERSION_FILE_CONTENT}" >&2
           fi
+
+          ci_echo_info "INSTALL_ARGUMENTS=${INSTALL_ARGUMENTS}" >&2
 
       - name: PRE-BUILD => Write identity.
         run: |
@@ -204,7 +230,7 @@ jobs:
           ci_echo_debug "dfx build --network '${NETWORK_NAME}' '${CANISTER_NAME}'" >&2
           dfx build --network "${NETWORK_NAME}" "${CANISTER_NAME}"
 
-      - name: DEPLOY => Upgrade the canister.
+      - name: INSTALL => Install the canister.
         if: ${{ (github.event.inputs.canister_name != 'vault') }}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
@@ -215,21 +241,14 @@ jobs:
 
           dfx identity use "${ID_NAME}"
 
-          ci_echo_debug "dfx canister --network '${NETWORK_NAME}' install --mode upgrade '${CANISTER_NAME}'" >&2
-          if ! result=$(dfx canister --network "${NETWORK_NAME}" install --mode upgrade "${CANISTER_NAME}"); then
-            ci_echo_error "Upgrade failed ${result}" >&2
+          ci_echo_debug "echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument '${INSTALL_ARGUMENTS}'} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME}" >&2
+          if ! result=$( echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument "${INSTALL_ARGUMENTS}"} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME} ); then
+            ci_echo_error "Install failed ${result}" >&2
             exit 1
           fi
 
           ci_echo_debug "Command output was '${result}'" >&2
-
-          # If hash the same - than fail deploy
-          if echo "${result}" | grep -q 'Module hash [[:alnum:]]+ is already installed'; then
-            ci_echo_error "${result}" >&2
-            exit 1
-          else
-            ci_echo_success "Canister '${CANISTER_NAME}' was upgraded" >&2
-          fi
+          ci_echo_success "Canister '${CANISTER_NAME}' was installed" >&2
 
       - name: Save artifact
         uses: actions/upload-artifact@v3
