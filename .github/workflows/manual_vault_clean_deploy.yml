@@ -159,8 +159,8 @@ jobs:
 
           dfx identity use "${ID_NAME}"
 
-          ci_echo_debug "echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument '${INSTALL_ARGUMENTS}'} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME}" >&2
-          if ! result=$( echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument "${INSTALL_ARGUMENTS}"} --network "${NETWORK_NAME}" --mode upgrade ${CANISTER_NAME} ); then
+          ci_echo_debug "echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument '${INSTALL_ARGUMENTS}'} --network "${NETWORK_NAME}" --mode reinstall ${CANISTER_NAME}" >&2
+          if ! result=$( echo 'yes' | dfx canister install ${INSTALL_ARGUMENTS:+--argument "${INSTALL_ARGUMENTS}"} --network "${NETWORK_NAME}" --mode reinstall ${CANISTER_NAME} ); then
             ci_echo_error "Install failed ${result}" >&2
             exit 1
           fi
