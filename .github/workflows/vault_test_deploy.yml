@@ -129,8 +129,8 @@ jobs:
 
           dfx identity use "${ID_NAME}"
 
-          ci_echo_debug "echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall" >&2
-          if ! result=$(echo 'yes' | dfx deploy ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall); then
+          ci_echo_debug "echo 'yes' | dfx canister install ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall" >&2
+          if ! result=$(echo 'yes' | dfx canister install ${CANISTER_NAME} --argument '(principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })' --network "${NETWORK_NAME}" --mode reinstall); then
             ci_echo_error "Install failed ${result}" >&2
             exit 1
           fi
