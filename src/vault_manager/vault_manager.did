@@ -29,7 +29,7 @@ type VaultCanister = record {
     initiator : principal;
     canister_id : principal;
     block_number : nat64;
-    vault_tupe: VaultType;
+    vault_type: VaultType;
 };service : (Conf) -> {
     canister_balance : () -> (nat64) query;
     create_canister_call : (nat64, opt VaultType) -> (Result);
