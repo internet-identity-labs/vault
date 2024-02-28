@@ -88,6 +88,7 @@ impl ITransaction for ControllersUpdateTransaction {
         if admins < t {
             t = admins;
         }
+        self.set_threshold(t.clone());
         Ok(t)
     }
 
