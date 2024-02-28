@@ -17,6 +17,7 @@ import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {ApproveRequest} from "./sdk_prototype/approve";
 import {fail} from "assert";
 import {Principal} from "@dfinity/principal";
+import {ControllersUpdateTransaction} from "./sdk_prototype/transactions";
 
 require('./bigintextension.js');
 
@@ -68,8 +69,9 @@ describe("Controller Transactions", () => {
         }
         await manager2.approveTransaction([approveRequest])
         await manager.execute();
-        let rejectedTransaction = await getTransactionByIdFromGetAllTrs(manager, tr[0].id);
+        let rejectedTransaction = await getTransactionByIdFromGetAllTrs(manager, tr[0].id) as ControllersUpdateTransaction;
         expect(rejectedTransaction.state).eq(TransactionState.Rejected);
+        expect(rejectedTransaction.threshold).eq(2);
     });
 
     it("Add canister self as a controller and execute", async function () {
