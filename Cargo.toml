@@ -1,9 +1,27 @@
 [workspace]
 members = [
     "src/vault",
-    "src/vault_manager",
-    "src/vault_repo",
+#    "src/vault_manager",
+#    "src/vault_repo",
     "src/libraries/nfid_certified",
 ]
+
+
+[workspace.dependencies]
+ic-cdk = "0.12.1"
+candid = "0.10.3"
+serde = "1.0.192"
+tracing = "0.1.40"
+serde_json = "1.0.108"
+ic0 = "0.21.1"
+ic-ledger-types = "0.9.0"
+rand = "0.8.5"
+range-set = "0.0.10"
+serde_bytes = "0.11.12"
+quote = "1.0.33"
+syn = "2.0.39"
+
+getrandom = { version = "0.2.11", features = ["custom"] }
+icrc-ledger-types = "0.1.5"
+
 resolver = "2"
-exclude = []

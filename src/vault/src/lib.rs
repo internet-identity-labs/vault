@@ -9,6 +9,7 @@ use ic_cdk::{call, id};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use ic_cdk::api::{time};
+use ic_cdk::api::management_canister::http_request::{HttpResponse, TransformArgs};
 use ic_cdk_macros::*;
 
 use crate::config::{Conf, CONF};
@@ -16,7 +17,8 @@ use crate::enums::{TransactionState, VaultRole};
 use crate::state::{get_vault_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
-use crate::transaction::transaction::TransactionCandid;
+use crate::transaction::nns::stake_neuron::StakeNeuronTransaction;
+use crate::transaction::transaction::{ITransaction, TransactionCandid};
 use crate::transaction::transaction_approve_handler::{Approve, handle_approve, TransactionApproveRequest};
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
@@ -133,6 +135,20 @@ fn export_candid() -> String {
     __export_service()
 }
 
+
+#[update]
+async fn exec_stake_neuron() {
+    let mut a: StakeNeuronTransaction = StakeNeuronTransaction::new(TransactionState::Approved, None, "".to_string(), "".to_string(), VaultRole::Admin);
+    a.execute(get_vault_state(None).await).await;
+}
+
+
+#[query]
+fn transform_http_response(args: TransformArgs) -> HttpResponse {
+    let mut response = args.response;
+    response.headers.clear();
+    response
+}
 
 #[pre_upgrade]
 fn pre_upgrade() {

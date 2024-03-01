@@ -11,3 +11,4 @@ pub mod policy;
 pub mod transfer;
 pub mod upgrade;
 pub mod purge;
+pub mod nns;

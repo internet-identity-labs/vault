@@ -1,85 +1,428 @@
 {
   "canisters": {
+    "bitcoin": {
+      "remote": {
+        "id": {
+          "mainnet": "ghsi2-tqaaa-aaaan-aaaca-cai"
+        }
+      }
+    },
+    "ckbtc_index": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ckbtc_index.did",
+      "remote": {
+        "id": {
+          "app": "n5wcd-faaaa-aaaar-qaaea-cai",
+          "mainnet": "n5wcd-faaaa-aaaar-qaaea-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "target/ic/ckbtc_index.wasm"
+    },
+    "ckbtc_ledger": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ckbtc_ledger.did",
+      "remote": {
+        "id": {
+          "app": "mxzaz-hqaaa-aaaar-qaada-cai",
+          "mainnet": "mxzaz-hqaaa-aaaar-qaada-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "target/ic/ckbtc_ledger.wasm"
+    },
+    "ckbtc_minter": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ckbtc_minter.did",
+      "remote": {
+        "id": {
+          "app": "mqygn-kiaaa-aaaar-qaadq-cai",
+          "mainnet": "mqygn-kiaaa-aaaar-qaadq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "target/ic/ckbtc_minter.wasm"
+    },
+    "cketh_index": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ckbtc_index.did",
+      "remote": {
+        "id": {
+          "mainnet": "s3zol-vqaaa-aaaar-qacpa-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "target/ic/ckbtc_index.wasm"
+    },
+    "cketh_ledger": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/cketh_ledger.did",
+      "remote": {
+        "id": {
+          "mainnet": "ss2fx-dyaaa-aaaar-qacoq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "target/ic/ckbtc_ledger.wasm"
+    },
+    "internet_identity": {
+      "build": "curl --fail -sSL \"https://github.com/dfinity/internet-identity/releases/download/release-2023-01-31/internet_identity_dev.wasm\" -o internet_identity_dev.wasm",
+      "candid": "internet_identity.did",
+      "remote": {
+        "id": {
+          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
+      },
+      "type": "custom",
+      "url": {
+        "app": "https://identity.internetcomputer.org/",
+        "mainnet": "https://identity.internetcomputer.org/"
+      },
+      "wasm": "internet_identity_dev.wasm"
+    },
+    "ledger": {
+      "candid": "ledger.did",
+      "type": "custom",
+      "wasm": "ledger.wasm"
+    },
+    "nns-cycles-minting": {
+      "build": "",
+      "candid": "candid/nns-cycles-minting.did",
+      "remote": {
+        "id": {
+          "__default": "rkp4c-7iaaa-aaaaa-aaaca-cai",
+          "ic": "rkp4c-7iaaa-aaaaa-aaaca-cai",
+          "local": "rkp4c-7iaaa-aaaaa-aaaca-cai",
+          "mainnet": "rkp4c-7iaaa-aaaaa-aaaca-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-dapp": {
+      "build": "./build.sh",
+      "candid": "rs/backend/nns-dapp.did",
+      "remote": {
+        "id": {
+          "app": "xnjld-hqaaa-aaaal-qb56q-cai",
+          "ic": "qoctq-giaaa-aaaaa-aaaea-cai",
+          "mainnet": "qoctq-giaaa-aaaaa-aaaea-cai"
+        }
+      },
+      "type": "custom",
+      "url": {
+        "mainnet": "https://nns.internetcomputer.org"
+      },
+      "wasm": "nns-dapp.wasm.gz"
+    },
+    "nns-genesis-token": {
+      "build": "",
+      "candid": "candid/nns-genesis-token.did",
+      "remote": {
+        "id": {
+          "ic": "renrk-eyaaa-aaaaa-aaada-cai",
+          "local": "renrk-eyaaa-aaaaa-aaada-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-governance": {
+      "build": "",
+      "candid": "candid/nns-governance.did",
+      "remote": {
+        "id": {
+          "__default": "rrkah-fqaaa-aaaaa-aaaaq-cai",
+          "ic": "rrkah-fqaaa-aaaaa-aaaaq-cai",
+          "local": "rrkah-fqaaa-aaaaa-aaaaq-cai",
+          "mainnet": "rrkah-fqaaa-aaaaa-aaaaq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-ledger": {
+      "build": "",
+      "candid": "candid/nns-ledger.did",
+      "remote": {
+        "id": {
+          "__default": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+          "local": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+          "mainnet": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-lifeline": {
+      "build": "",
+      "candid": "candid/nns-lifeline.did",
+      "remote": {
+        "id": {
+          "ic": "rno2w-sqaaa-aaaaa-aaacq-cai",
+          "local": "rno2w-sqaaa-aaaaa-aaacq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-registry": {
+      "build": "",
+      "candid": "candid/nns-registry.did",
+      "remote": {
+        "id": {
+          "ic": "rwlgt-iiaaa-aaaaa-aaaaa-cai",
+          "local": "rwlgt-iiaaa-aaaaa-aaaaa-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-root": {
+      "build": "",
+      "candid": "candid/nns-root.did",
+      "remote": {
+        "id": {
+          "ic": "r7inp-6aaaa-aaaaa-aaabq-cai",
+          "local": "r7inp-6aaaa-aaaaa-aaabq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-sns-wasm": {
+      "build": "",
+      "candid": "candid/nns-sns-wasm.did",
+      "remote": {
+        "id": {
+          "__default": "qaa6y-5yaaa-aaaaa-aaafa-cai",
+          "ic": "qaa6y-5yaaa-aaaaa-aaafa-cai",
+          "local": "qaa6y-5yaaa-aaaaa-aaafa-cai",
+          "mainnet": "qaa6y-5yaaa-aaaaa-aaafa-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "sns_aggregator": {
+      "build": [
+        "./build-sns-aggregator.sh"
+      ],
+      "candid": "rs/sns_aggregator/sns_aggregator.did",
+      "remote": {
+        "id": {
+          "app": "otgyv-wyaaa-aaaak-qcgba-cai",
+          "mainnet": "3r4gx-wqaaa-aaaaq-aaaia-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "sns_aggregator.wasm.gz"
+    },
+    "sns_archive": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ic-icrc1-archive.did",
+      "type": "custom",
+      "wasm": "target/ic/ic-icrc1-archive.wasm"
+    },
+    "sns_governance": {
+      "build": [
+        "true"
+      ],
+      "candid": "declarations/sns_governance/sns_governance.did",
+      "type": "custom",
+      "wasm": "target/ic/sns-governance-canister.wasm"
+    },
+    "sns_index": {
+      "build": [
+        "true"
+      ],
+      "candid": "target/ic/ic-icrc1-index.did",
+      "type": "custom",
+      "wasm": "target/ic/ic-icrc1-index.wasm"
+    },
+    "sns_ledger": {
+      "build": [
+        "true"
+      ],
+      "candid": "declarations/sns_ledger/sns_ledger.did",
+      "type": "custom",
+      "wasm": "target/ic/ic-icrc1-ledger.wasm"
+    },
+    "sns_root": {
+      "build": [
+        "true"
+      ],
+      "candid": "declarations/sns_root/sns_root.did",
+      "type": "custom",
+      "wasm": "target/ic/sns-root-canister.wasm"
+    },
+    "sns_swap": {
+      "build": [
+        "true"
+      ],
+      "candid": "declarations/sns_swap/sns_swap.did",
+      "type": "custom",
+      "wasm": "target/ic/sns-swap-canister.wasm"
+    },
+    "tvl": {
+      "build": [
+        "true"
+      ],
+      "candid": "TODO-deploy-tvl-testnet",
+      "remote": {
+        "id": {
+          "app": "ewh3f-3qaaa-aaaap-aazjq-cai",
+          "mainnet": "ewh3f-3qaaa-aaaap-aazjq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "TODO-deploy-tvl-testnet"
+    },
     "vault": {
       "build": "src/vault/build.sh",
       "candid": "src/vault/vault.did",
-      "wasm": "vault.wasm",
-      "type": "custom"
+      "type": "custom",
+      "wasm": "vault.wasm"
     },
     "vault_manager": {
       "build": "src/vault_manager/build.sh",
       "candid": "src/vault_manager/vault_manager.did",
-      "wasm": "vault_manager.wasm",
-      "type": "custom"
+      "type": "custom",
+      "wasm": "vault_manager.wasm"
     },
     "vault_repo": {
       "build": "src/vault_repo/build.sh",
       "candid": "src/vault_repo/vault_repo.did",
-      "wasm": "vault_repo.wasm",
-      "type": "custom"
-    },
-    "ledger": {
       "type": "custom",
-      "candid": "ledger.did",
-      "wasm": "ledger.wasm"
+      "wasm": "vault_repo.wasm"
     }
   },
   "defaults": {
+    "build": {
+      "config": {
+        "BINSTALL_VERSION": "1.3.0",
+        "CARGO_SORT_VERSION": "1.0.9",
+        "DIDC_VERSION": "2024-01-03",
+        "IC_COMMIT": "release-2024-01-25_14-09+p2p-con",
+        "IC_WASM_VERSION": "0.6.0",
+        "IDL2JSON_VERSION": "0.8.8",
+        "NODE_VERSION": "18.14.2",
+        "OPTIMIZER_VERSION": "0.3.6",
+        "SNSDEMO_RELEASE": "release-2024-01-24"
+      },
+      "packtool": ""
+    },
+    "network": {
+      "config": {
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false,
+          "ENABLE_ICP_ICRC": false,
+          "ENABLE_MY_TOKENS": true,
+          "ENABLE_SNS_TYPES_FILTER": true
+        },
+        "FETCH_ROOT_KEY": true
+      }
+    },
     "replica": {
       "subnet_type": "system"
-    },
-    "bitcoin": {
-      "enabled": false,
-      "nodes": [
-        "127.0.0.1:18444"
-      ],
-      "log_level": "error"
-    },
-    "build": {
-      "packtool": "",
-      "args": ""
     }
   },
+  "dfx": "0.17.0",
   "networks": {
-    "test": {
+    "app": {
+      "config": {
+        "API_HOST": "https://icp-api.io",
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "FETCH_ROOT_KEY": false,
+        "STATIC_HOST": "https://icp0.io"
+      },
       "providers": [
-        "https://icp0.io/"
+        "https://icp0.io"
       ],
       "type": "persistent"
     },
-    "test_clean_job": {
+    "devenv_dskloet": {
+      "config": {
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "HOST": "https://dskloet-ingress.devenv.dfinity.network"
+      },
       "providers": [
-        "https://icp0.io/"
+        "https://dskloet-ingress.devenv.dfinity.network"
       ],
       "type": "persistent"
     },
-    "dev": {
+    "devenv_llorenc": {
+      "config": {
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "HOST": "https://llorenc-ingress.devenv.dfinity.network"
+      },
       "providers": [
-        "https://icp0.io/"
+        "https://llorenc-ingress.devenv.dfinity.network"
       ],
       "type": "persistent"
     },
-    "fiduciary": {
+    "devenv_mstr": {
+      "config": {
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "HOST": "https://mstr-ingress.devenv.dfinity.network"
+      },
       "providers": [
-        "https://icp0.io/"
-      ],
-      "type": "persistent"
-    },
-    "stage": {
-      "providers": [
-        "https://icp0.io/"
-      ],
-      "type": "persistent"
-    },
-    "prod": {
-      "providers": [
-        "https://icp0.io/"
+        "https://mstr-ingress.devenv.dfinity.network"
       ],
       "type": "persistent"
     },
     "local": {
-      "bind": "127.0.0.1:8000",
+      "bind": "127.0.0.1:8080",
+      "config": {
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "HOST": "http://localhost:8080",
+        "OWN_CANISTER_ID": "qsgjb-riaaa-aaaaa-aaaga-cai"
+      },
       "type": "ephemeral"
+    },
+    "mainnet": {
+      "config": {
+        "API_HOST": "https://icp-api.io",
+        "FEATURE_FLAGS": {
+          "ENABLE_CKBTC": true,
+          "ENABLE_CKTESTBTC": false
+        },
+        "FETCH_ROOT_KEY": false,
+        "STATIC_HOST": "https://icp0.io"
+      },
+      "providers": [
+        "https://icp0.io"
+      ],
+      "type": "persistent"
     }
   },
   "version": 1

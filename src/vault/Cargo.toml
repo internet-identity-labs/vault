@@ -8,12 +8,16 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
+ic-nervous-system-common = { git = "https://github.com/dfinity/ic", rev = "0cc5c19ecf2ecd8d51a20e970b25241f7f3bd8e5" }
+
+ic-cdk-timers = "0.6.0"
+ic-ledger-types = "0.9.0"
+ic-transport-types = "0.33.0"
 semver="1.0.20"
 bytemuck = "1.12.3"
-candid = "0.9.9"
-ic-cdk = "0.11.2"
+candid = "0.10.3"
+ic-cdk = "0.12.1"
 ic-cdk-macros = "0.8.1"
-ic-ledger-types = "0.8.0"
 serde = "1"
 byteorder = "1.4.3"
 ic-certified-map = "0.4.0"
@@ -27,6 +31,19 @@ serde_json = "1.0.82"
 async-trait = "0.1.74"
 lazy_static = "1.4"
 nfid_certified= { path = "../libraries/nfid_certified" }
+getrandom = { version = "0.2", features = ["custom"]}
+nns_governance_canister_c2c_client = { path = "../libraries/nns_governance/c2c_client" }
+nns_governance_canister = { path = "../libraries/nns_governance/api" }
+icrc_ledger_canister_c2c_client = { path = "../libraries/icrc_ledger/c2c_client" }
+icrc_ledger_canister = { path = "../libraries/icrc_ledger/api" }
+icrc-ledger-types = { workspace = true }
 
+tracing = "0.1.40"
+tracing-attributes = "0.1.27"
+tracing-subscriber = "0.3.18"
+k256 = "0.13.1"
+
+serde_cbor = "0.11.2"
+serde_repr = "0.1.17"
 [dev-dependencies]
 tempfile = "3.2.0"

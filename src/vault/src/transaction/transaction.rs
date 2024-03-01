@@ -14,6 +14,7 @@ use crate::transaction::member::member_create_transaction::MemberCreateTransacti
 use crate::transaction::member::member_remove_transaction::MemberRemoveTransaction;
 use crate::transaction::member::member_update_name_transaction::MemberUpdateNameTransaction;
 use crate::transaction::member::member_update_role_transaction::MemberUpdateRoleTransaction;
+use crate::transaction::nns::stake_neuron::StakeNeuronTransaction;
 use crate::transaction::policy::policy_create_transaction::PolicyCreateTransaction;
 use crate::transaction::policy::policy_remove_transaction::PolicyRemoveTransaction;
 use crate::transaction::policy::policy_update_transaction::PolicyUpdateTransaction;
@@ -207,6 +208,7 @@ pub enum TransactionCandid {
     TransferQuorumTransactionV(TransferQuorumTransaction),
     TopUpTransactionV(TopUpTransaction),
     UpgradeTransactionV(VersionUpgradeTransaction),
+    StakeNeuronTransactionV(StakeNeuronTransaction),
 }
 
 pub trait Candid {
@@ -231,6 +233,7 @@ impl Candid for TransactionCandid {
             TransactionCandid::TopUpTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::UpgradeTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::PurgeTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::StakeNeuronTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::ControllersUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TransferQuorumTransactionV(tr) => { Box::new(tr.to_owned()) }
         }

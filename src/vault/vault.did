@@ -363,13 +363,20 @@ type WalletUpdateNameTransactionRequest = record {
     name : text;
     batch_uid : opt text;
 };service : (principal, Conf) -> {
+
+    request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
     approve : (vec TransactionApproveRequest) -> (vec TransactionCandid);
-    canister_balance : () -> (nat64) query;
-    execute : () -> ();
+
     get_state : (opt nat64) -> (VaultState) query;
     get_transactions_all : () -> (vec TransactionCandid) query;
+
+
+
+
+
+    canister_balance : () -> (nat64) query;
+    execute : () -> ();
     get_version : () -> (text) query;
-    request_transaction : (vec TransactionRequest) -> (vec TransactionCandid);
     get_controllers : () -> (vec principal);
     get_trusted_origins_certified: () -> (record {
         response: vec text;
