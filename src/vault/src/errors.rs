@@ -11,7 +11,7 @@ pub enum VaultError {
     UIDAlreadyExists,
     CouldNotDefinePolicy,
     CanisterReject { message: String },
-    QuorumNotReached,
+    QuorumNotReachable,
     ThresholdDefineError { message: String },
     ControllersUpdateError { message: String },
 }

@@ -17,7 +17,7 @@ export const idlFactory = ({ IDL }) => {
     });
     const VaultError = IDL.Variant({
         'ControllersUpdateError' : IDL.Record({ 'message' : IDL.Text }),
-        'QuorumNotReached' : IDL.Null,
+        'QuorumNotReachable' : IDL.Null,
         'WalletNotExists' : IDL.Null,
         'CouldNotDefinePolicy' : IDL.Null,
         'ThresholdAlreadyExists' : IDL.Null,
