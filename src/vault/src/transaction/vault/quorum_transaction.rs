@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::enums::VaultRole::Admin;
-use crate::errors::VaultError::QuorumNotReached;
+use crate::errors::VaultError::QuorumNotReachable;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -66,13 +66,13 @@ impl ITransaction for QuorumUpdateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         if self.quorum == 0 {
             self.set_state(Rejected);
-            self.common.error = Some(QuorumNotReached);
+            self.common.error = Some(QuorumNotReachable);
             state
         } else if state.members.iter()
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
             self.set_state(Rejected);
-            self.common.error = Some(QuorumNotReached);
+            self.common.error = Some(QuorumNotReachable);
             state
         } else {
             let q = Quorum {

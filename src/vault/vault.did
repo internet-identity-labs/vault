@@ -275,7 +275,7 @@ type TransferTransactionRequest = record {
 };
 
 type VaultError = variant {
-    QuorumNotReached;
+    QuorumNotReachable;
     WalletNotExists;
     CouldNotDefinePolicy;
     ThresholdAlreadyExists;

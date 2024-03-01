@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::enums::{TransactionState, VaultRole};
 use crate::enums::TransactionState::{Executed, Rejected};
 use crate::enums::VaultRole::Admin;
-use crate::errors::VaultError::MemberNotExists;
+use crate::errors::VaultError::{MemberNotExists, QuorumNotReachable};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -82,6 +82,8 @@ impl ITransaction for MemberUpdateRoleTransaction {
                     .filter(|m| m.role.eq(&Admin))
                     .count() < state.quorum.quorum as usize {
                     self.set_state(Rejected);
+                    self.common.error = Some(QuorumNotReachable);
+
                     state
                 } else {
                     self.set_state(Executed);

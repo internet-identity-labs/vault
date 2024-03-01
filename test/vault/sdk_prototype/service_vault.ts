@@ -237,7 +237,7 @@ export interface TransferTransactionRequest {
     'amount' : bigint,
 }
 export type VaultError = { 'ControllersUpdateError' : { 'message' : string } } |
-    { 'QuorumNotReached' : null } |
+    { 'QuorumNotReachable' : null } |
     { 'WalletNotExists' : null } |
     { 'CouldNotDefinePolicy' : null } |
     { 'ThresholdAlreadyExists' : null } |
