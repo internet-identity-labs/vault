@@ -12,6 +12,11 @@ target
 
 # dfx temporary files
 .dfx/
+ledger.did
+ledger.wasm
+vault_manager.wasm
+vault_repo.wasm
+ledger.wasm.gz
 
 # frontend code
 node_modules/

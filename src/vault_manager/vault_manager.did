@@ -32,7 +32,7 @@ type VaultCanister = record {
     vault_type: VaultType;
 };service : (Conf) -> {
     canister_balance : () -> (nat64) query;
-    create_canister_call : (nat64, opt VaultType) -> (Result);
+    create_canister_call : (nat64, opt VaultType, opt principal) -> (Result);
     get_all_canisters : () -> (vec VaultCanister) query;
     update_canister_self : (text) -> (Result_1);
     get_config : () -> (Conf) query;

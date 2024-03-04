@@ -85,7 +85,7 @@ async fn get_all_canisters() -> Vec<VaultCanister> {
 }
 
 #[update]
-async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>) -> Result<CreateResult, String> {
+async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, owner: Option<Principal>) -> Result<CreateResult, String> {
     let vault_type = vault_type.unwrap_or_else(|| VaultType::Pro);
 
     verify_payment(block_number).await;
@@ -128,9 +128,10 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>) 
 
     install_wallet(&create_result.canister_id).await?;
 
+    let initiator = owner.unwrap_or_else(|| caller());
     CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
         canister_id: create_result.canister_id.clone(),
-        initiator: caller(),
+        initiator,
         block_number: block_number.clone(),
         vault_type,
     }));

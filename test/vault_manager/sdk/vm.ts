@@ -24,7 +24,7 @@ export type VaultType = { 'Pro' : null } |
     { 'Light' : null };
 export interface _SERVICE {
     'canister_balance' : ActorMethod<[], bigint>,
-    'create_canister_call' : ActorMethod<[bigint, [] | [VaultType]], Result>,
+    'create_canister_call' : ActorMethod<[bigint, [] | [VaultType], [] | [Principal]], Result>,
     'get_all_canisters' : ActorMethod<[], Array<VaultCanister>>,
     'get_config' : ActorMethod<[], Conf>,
     'get_trusted_origins_certified' : ActorMethod<

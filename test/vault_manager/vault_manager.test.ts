@@ -11,7 +11,7 @@ import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {fail} from "assert";
-
+import { Ed25519KeyIdentity } from "@dfinity/identity";
 
 describe("VM Test", () => {
     let canister;
@@ -58,7 +58,6 @@ describe("VM Test", () => {
         expect(config.icp_price).eq(100000000n);
     });
 
-
     it("Create Vault from the VaultManagerCanister", async function () {
         canister = await createCanister(canister_id, identity, BigInt(1), []);
         let vaultManager = new VaultManager()
@@ -77,12 +76,37 @@ describe("VM Test", () => {
         expect(controllers.length).eq(1);
     });
 
+    it("Create Vault from the VaultManagerCanister on behalf of other user", async function () {
+        let correctBytes = fromHexString("4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e")
+        console.log(DFX.LEDGER_FILL_BALANCE(correctBytes.toString().replaceAll(',', ';')))
+
+        const otherUserPrincipal = Ed25519KeyIdentity.generate().getPrincipal()
+        canister = await createCanister(canister_id, identity, BigInt(3), [], [otherUserPrincipal]);
+        let vaultManager = new VaultManager()
+        await vaultManager.init(canister, identity, true)
+
+        let state = await vaultManager.getState()
+        expect(state.members.length).eq(1);
+        let address = principalToAddress(identity.getPrincipal() as any)
+        expect(state.members[0].userId).eq(address);
+
+        let controllers = await vaultManager.getControllers();
+        expect(controllers[0].toText()).eq(canister.toText());
+        expect(controllers.length).eq(1);
+        
+        let canisters: VaultCanister[] = await getCanisters(canister_id, identity);
+        expect(canisters.length).eq(2);
+        expect(canisters[1].canister_id.toText()).eq(canister.toText());
+        expect(canisters[1].initiator.toText()).eq(otherUserPrincipal.toText());
+        // @ts-ignore
+        expect(canisters[1].vault_type.Pro).eq(null);
+    });
 
     it("Create Vault from the VaultManagerCanister Rejected because of payment", async function () {
         let incorrectBytes = fromHexString("6eee6eb5aeb5b94688a1f1831b246560797db6b0c80d8a004f64a0498519d632")
         console.log(DFX.LEDGER_FILL_BALANCE(incorrectBytes.toString().replaceAll(',', ';')))
         try {
-            await createCanister(canister_id, identity, BigInt(3), []);
+            await createCanister(canister_id, identity, BigInt(4), []);
             fail("Should throw error")
         } catch (e) {
             expect(e.message).contains("Incorrect destination");
@@ -91,7 +115,7 @@ describe("VM Test", () => {
         console.log(call(`dfx canister call ledger transfer "(record { to=vec { ${correctBytes.toString().replaceAll(',', ';')} };
           amount=record { e8s=50_000_000 }; fee=record { e8s=10_000 : nat64 }; memo=0:nat64; } )"`))
         try {
-            await createCanister(canister_id, identity, BigInt(4), []);
+            await createCanister(canister_id, identity, BigInt(5), []);
             fail("Should throw error")
         } catch (e) {
             expect(e.message).contains("Incorrect amount");
@@ -123,16 +147,16 @@ describe("VM Test", () => {
         await vaultManager.init(canister, identity, true)
         expect(await vaultManager.getVersion()).eq("0.0.2");
         let canisters = await getCanisters(canister_id, identity);
-        expect(canisters.length).eq(2);
+        expect(canisters.length).eq(3);
         // @ts-ignore
-        expect(canisters[1].vault_type.Light).eq(null);
+        expect(canisters[2].vault_type.Light).eq(null);
     });
 
 
     it("Get all canisters", async function () {
         let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
         canisters.sort();
-        expect(canisters.length).eq(2);
+        expect(canisters.length).eq(3);
         expect(canisters.map(l => l.canister_id.toText()).find(l => l === canister.toText())).not.eq(undefined);
         expect(canisters[0].initiator.toText()).eq(identity.getPrincipal().toText());
     });
@@ -141,7 +165,7 @@ describe("VM Test", () => {
     it("Get all canisters after upgrade", async function () {
         DFX.UPGRADE_FORCE("vault_manager")
         let canisters: [VaultCanister] = await getCanisters(canister_id, identity);
-        expect(canisters.length).eq(2);
+        expect(canisters.length).eq(3);
         let actor = await getActor(canister_id, identity, idlFactory);
         let origins = await actor.get_trusted_origins() as Array<String>
         expect(origins.length).eq(3);
