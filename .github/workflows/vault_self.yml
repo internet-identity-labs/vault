@@ -148,6 +148,26 @@ jobs:
               esac
 
               ;;
+            
+            stage)
+
+              case ${CANISTER_NAME} in
+                vault_manager)
+                  INSTALL_ARGUMENTS=$(cat <<EOF
+          (record { origins = vec {"http://localhost:4200"; "https://xu3mz-biaaa-aaaap-qb6ha-cai.icp0.io";}; initial_cycles_balance = 250_000_000_000 : nat; icp_price = 100_000_000 : nat64; repo_canister_id = "u3pfr-dqaaa-aaaag-aciqa-cai"; destination_address = "4918c656ea851d74504c84fe61581ef7cc00b282d44aa61b4c2c079ed189314e" } )
+          EOF
+          )
+                ;;
+
+                vault_repo)
+                  INSTALL_ARGUMENTS=$(cat <<EOF
+          (record { controllers = vec {}; origins = vec {}; })
+          EOF
+          )
+                ;;
+              esac
+
+              ;;
           esac
 
           ci_echo_debug "Populating env variables" >&2
