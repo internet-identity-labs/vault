@@ -87,7 +87,7 @@ describe("VM Test", () => {
 
         let state = await vaultManager.getState()
         expect(state.members.length).eq(1);
-        let address = principalToAddress(identity.getPrincipal() as any)
+        let address = principalToAddress(otherUserPrincipal as any)
         expect(state.members[0].userId).eq(address);
 
         let controllers = await vaultManager.getControllers();
