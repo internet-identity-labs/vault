@@ -126,9 +126,9 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
         }
     };
 
-    install_wallet(&create_result.canister_id).await?;
-
     let initiator = owner.unwrap_or_else(|| caller());
+    install_wallet(&create_result.canister_id, &initiator).await?;
+
     CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
         canister_id: create_result.canister_id.clone(),
         initiator,
@@ -160,26 +160,25 @@ pub async fn update_settings(args: UpdateSettingsArg) -> CallResult<((), )> {
     return update_settings_result;
 }
 
-async fn install_wallet(canister_id: &Principal) -> Result<(), String> {
+async fn install_wallet(canister_id: &Principal, initiator: &Principal) -> Result<(), String> {
     #[derive(CandidType, Deserialize, Clone, Debug)]
     pub struct Conf {
         pub origins: Vec<String>,
         pub repo_canister: String,
     }
 
-    let origins = CONF.with(|c| c.borrow().clone().origins);
+    let conf_manager = CONF.with(|c| c.borrow().clone());
     let conf = Conf {
-        origins,
-        repo_canister: "7jlkn-paaaa-aaaap-abvpa-cai".to_string(),
+        origins: conf_manager.origins,
+        repo_canister: conf_manager.repo_canister_id,
     };
-    let principal = caller();
 
-    let arg = match candid::encode_args((principal, conf)) {
+    let arg = match candid::encode_args((initiator, conf)) {
         Ok(a) => { a }
         Err(msg) => {
             return Err(format!(
                 "An error happened during an arg encoding: {}: {}",
-                principal.to_text(), msg
+                initiator.to_text(), msg
             ));
         }
     };
