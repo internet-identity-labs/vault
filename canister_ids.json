@@ -13,11 +13,11 @@
   "vault_manager": {
     "dev": "sgk26-7yaaa-aaaan-qaovq-cai",
     "stage": "rhu7u-iyaaa-aaaag-acipq-cai",
-    "prod": "z2cpg-maaaa-aaaal-adx2q-cai"
+    "ic": "z2cpg-maaaa-aaaal-adx2q-cai"
   },
   "vault_repo": {
     "dev": "7jlkn-paaaa-aaaap-abvpa-cai",
     "stage": "u3pfr-dqaaa-aaaag-aciqa-cai",
-    "prod": "xxb5z-nqaaa-aaaak-qdbzq-cai"
+    "ic": "xxb5z-nqaaa-aaaak-qdbzq-cai"
   }
 }
