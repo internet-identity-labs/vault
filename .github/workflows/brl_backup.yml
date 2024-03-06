@@ -8,6 +8,7 @@ on:
         type: choice
         options: 
           - dev
+          - stage
           - ic
       canister_name:
         description: 'Choose applicable canister'
@@ -82,12 +83,12 @@ jobs:
 
           ci_echo_debug "Getting dfx identity for network '${NETWORK_NAME}'" >&2
 
-          if [ "${NETWORK_NAME}" == 'dev' ]; then
+          if [[ "${NETWORK_NAME}" =~ ^(dev|stage)$ ]]; then
             ID_NAME="dev_admin"
             IDENTITY_PEM_NAME_VAR="DEV_ADMIN_KEY"
           elif [ "${NETWORK_NAME}" == 'ic' ]; then
             case ${CANISTER_NAME} in
-              vault)
+              vault_manager)
                 ID_NAME="prod_vault"
                 IDENTITY_PEM_NAME_VAR="PROD_VAULT_KEY"
                 ;;
