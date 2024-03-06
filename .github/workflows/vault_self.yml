@@ -73,11 +73,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /home/ubuntu/.cargo/registry/
-            /home/ubuntu/.cargo/cargo_target/
-            src/vault/target/
             target/
-          key: ${{ runner.os }}-cargo-vault
+          key: ${{ runner.os }}-cargo-${{ github.event.inputs.canister_name }}
  
       - name: Versions
         run: |
@@ -216,6 +213,9 @@ jobs:
           ci_echo_info "INSTALL_ARGUMENTS=${INSTALL_ARGUMENTS}" >&2
 
       - name: PRE-BUILD => Write identity.
+        env:
+          DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
+          PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
@@ -224,9 +224,6 @@ jobs:
           ci_echo_warn "Preparing encoded key..." >&2
           ci_echo_info "Decoding..." >&2
           echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
-        env:
-          DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
-          PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
 
       - name: PRE-BUILD => Write version file.
         if: ${{ github.event.inputs.canister_name == 'vault' }}
@@ -277,7 +274,10 @@ jobs:
           path: ${{ github.workspace }}/${{ env.CANISTER_WASM }}
 
       - name: DEPLOY => Upload WASM to the Vault Repo.
-        if: ${{ (github.event.inputs.canister_name == 'vault') && (github.event.inputs.network_name != 'ic')}}
+        if: ${{ github.event.inputs.canister_name == 'vault' }}
+        env:
+          DEV_IDENTITY_SEED: ${{secrets.DEV_IDENTITY_SEED}}
+          PROD_IDENTITY_SEED: ${{secrets.PROD_IDENTITY_SEED}}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
@@ -293,8 +293,13 @@ jobs:
           export DESCRIPTION="${ARTIFACT_DESCRIPTION}"
           export CANISTER_ID="${vault_canister_id}"
 
-          # TODO: Change this for production to the secrets.
-          export IDENTITY_SEED="87654321876543218765432187654321"
+          ci_echo_debug "Working with IDENTITY_SEED" >&2
+          if [[ "${NETWORK_NAME}" =~ ^(dev|stage)$ ]]; then
+            IDENTITY_SEED_NAME_VAR="DEV_IDENTITY_SEED"
+          elif [ "${NETWORK_NAME}" == 'ic' ]; then
+            IDENTITY_SEED_NAME_VAR="PROD_IDENTITY_SEED"
+          fi
+          export IDENTITY_SEED="${!IDENTITY_SEED_NAME_VAR}"
 
           ci_echo_info "WASM_FILE_PATH=${WASM_FILE_PATH}" >&2
           ci_echo_info "VERSION=${VERSION}" >&2
