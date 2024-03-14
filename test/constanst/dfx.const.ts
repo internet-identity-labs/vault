@@ -1,7 +1,7 @@
 import { call, execute } from "../util/call.util"
 
 export const DFX = {
-    STOP: () => execute(`dfx stop; kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk '{print $2}')`),
+    STOP: () => execute(`dfx stop; kill -9 $(lsof -i TCP:8080 | grep LISTEN | awk '{print $2}')`),
     REMOVE_DFX_FOLDER: () => execute(`rm -rf .dfx`),
     CREATE_TEST_PERSON: () => execute(`dfx identity new test`),
     USE_TEST_ADMIN: () => execute(`dfx identity use test_admin`),

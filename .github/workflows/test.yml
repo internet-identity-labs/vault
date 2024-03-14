@@ -33,7 +33,7 @@ jobs:
             /home/ubuntu/.cargo_target/
             target/
             src/vault/target/
-          key: ${{ runner.os }}-cargo-test
+          key: vault-cargo-test
 
       - name: Versions
         run: |
@@ -41,10 +41,58 @@ jobs:
           
           ci_versions
 
+      - name: Start NGROK
+        env:
+          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+        run: |
+            source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+            CI_DEBUG=true
+  
+            ci_echo_info "Install NGROK" >&2
+            curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | \
+              sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/ngrok.gpg && \
+              echo "deb [signed-by=/etc/apt/keyrings/ngrok.gpg] https://ngrok-agent.s3.amazonaws.com buster main" | \
+              sudo tee /etc/apt/sources.list.d/ngrok.list && \
+              sudo apt update && sudo apt install -y ngrok jq
+  
+            ci_echo_info "Login NGROK" >&2
+            ci_echo_debug "ngrok config add-authtoken *********" >&2
+            ngrok config add-authtoken ${NGROK_TOKEN}
+  
+            ci_echo_info "Stoping NGROK" >&2
+            ci_echo_debug "pkill 'ngrok' || true" >&2
+            pkill 'ngrok' || true
+
+            ci_echo_info "Starting NGROK" >&2
+            ci_echo_debug "ngrok http 8080 --log=stdout >/dev/null &" >&2
+            ngrok http 8080 --log=stdout >/dev/null &
+  
+            ci_echo_debug 'Waiting NGROK UP...' >&2
+            set +e
+            wait_until_up "http://127.0.0.1:4040" 12 5 '200|301|302'
+            set -e
+  
+            NGROK_PUBLIC_URL=$(curl -sS http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+  
+            ci_echo_warn "NGROK_PUBLIC_URL=${NGROK_PUBLIC_URL}" >&2
+            echo "NGROK_PUBLIC_URL=${NGROK_PUBLIC_URL}" >> $GITHUB_ENV
+
+
       - name: BE Integration Tests JS
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
           CI_DEBUG=true
 
+          ci_echo_info "Starting Tests" >&2
           ci_echo_debug "npm i && npm run test" >&2
           npm i && npm run test
+
+      - name: Stop NGROK
+        if: always()
+        run: |
+          source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
+          CI_DEBUG=true
+
+          ci_echo_info "Stoping NGROK" >&2
+          ci_echo_debug "pkill 'ngrok' || true" >&2
+          pkill 'ngrok' || true
