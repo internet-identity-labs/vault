@@ -1,11 +1,11 @@
 name: CRON Backup Vault Manager
 on:
   schedule:
-      # Runs "every hour at 10 minutes" (see https://crontab.guru)
-      - cron: '10 * * * *'
+    # Runs "every hour at 10 minutes" (see https://crontab.guru)
+    - cron: '10 */2 * * *'
 
 env:
-  NETWORK_NAME: 'dev'
+  NETWORK_NAME: 'ic'
   CANISTER_NAME: 'vault_manager'
   COMPRESS_BACKUP: 'true'
   CI_DEBUG: 'true'
@@ -38,7 +38,6 @@ jobs:
 
       - name: PRE-BACKUP => Populate env vars.
         run: |
-          dfx start --background --clean --host 0.0.0.0:8000 &
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
           ci_echo_debug "Getting values from dfx.json" >&2
@@ -48,12 +47,21 @@ jobs:
           fi
 
           ci_echo_debug "Getting dfx identity for network '${NETWORK_NAME}'" >&2
-          if [ "${NETWORK_NAME}" == 'ic' ];then
-            ID_NAME="prod_vault"
-            IDENTITY_PEM_NAME_VAR="PROD_VAULT_KEY"
-          elif [ "${NETWORK_NAME}" == 'dev' ]; then
+
+          if [[ "${NETWORK_NAME}" =~ ^(dev|stage)$ ]]; then
             ID_NAME="dev_admin"
             IDENTITY_PEM_NAME_VAR="DEV_ADMIN_KEY"
+          elif [ "${NETWORK_NAME}" == 'ic' ]; then
+            case ${CANISTER_NAME} in
+              vault_manager)
+                ID_NAME="prod_vault"
+                IDENTITY_PEM_NAME_VAR="PROD_VAULT_KEY"
+                ;;
+              *)
+                ci_echo_error "NOT IMPLEMENTED for canister '${CANISTER_NAME}'" >&2
+                exit 1
+                ;;
+            esac
           fi
           ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
 
