@@ -18,7 +18,7 @@ import {
 import {
     Approve,
     ApproveRequest,
-    Currency,
+    Currency, hasOwnProperty,
     Network,
     TransactionState,
     TransactionType,
@@ -110,7 +110,6 @@ describe("Transfer Transactions", () => {
         let expected = buildExpectedTransferTransaction(TransactionState.Rejected)
         expected.amount = 10n
         expected.threshold = undefined
-        // @ts-ignore
         expect(hasOwnProperty(tr.error, "CouldNotDefinePolicy")).eq(true)
         verifyTransferTransaction(expected, tr as TransferTransaction)
     });
