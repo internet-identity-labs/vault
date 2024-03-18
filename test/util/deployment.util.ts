@@ -1,7 +1,7 @@
 import {Actor, ActorMethod, HttpAgent, Identity} from "@dfinity/agent";
 import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {Dfx} from "../type/dfx";
-import {idlFactory as vaultIdl} from "../vault/sdk_prototype/idl";
+import {idlFactory as vaultIdl} from "../vault/sdk/idl/idl";
 import {TextEncoder} from "util";
 import {App} from "../constanst/app.enum";
 import {IDL} from "@dfinity/candid";

@@ -1,8 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -14,16 +12,20 @@ import {
     requestUpdatePolicyTransaction,
     verifyTransaction
 } from "./helper";
-import {Currency, Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
 import {
-    PolicyCreateTransaction,
-    PolicyRemoveTransaction,
-    PolicyUpdateTransaction,
-    WalletCreateTransaction
-} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
-import {hasOwnProperty} from "./sdk_prototype/helper";
-import {PolicyCreateTransactionRequest} from "./sdk_prototype/transaction_requests";
+    Approve,
+    Currency,
+    hasOwnProperty,
+    idlFactory,
+    Network,
+    TransactionState,
+    TransactionType,
+    VaultManager
+} from "./sdk";
+import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
+import {PolicyCreateTransaction, PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
+import {PolicyUpdateTransaction} from "./sdk/transaction/policy/policy_update";
+import {PolicyRemoveTransaction} from "./sdk/transaction/policy/policy_remove";
 
 require('./bigintextension.js');
 
@@ -44,8 +46,8 @@ describe("Policy Transactions", () => {
         canister_id = DFX.GET_CANISTER_ID("vault");
         admin_actor_1 = await getActor(canister_id, admin, idlFactory);
         member_actor_1 = await getActor(canister_id, member, idlFactory);
-        manager = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        await manager.resetToLocalEnv();
     });
 
     after(() => {

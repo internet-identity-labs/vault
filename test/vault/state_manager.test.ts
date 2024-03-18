@@ -1,11 +1,10 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {VaultManager} from "./sdk_prototype/vault_manager";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
-import {VaultRole} from "./sdk_prototype/enums";
+import {VaultManager, VaultRole} from "./sdk";
 
 require('./bigintextension.js');
 
@@ -19,8 +18,8 @@ describe("State Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        manager = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        await manager.resetToLocalEnv();
     });
 
     after(() => {

@@ -1,7 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {createCanister, getCanisters, getConfig} from "./sdk/ochestrator";
-import {VaultManager} from "../vault/sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {fromHexString, principalToAddress} from "ictool";
 import {call, execute} from "../util/call.util";
@@ -12,6 +11,7 @@ import {VaultWasm} from "../vault_repo/sdk/vr";
 import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {fail} from "assert";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
+import {VaultManager} from "../vault/sdk";
 
 describe("VM Test", () => {
     let canister;
@@ -60,8 +60,8 @@ describe("VM Test", () => {
 
     it("Create Vault from the VaultManagerCanister", async function () {
         canister = await createCanister(canister_id, identity, BigInt(1), []);
-        let vaultManager = new VaultManager()
-        await vaultManager.init(canister, identity, true)
+        let vaultManager = new VaultManager(canister, identity)
+        await vaultManager.resetToLocalEnv()
         let state = await vaultManager.getState()
         expect(state.members.length).eq(1);
         let address = principalToAddress(identity.getPrincipal() as any)
@@ -82,8 +82,8 @@ describe("VM Test", () => {
 
         const otherUserPrincipal = Ed25519KeyIdentity.generate().getPrincipal()
         canister = await createCanister(canister_id, identity, BigInt(3), [], [otherUserPrincipal]);
-        let vaultManager = new VaultManager()
-        await vaultManager.init(canister, identity, true)
+        let vaultManager = new VaultManager(canister, identity)
+        await vaultManager.resetToLocalEnv()
 
         let state = await vaultManager.getState()
         expect(state.members.length).eq(1);
@@ -143,8 +143,8 @@ describe("VM Test", () => {
 
         canister = await createCanister(canister_id, identity, BigInt(2), [{ Light: null }]);
 
-        let vaultManager = new VaultManager()
-        await vaultManager.init(canister, identity, true)
+        let vaultManager = new VaultManager(canister, identity)
+        await vaultManager.resetToLocalEnv()
         expect(await vaultManager.getVersion()).eq("0.0.2");
         let canisters = await getCanisters(canister_id, identity);
         expect(canisters.length).eq(3);

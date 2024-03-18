@@ -1,6 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {fromHexString, principalToAddress, principalToAddressBytes} from "ictool";
@@ -16,10 +15,19 @@ import {
     requestUpdateQuorumTransaction,
     verifyTransaction
 } from "./helper";
-import {Currency, Network, TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
-import {TransferQuorumTransaction, TransferTransaction, WalletCreateTransaction} from "./sdk_prototype/transactions";
-import {Approve, ApproveRequest} from "./sdk_prototype/approve";
-import {hasOwnProperty} from "./sdk_prototype/helper";
+import {
+    Approve,
+    ApproveRequest,
+    Currency,
+    Network,
+    TransactionState,
+    TransactionType,
+    VaultManager,
+    VaultRole
+} from "./sdk";
+import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
+import {TransferTransaction} from "./sdk/transaction/transfer/transfer";
+import {TransferQuorumTransaction} from "./sdk/transaction/transfer/transfer_quorum";
 
 require('./bigintextension.js');
 
@@ -37,10 +45,10 @@ describe("Transfer Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        manager = new VaultManager();
-        manager_member = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
-        await manager_member.init(canister_id, member_identity, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        manager_member = new VaultManager(canister_id, member_identity);
+        await manager.resetToLocalEnv();
+        await manager_member.resetToLocalEnv();
     });
 
     after(() => {

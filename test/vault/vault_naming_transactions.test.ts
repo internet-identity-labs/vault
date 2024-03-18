@@ -1,15 +1,14 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
-import {TransactionState, TransactionType} from "./sdk_prototype/enums";
-import {QuorumUpdateTransaction, Transaction, VaultUpdateNamingTransaction} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
+import {Approve, idlFactory, TransactionState, TransactionType, VaultManager} from "./sdk";
+import {Transaction} from "./sdk/transaction/transaction";
+import {VaultUpdateNamingTransaction} from "./sdk/transaction/config/vault_naming";
+import {QuorumUpdateTransaction} from "./sdk/transaction/config/quorum_update";
 
 require('./bigintextension.js');
 
@@ -26,8 +25,8 @@ describe("Vault Naming Transactions", () => {
         const admin = getIdentity("87654321876543218765432187654321");
         canister_id = DFX.GET_CANISTER_ID("vault");
         admin_actor_1 = await getActor(canister_id, admin, idlFactory);
-        manager = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        await manager.resetToLocalEnv();
     });
 
     after(() => {

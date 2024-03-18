@@ -1,10 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {idlFactory} from "./sdk_prototype/idl";
 import {ActorMethod} from "@dfinity/agent";
-import {
-    VaultManager,
-} from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
@@ -16,14 +12,12 @@ import {
     requestUpdateMemberRoleTransaction,
     verifyTransaction
 } from "./helper";
-import {TransactionState, TransactionType, VaultRole} from "./sdk_prototype/enums";
-import {
-    MemberCreateTransaction, MemberRemoveTransaction,
-    MemberUpdateNameTransaction,
-    MemberUpdateRoleTransaction,
-    Transaction
-} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
+import {Approve, idlFactory, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
+import {Transaction} from "./sdk/transaction/transaction";
+import {MemberCreateTransaction} from "./sdk/transaction/member/member_create";
+import {MemberUpdateNameTransaction} from "./sdk/transaction/member/member_update_name";
+import {MemberUpdateRoleTransaction} from "./sdk/transaction/member/member_update_role";
+import {MemberRemoveTransaction} from "./sdk/transaction/member/member_remove";
 
 require('./bigintextension.js');
 
@@ -43,8 +37,8 @@ describe("Member Transactions", () => {
         canister_id = DFX.GET_CANISTER_ID("vault");
         admin_actor_1 = await getActor(canister_id, admin_identity, idlFactory);
         member_actor_1 = await getActor(canister_id, member, idlFactory);
-        manager = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        await manager.resetToLocalEnv();
     });
 
     after(() => {
