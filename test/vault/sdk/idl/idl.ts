@@ -1,4 +1,4 @@
-export const idlFactory = ({ IDL }) => {
+export const idlFactory = ({ IDL } : any) => {
     const Conf = IDL.Record({
         'origins' : IDL.Vec(IDL.Text),
         'repo_canister' : IDL.Text,
@@ -335,7 +335,7 @@ export const idlFactory = ({ IDL }) => {
         ),
     });
 };
-export const init = ({ IDL }) => {
+export const init = ({ IDL } : any) => {
     const Conf = IDL.Record({
         'origins' : IDL.Vec(IDL.Text),
         'repo_canister' : IDL.Text,

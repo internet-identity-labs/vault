@@ -1,9 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory as vrIdl} from "./../vault_repo/sdk/vr_idl";
-import {
-    VaultManager,
-} from "./sdk_prototype/vault_manager";
 import {fromHexString, principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -17,9 +14,8 @@ import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {createCanister} from "../vault_manager/sdk/ochestrator";
-import {Network, TransactionState, TransactionType} from "./sdk_prototype/enums";
-import {VersionUpgradeTransaction} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
+import {Approve, Network, TransactionState, TransactionType, VaultManager} from "./sdk";
+import {VersionUpgradeTransaction} from "./sdk/transaction/config/version_upgrade";
 
 require('./bigintextension.js');
 
@@ -56,8 +52,8 @@ describe("Upgrade Transactions", () => {
         console.log(execute(`./test/resource/vault_manager.sh`))
         vault_manager_canister = DFX.GET_CANISTER_ID("vault_manager");
         vault_canister_id = await createCanister(vault_manager_canister, admin, BigInt(1), []);
-        manager = new VaultManager()
-        await manager.init(vault_canister_id, admin, true)
+        manager = new VaultManager(vault_canister_id, admin)
+        await manager.resetToLocalEnv()
         await requestCreateWalletTransaction(manager, "walletName", Network.IC);
         await requestCreateWalletTransaction(manager, "walletName2", Network.IC);
         await manager.execute();

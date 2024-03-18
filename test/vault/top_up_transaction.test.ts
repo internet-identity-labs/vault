@@ -1,12 +1,10 @@
 import {getIdentity} from "../util/deployment.util";
-import {VaultManager} from "./sdk_prototype/vault_manager";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs, requestTopUpTransaction, verifyTransaction} from "./helper";
 import {sleep} from "../util/call.util";
-import {Currency, TransactionState, TransactionType} from "./sdk_prototype/enums";
-import {TopUpTransaction} from "./sdk_prototype/transactions";
-import {Approve} from "./sdk_prototype/approve";
+import {Approve, Currency, TransactionState, TransactionType, VaultManager} from "./sdk";
+import {TopUpTransaction} from "./sdk/transaction/transfer/top_up";
 
 require('./bigintextension.js');
 
@@ -18,8 +16,8 @@ describe.skip("TopUp Transactions", () => {
     let admin_identity = getIdentity("87654321876543218765432187654321")
     let manager: VaultManager;
     before(async () => {
-        manager = new VaultManager();
-        await manager.init(canisterId, admin_identity, false);
+        manager = new VaultManager(canisterId, admin_identity);
+        await manager.resetToLocalEnv();
     });
 
     it("Trs approved and transferred", async function () {

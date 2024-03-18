@@ -8,9 +8,7 @@ import {
     requestCreateMemberTransaction, requestCreateWalletTransaction,
     requestUpdateQuorumTransaction
 } from "./helper";
-import {VaultManager} from "./sdk_prototype/vault_manager";
-import {ApproveRequest} from "./sdk_prototype/approve";
-import {Network, TransactionState, VaultRole} from "./sdk_prototype/enums";
+import {ApproveRequest, Network, TransactionState, VaultManager, VaultRole} from "./sdk";
 
 require('./bigintextension.js');
 
@@ -30,14 +28,14 @@ describe("Approve Handler Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        manager1 = new VaultManager();
-        manager2 = new VaultManager();
-        manager3 = new VaultManager();
-        memberManager4 = new VaultManager();
-        await manager1.init(canister_id, admin_identity1, true);
-        await manager2.init(canister_id, admin_identity2, true);
-        await manager3.init(canister_id, admin_identity3, true);
-        await memberManager4.init(canister_id, member_identity4, true);
+        manager1 = new VaultManager(canister_id, admin_identity1);
+        manager2 = new VaultManager(canister_id, admin_identity2);
+        manager3 = new VaultManager(canister_id, admin_identity3);
+        memberManager4 = new VaultManager(canister_id, member_identity4);
+        await manager1.resetToLocalEnv();
+        await manager2.resetToLocalEnv();
+        await manager3.resetToLocalEnv();
+        await memberManager4.resetToLocalEnv();
         await requestCreateMemberTransaction(manager1, principalToAddress(admin_identity2.getPrincipal() as any), "a2", VaultRole.ADMIN);
         await requestCreateMemberTransaction(manager1, principalToAddress(admin_identity3.getPrincipal() as any), "a3", VaultRole.ADMIN);
         await requestCreateMemberTransaction(manager1, principalToAddress(member_identity4.getPrincipal() as any), "m3", VaultRole.MEMBER);

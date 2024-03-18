@@ -1,28 +1,24 @@
-import {
-    ControllersUpdateTransactionRequest,
-    MemberCreateTransactionRequest,
-    MemberRemoveTransactionRequest,
-    MemberUpdateNameTransactionRequest,
-    MemberUpdateRoleTransactionRequest,
-    PolicyCreateTransactionRequest,
-    PolicyRemoveTransactionRequest,
-    PolicyUpdateTransactionRequest,
-    PurgeTransactionRequest,
-    QuorumTransactionRequest,
-    TopUpTransactionRequest,
-    TransferQuorumTransactionRequest,
-    TransferTransactionRequest,
-    VaultNamingTransactionRequest,
-    VersionUpgradeTransactionRequest,
-    WalletCreateTransactionRequest,
-    WalletUpdateNameTransactionRequest
-} from "./sdk_prototype/transaction_requests";
-import {expect} from "chai";
-import {Transaction} from "./sdk_prototype/transactions";
-import {Currency, TransactionState} from "./sdk_prototype/enums";
-import {Approve} from "./sdk_prototype/approve";
-import {generateRandomString} from "./sdk_prototype/helper";
 import {Principal} from "@dfinity/principal";
+import {Transaction} from "./sdk/transaction/transaction";
+import {Approve, Currency, generateRandomString, TransactionState, VaultManager} from "./sdk";
+import {expect} from "chai";
+import {PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
+import {PolicyRemoveTransactionRequest} from "./sdk/transaction/policy/policy_remove";
+import {PolicyUpdateTransactionRequest} from "./sdk/transaction/policy/policy_update";
+import {MemberCreateTransactionRequest} from "./sdk/transaction/member/member_create";
+import {ControllersUpdateTransactionRequest} from "./sdk/transaction/config/controllers_update";
+import {MemberUpdateNameTransactionRequest} from "./sdk/transaction/member/member_update_name";
+import {MemberUpdateRoleTransactionRequest} from "./sdk/transaction/member/member_update_role";
+import {MemberRemoveTransactionRequest} from "./sdk/transaction/member/member_remove";
+import {QuorumTransactionRequest} from "./sdk/transaction/config/quorum_update";
+import {PurgeTransactionRequest} from "./sdk/transaction/config/purge";
+import {VaultNamingTransactionRequest} from "./sdk/transaction/config/vault_naming";
+import {WalletUpdateNameTransactionRequest} from "./sdk/transaction/wallet/wallet_update_name";
+import {WalletCreateTransactionRequest} from "./sdk/transaction/wallet/wallet_create";
+import {VersionUpgradeTransactionRequest} from "./sdk/transaction/config/version_upgrade";
+import {TransferTransactionRequest} from "./sdk/transaction/transfer/transfer";
+import {TransferQuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_quorum";
+import {TopUpTransactionRequest} from "./sdk/transaction/transfer/top_up";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
@@ -60,7 +56,7 @@ export async function requestUpdatePolicyTransaction(manager, membersTr, amountT
     return await manager.requestTransaction([transactionRequest])
 }
 
-export async function requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
+export async function requestCreateMemberTransaction(manager: VaultManager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
     let transactionRequest = new MemberCreateTransactionRequest(memberAddress, memberName, memberRole);
     return await manager.requestTransaction([transactionRequest])
 }

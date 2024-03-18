@@ -1,17 +1,13 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {VaultManager,} from "./sdk_prototype/vault_manager";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs} from "./helper";
-import {TransactionState, VaultRole} from "./sdk_prototype/enums";
-import {
-    MemberCreateTransactionRequest,
-    MemberRemoveTransactionRequest,
-    QuorumTransactionRequest
-} from "./sdk_prototype/transaction_requests";
-import {ApproveRequest} from "./sdk_prototype/approve";
+import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
+import {MemberCreateTransactionRequest} from "./sdk/transaction/member/member_create";
+import {QuorumTransactionRequest} from "./sdk/transaction/config/quorum_update";
+import {MemberRemoveTransactionRequest} from "./sdk/transaction/member/member_remove";
 
 require('./bigintextension.js');
 
@@ -29,10 +25,10 @@ describe("Batch Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        manager = new VaultManager();
-        manager2 = new VaultManager();
-        await manager.init(canister_id, admin_identity, true);
-        await manager2.init(canister_id, admin_identity2, true);
+        manager = new VaultManager(canister_id, admin_identity);
+        manager2 = new VaultManager(canister_id, admin_identity2);
+        await manager.resetToLocalEnv();
+        await manager2.resetToLocalEnv();
     });
 
     after(() => {
