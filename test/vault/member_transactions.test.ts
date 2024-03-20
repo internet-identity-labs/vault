@@ -12,7 +12,7 @@ import {
     requestUpdateMemberRoleTransaction,
     verifyTransaction
 } from "./helper";
-import {Approve, idlFactory, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
+import {Approve, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
 import {Transaction} from "./sdk/transaction/transaction";
 import {MemberCreateTransaction} from "./sdk/transaction/member/member_create";
 import {MemberUpdateNameTransaction} from "./sdk/transaction/member/member_update_name";
@@ -22,8 +22,6 @@ import {MemberRemoveTransaction} from "./sdk/transaction/member/member_remove";
 require('./bigintextension.js');
 
 describe("Member Transactions", () => {
-    let admin_actor_1: Record<string, ActorMethod>;
-    let member_actor_1: Record<string, ActorMethod>;
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
     let manager: VaultManager;
@@ -35,8 +33,6 @@ describe("Member Transactions", () => {
 
         const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin_identity, idlFactory);
-        member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager(canister_id, admin_identity);
         await manager.resetToLocalEnv();
     });

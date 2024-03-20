@@ -10,15 +10,13 @@ import {
     requestPurgeTransaction,
     requestUpdateQuorumTransaction
 } from "./helper";
-import {ApproveRequest, idlFactory, TransactionState, VaultManager, VaultRole} from "./sdk";
+import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
 import {PurgeTransaction} from "./sdk/transaction/config/purge";
 import {MemberCreateTransaction} from "./sdk/transaction/member/member_create";
 
 require('./bigintextension.js');
 
 describe("Purge Transactions", () => {
-    let admin_actor_1: Record<string, ActorMethod>;
-    let member_actor_1: Record<string, ActorMethod>;
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
     const member = getIdentity("87654321876543218765432187654320");
@@ -30,8 +28,6 @@ describe("Purge Transactions", () => {
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin_identity, idlFactory);
-        member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager(canister_id, admin_identity);
         manager2 = new VaultManager(canister_id, member);
         await manager.resetToLocalEnv();

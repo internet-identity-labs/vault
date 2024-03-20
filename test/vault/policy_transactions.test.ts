@@ -15,8 +15,6 @@ import {
 import {
     Approve,
     Currency,
-    hasOwnProperty,
-    idlFactory,
     Network,
     TransactionState,
     TransactionType,
@@ -26,12 +24,11 @@ import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
 import {PolicyCreateTransaction, PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
 import {PolicyUpdateTransaction} from "./sdk/transaction/policy/policy_update";
 import {PolicyRemoveTransaction} from "./sdk/transaction/policy/policy_remove";
+import {hasOwnProperty} from "./sdk/util/helper";
 
 require('./bigintextension.js');
 
 describe("Policy Transactions", () => {
-    let admin_actor_1: Record<string, ActorMethod>;
-    let member_actor_1: Record<string, ActorMethod>;
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
     let manager: VaultManager;
@@ -44,8 +41,6 @@ describe("Policy Transactions", () => {
         console.log(admin.getPrincipal().toText())
         const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin, idlFactory);
-        member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager(canister_id, admin_identity);
         await manager.resetToLocalEnv();
     });

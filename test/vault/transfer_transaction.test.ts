@@ -18,7 +18,7 @@ import {
 import {
     Approve,
     ApproveRequest,
-    Currency, hasOwnProperty,
+    Currency,
     Network,
     TransactionState,
     TransactionType,
@@ -28,6 +28,7 @@ import {
 import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
 import {TransferTransaction} from "./sdk/transaction/transfer/transfer";
 import {TransferQuorumTransaction} from "./sdk/transaction/transfer/transfer_quorum";
+import {hasOwnProperty} from "./sdk/util/helper";
 
 require('./bigintextension.js');
 

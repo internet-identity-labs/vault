@@ -9,15 +9,13 @@ import {
     requestCreateMemberTransaction,
     requestUpdateQuorumTransaction, verifyTransaction
 } from "./helper";
-import {Approve, idlFactory, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
+import {Approve, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
 import {Transaction} from "./sdk/transaction/transaction";
 import {QuorumUpdateTransaction} from "./sdk/transaction/config/quorum_update";
 
 require('./bigintextension.js');
 
 describe("Quorum Transactions", () => {
-    let admin_actor_1: Record<string, ActorMethod>;
-    let member_actor_1: Record<string, ActorMethod>;
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
     let manager: VaultManager;
@@ -26,11 +24,7 @@ describe("Quorum Transactions", () => {
         DFX.USE_TEST_ADMIN();
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
-        const admin = getIdentity("87654321876543218765432187654321");
-        const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin, idlFactory);
-        member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager(canister_id, admin_identity);
         await manager.resetToLocalEnv();
     });

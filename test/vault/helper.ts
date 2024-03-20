@@ -1,6 +1,6 @@
 import {Principal} from "@dfinity/principal";
 import {Transaction} from "./sdk/transaction/transaction";
-import {Approve, Currency, generateRandomString, TransactionState, VaultManager} from "./sdk";
+import {Approve, Currency, TransactionState, VaultManager} from "./sdk";
 import {expect} from "chai";
 import {PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
 import {PolicyRemoveTransactionRequest} from "./sdk/transaction/policy/policy_remove";
@@ -19,6 +19,7 @@ import {VersionUpgradeTransactionRequest} from "./sdk/transaction/config/version
 import {TransferTransactionRequest} from "./sdk/transaction/transfer/transfer";
 import {TransferQuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_quorum";
 import {TopUpTransactionRequest} from "./sdk/transaction/transfer/top_up";
+import {generateRandomString} from "./sdk/util/helper";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
