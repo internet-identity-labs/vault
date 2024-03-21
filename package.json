@@ -18,10 +18,10 @@
     "printWidth": 120
   },
   "devDependencies": {
-    "@dfinity/agent": "0.20.2",
-    "@dfinity/candid": "0.20.2",
-    "@dfinity/identity": "0.20.2",
-    "@dfinity/principal": "0.20.2",
+    "@dfinity/agent": "1.0.1",
+    "@dfinity/candid": "1.0.1",
+    "@dfinity/identity": "1.0.1",
+    "@dfinity/principal": "1.0.1",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.23",
