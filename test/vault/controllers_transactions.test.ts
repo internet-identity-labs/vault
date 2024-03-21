@@ -13,7 +13,7 @@ import {
 import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {fail} from "assert";
 import {Principal} from "@dfinity/principal";
-import {ApproveRequest, idlFactory, TransactionState, VaultManager, VaultRole} from "./sdk";
+import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
 import {ControllersUpdateTransaction} from "./sdk/transaction/config/controllers_update";
 
 require('./bigintextension.js');
@@ -31,8 +31,6 @@ describe("Controller Transactions", () => {
         DFX.USE_TEST_ADMIN();
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
-        admin_actor_1 = await getActor(canister_id, admin_identity, idlFactory);
-        member_actor_1 = await getActor(canister_id, member, idlFactory);
         manager = new VaultManager(canister_id, admin_identity);
         manager2 = new VaultManager(canister_id, member);
         await manager.resetToLocalEnv();

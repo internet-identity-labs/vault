@@ -6,6 +6,7 @@ import {
 } from "../../idl/service_vault";
 import {TransactionMapperAbstract} from "../transaction_mapper";
 import {TransactionRequest} from "../transaction_request";
+import {RequestMapperAbstract} from "../request_mapper";
 
 
 export interface PolicyUpdateTransaction extends Transaction {
@@ -28,17 +29,6 @@ export class PolicyUpdateTransactionRequest implements TransactionRequest {
         this.batch_uid = batch_uid
     }
 
-    toCandid(): TransactionRequestCandid {
-        return {
-            PolicyUpdateTransactionRequestV: {
-                uid: this.uid,
-                member_threshold: this.member_threshold,
-                amount_threshold: this.amount_threshold,
-                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
-
-            }
-        }
-    }
 }
 
 
@@ -60,6 +50,24 @@ export class PolicyUpdateTransactionMapper extends TransactionMapperAbstract<Tra
         return TransactionType.PolicyUpdate;
     }
 
+}
+
+export class PolicyUpdateRequestMapper extends RequestMapperAbstract{
+    toCandid(request: PolicyUpdateTransactionRequest): TransactionRequestCandid {
+        return {
+            PolicyUpdateTransactionRequestV: {
+                uid: request.uid,
+                member_threshold: request.member_threshold,
+                amount_threshold: request.amount_threshold,
+                batch_uid: request.batch_uid !== undefined ? [request.batch_uid] : []
+
+            }
+        }
+    }
+
+    getMappedRequestType(): string {
+        return "PolicyUpdateTransactionRequest";
+    }
 }
 
 

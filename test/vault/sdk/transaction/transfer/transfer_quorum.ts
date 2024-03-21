@@ -6,6 +6,7 @@ import {
 } from "../../idl/service_vault";
 import {TransactionMapperAbstract} from "../transaction_mapper";
 import {TransactionRequest} from "../transaction_request";
+import {RequestMapperAbstract} from "../request_mapper";
 
 
 export interface TransferQuorumTransaction extends Transaction {
@@ -23,25 +24,14 @@ export class TransferQuorumTransactionRequest implements TransactionRequest {
     amount: bigint;
     memo: string | undefined;
 
-    constructor(currency: Currency, address: string, wallet: string, amount: bigint) {
+    constructor(currency: Currency, address: string, wallet: string, amount: bigint, memo?: string) {
         this.currency = currency
         this.address = address
         this.wallet = wallet
         this.amount = amount
+        this.memo = memo
     }
 
-    toCandid(): TransactionRequestCandid {
-        return {
-            TransferQuorumTransactionRequestV: {
-                //TODO
-                currency: {'ICP': null},
-                address: this.address,
-                wallet: this.wallet,
-                amount: this.amount,
-                memo: this.memo !== undefined ? [this.memo] : []
-            }
-        }
-    }
 }
 
 export class TransferQuorumTransactionMapper extends TransactionMapperAbstract<TransactionCandid, TransferQuorumTransaction> {
@@ -64,6 +54,25 @@ export class TransferQuorumTransactionMapper extends TransactionMapperAbstract<T
         return TransactionType.TransferQuorum;
     }
 
+}
+
+export class TransferQuorumRequestMapper extends RequestMapperAbstract {
+    toCandid(request: TransferQuorumTransactionRequest): TransactionRequestCandid {
+        return {
+            TransferQuorumTransactionRequestV: {
+                //TODO
+                currency: {'ICP': null},
+                address: request.address,
+                wallet: request.wallet,
+                amount: request.amount,
+                memo: request.memo !== undefined ? [request.memo] : []
+            }
+        }
+    }
+
+    getMappedRequestType(): string {
+        return "TransferQuorumTransactionRequest";
+    }
 }
 
 

@@ -7,6 +7,7 @@ import {
 import {TransactionMapperAbstract} from "../transaction_mapper";
 import {TransactionRequest} from "../transaction_request";
 import {candidToRole, roleToCandid} from "../../util/helper";
+import {RequestMapperAbstract} from "../request_mapper";
 
 
 export interface MemberUpdateRoleTransaction extends Transaction {
@@ -23,15 +24,6 @@ export class MemberUpdateRoleTransactionRequest implements TransactionRequest {
         this.member_id = member_id
         this.role = role
         this.batch_uid = batch_uid
-    }
-
-    toCandid(): TransactionRequestCandid {
-        return {
-            MemberUpdateRoleTransactionRequestV: {
-                member_id: this.member_id, role: roleToCandid(this.role),
-                batch_uid: this.batch_uid !== undefined ? [this.batch_uid] : []
-            }
-        }
     }
 }
 
@@ -51,6 +43,21 @@ export class MemberUpdateRoleTransactionMapper extends TransactionMapperAbstract
 
     getType(): TransactionType {
         return TransactionType.MemberUpdateRole;
+    }
+}
+
+export class MemberUpdateRoleRequestMapper extends RequestMapperAbstract {
+    toCandid(request: MemberUpdateRoleTransactionRequest): TransactionRequestCandid {
+        return {
+            MemberUpdateRoleTransactionRequestV: {
+                member_id: request.member_id, role: roleToCandid(request.role),
+                batch_uid: request.batch_uid !== undefined ? [request.batch_uid] : []
+            }
+        }
+    }
+
+    getMappedRequestType(): string {
+        return "MemberUpdateRoleTransactionRequest";
     }
 }
 

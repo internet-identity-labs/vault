@@ -6,6 +6,7 @@ import {
 } from "../../idl/service_vault";
 import {TransactionMapperAbstract} from "../transaction_mapper";
 import {TransactionRequest} from "../transaction_request";
+import {RequestMapperAbstract} from "../request_mapper";
 
 
 export interface VersionUpgradeTransaction extends Transaction {
@@ -19,14 +20,6 @@ export class VersionUpgradeTransactionRequest implements TransactionRequest {
 
     constructor(version: string) {
         this.version = version
-    }
-
-    toCandid(): TransactionRequestCandid {
-        return {
-            VersionUpgradeTransactionRequestV: {
-                version: this.version,
-            }
-        }
     }
 }
 
@@ -44,9 +37,22 @@ export class VersionUpgradeTransactionMapper extends TransactionMapperAbstract<T
     }
 
     getType(): TransactionType {
-        return TransactionType.QuorumUpdate;
+        return TransactionType.VersionUpgrade;
     }
 
+}
+
+export class VersionUpgradeRequestMapper extends RequestMapperAbstract {
+    toCandid(request: VersionUpgradeTransactionRequest): TransactionRequestCandid {
+        return {
+            VersionUpgradeTransactionRequestV: {
+                version: request.version,
+            }
+        }
+    }
+    getMappedRequestType(): string {
+        return "VersionUpgradeTransactionRequest";
+    }
 }
 
 
