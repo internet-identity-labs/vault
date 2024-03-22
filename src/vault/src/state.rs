@@ -1,8 +1,9 @@
 
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use crate::enums::TransactionState::Executed;
+use crate::get_state;
 use crate::transaction::member::members::Member;
 use crate::transaction::policy::policy::Policy;
 use crate::transaction::vault::quorum::Quorum;
@@ -12,6 +13,7 @@ use crate::transaction::wallet::wallet::Wallet;
 
 thread_local! {
     pub static STATE: RefCell<VaultState> = RefCell::new(VaultState::default());
+    pub static ICRC1: RefCell<Vec<Principal>> = RefCell::new(Default::default());
 }
 
 
@@ -22,7 +24,8 @@ pub struct VaultState {
     pub members: Vec<Member>,
     pub policies: Vec<Policy>,
     pub name: Option<String>,
-    pub description: Option<String>
+    pub description: Option<String>,
+    pub icrc1_canisters: Vec<Principal>
 }
 
 impl VaultState {
@@ -33,7 +36,8 @@ impl VaultState {
             members: vec![],
             policies: vec![],
             name: None,
-            description: None
+            description: None,
+            icrc1_canisters: vec![]
         }
     }
 }
@@ -47,10 +51,10 @@ pub fn restore_state(state: VaultState) {
     STATE.with(|st| st.replace(state));
 }
 
-
 pub async fn get_vault_state(tr_id: Option<u64>) -> VaultState {
     let transactions = get_all_transactions();
-    define_state(transactions, tr_id).await
+    let state = define_state(transactions, tr_id).await;
+    state
 }
 
 pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Option<u64>) -> VaultState {
@@ -74,5 +78,18 @@ pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Optio
     while let Some(mut trs) = sorted_trs.pop() {
         state = trs.execute(state).await;
     }
+    state.icrc1_canisters = get_icrc1_canisters();
     state
+}
+
+pub async fn save_icrc1_canister(canisters: Vec<Principal>) -> VaultState {
+    ICRC1.with(|c| {
+        c.borrow_mut().clear();
+        c.borrow_mut().extend(canisters);
+    });
+    get_state(None).await
+}
+
+pub fn get_icrc1_canisters() -> Vec<Principal> {
+    ICRC1.with(|c| c.borrow().clone())
 }

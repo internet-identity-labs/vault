@@ -318,6 +318,7 @@ type VaultState = record {
     wallets : vec Wallet;
     quorum : Quorum;
     policies : vec Policy;
+    icrc1_canisters : vec principal;
 };
 
 type VersionUpgradeTransaction = record {
@@ -376,4 +377,5 @@ type WalletUpdateNameTransactionRequest = record {
         certificate: vec nat8;
         witness: vec nat8;
     }) query;
+    store_icrc1_canisters: (vec principal) -> (VaultState);
 }

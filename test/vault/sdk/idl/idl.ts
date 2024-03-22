@@ -1,4 +1,4 @@
-export const idlFactory = ({ IDL } : any) => {
+export const idlFactory = ({ IDL }) => {
     const Conf = IDL.Record({
         'origins' : IDL.Vec(IDL.Text),
         'repo_canister' : IDL.Text,
@@ -17,10 +17,10 @@ export const idlFactory = ({ IDL } : any) => {
     });
     const VaultError = IDL.Variant({
         'ControllersUpdateError' : IDL.Record({ 'message' : IDL.Text }),
-        'QuorumNotReachable' : IDL.Null,
         'WalletNotExists' : IDL.Null,
         'CouldNotDefinePolicy' : IDL.Null,
         'ThresholdAlreadyExists' : IDL.Null,
+        'QuorumNotReachable' : IDL.Null,
         'CanisterReject' : IDL.Record({ 'message' : IDL.Text }),
         'MemberNotExists' : IDL.Null,
         'MemberAlreadyExists' : IDL.Null,
@@ -197,6 +197,7 @@ export const idlFactory = ({ IDL } : any) => {
         'members' : IDL.Vec(Member),
         'name' : IDL.Opt(IDL.Text),
         'description' : IDL.Opt(IDL.Text),
+        'icrc1_canisters' : IDL.Vec(IDL.Principal),
         'wallets' : IDL.Vec(Wallet),
         'quorum' : Quorum,
         'policies' : IDL.Vec(Policy),
@@ -333,9 +334,14 @@ export const idlFactory = ({ IDL } : any) => {
             [IDL.Vec(TransactionCandid)],
             [],
         ),
+        'store_icrc1_canisters' : IDL.Func(
+            [IDL.Vec(IDL.Principal)],
+            [VaultState],
+            [],
+        ),
     });
 };
-export const init = ({ IDL } : any) => {
+export const init = ({ IDL }) => {
     const Conf = IDL.Record({
         'origins' : IDL.Vec(IDL.Text),
         'repo_canister' : IDL.Text,

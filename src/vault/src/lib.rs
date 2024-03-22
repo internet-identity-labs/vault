@@ -4,16 +4,19 @@ extern crate maplit;
 use std::cell::RefCell;
 use std::string::ToString;
 
-use candid::{export_service, CandidType, Principal};
+use candid::{CandidType, export_service, Principal};
 use ic_cdk::{call, id};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use ic_cdk::api::{time};
+use ic_cdk::api::time;
 use ic_cdk_macros::*;
+use serde::Deserialize;
+
+use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
 
 use crate::config::{Conf, CONF};
 use crate::enums::{TransactionState, VaultRole};
-use crate::state::{get_vault_state, VaultState};
+use crate::state::{get_vault_state, save_icrc1_canister, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
 use crate::transaction::transaction::TransactionCandid;
@@ -23,9 +26,6 @@ use crate::transaction::transaction_service::{execute_approved_transactions, get
 use crate::util::{to_address, to_array};
 use crate::version_const::VERSION;
 
-use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
-
-use serde::{Deserialize};
 mod util;
 mod enums;
 mod security_service;
@@ -168,6 +168,10 @@ async fn get_controllers() -> Vec<Principal> {
     res.unwrap().0.settings.controllers
 }
 
+#[update]
+async fn store_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
+    save_icrc1_canister(canister_id).await
+}
 
 #[query]
 async fn get_trusted_origins_certified() -> CertifiedResponse {
