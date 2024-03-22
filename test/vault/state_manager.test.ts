@@ -5,8 +5,11 @@ import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
 import {VaultManager, VaultRole} from "./sdk";
+import {Principal} from "@dfinity/principal";
 
 require('./bigintextension.js');
+
+const vaultInitString = "vault --argument '(principal \"3ekng-5nqql-esu4u-64sla-pcm5o-hjatn-hwjo7-vk7ya-ianug-zqqyy-iae\", record { origins = vec {}; repo_canister = \"7jlkn-paaaa-aaaap-abvpa-cai\" })'"
 
 describe("State Transactions", () => {
     let canister_id;
@@ -73,6 +76,14 @@ describe("State Transactions", () => {
         expect(state2trs.members.length).eq(8)
     });
 
+    it( "ICRC1" , async function () {
+        let ictc1 = [Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id)]
+        let state = await manager.addICRC1Canisters(ictc1)
+        expect(state.icrc1_canisters.length).eq(2)
+        DFX.UPGRADE_FORCE(vaultInitString)
+        state = await manager.getState()
+        expect(state.icrc1_canisters.length).eq(2)
+    });
 
 })
 

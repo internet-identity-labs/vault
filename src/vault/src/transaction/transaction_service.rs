@@ -1,14 +1,15 @@
 use std::cell::RefCell;
 
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
 use nfid_certified::update_trusted_origins;
 use crate::config::{Conf, CONF};
+use crate::state::{ICRC1};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Approved, Rejected};
-use crate::state::{define_state, get_current_state, get_vault_state, restore_state};
+use crate::state::{define_state, get_current_state, get_icrc1_canisters, get_vault_state, restore_state};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {
@@ -150,6 +151,7 @@ pub fn get_id() -> u64 {
 struct Memory {
     transactions: Vec<TransactionCandid>,
     config: Conf,
+    icrc1_canisters: Vec<Principal>,
 }
 
 
@@ -164,9 +166,11 @@ pub fn stable_save() {
         let a = conf.borrow();
         a.clone()
     });
+    let icrc1_canisters = get_icrc1_canisters();
     let mem = Memory {
         config: conf,
         transactions: trs,
+        icrc1_canisters,
     };
     storage::stable_save((mem, )).unwrap();
 }
@@ -183,6 +187,11 @@ pub async fn stable_restore() {
         .collect();
     trs.sort_by(|a, b| -> std::cmp::Ordering {
         a.get_id().cmp(&b.get_id())
+    });
+    let icrc1_canisters = mo.icrc1_canisters.clone();
+    ICRC1.with(|icrc1| {
+        icrc1.borrow_mut();
+        icrc1.replace(icrc1_canisters);
     });
     let state = define_state(trs.clone(), None).await;
     restore_state(state);
