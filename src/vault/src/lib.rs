@@ -16,6 +16,7 @@ use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted
 
 use crate::config::{Conf, CONF};
 use crate::enums::{TransactionState, VaultRole};
+use crate::security_service::verify_caller;
 use crate::state::{get_vault_state, save_icrc1_canister, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
@@ -170,6 +171,7 @@ async fn get_controllers() -> Vec<Principal> {
 
 #[update]
 async fn store_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
+    verify_caller([VaultRole::Admin, VaultRole::Member].to_vec());
     save_icrc1_canister(canister_id).await
 }
 
