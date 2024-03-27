@@ -103,6 +103,7 @@ impl ITransaction for ControllersUpdateTransaction {
                 compute_allocation: None,
                 freezing_threshold: None,
                 memory_allocation: None,
+                reserved_cycles_limit: None,
             },
         }).await;
         match result {

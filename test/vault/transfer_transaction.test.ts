@@ -9,6 +9,7 @@ import {
     requestCreateMemberTransaction,
     requestCreatePolicyTransaction,
     requestCreateWalletTransaction,
+    requestICRC1TransferTransaction,
     requestPurgeTransaction,
     requestQuorumTransferTransaction,
     requestTransferTransaction,
@@ -23,7 +24,8 @@ import {
     TransactionState,
     TransactionType,
     VaultManager,
-    VaultRole
+    VaultRole,
+    WalletCreateTransactionRequest
 } from "./sdk";
 import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
 import {TransferTransaction} from "./sdk/transaction/transfer/transfer";
@@ -31,7 +33,8 @@ import {TransferQuorumTransaction} from "./sdk/transaction/transfer/transfer_quo
 import {hasOwnProperty} from "./sdk/util/helper";
 
 require('./bigintextension.js');
-
+const DEFAULT_SUB_ACCOUNT =
+    "0000000000000000000000000000000000000000000000000000000000000000"
 describe("Transfer Transactions", () => {
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
@@ -163,11 +166,12 @@ describe("Transfer Transactions", () => {
         expect(tr.state).eq(TransactionState.Pending)
     });
 
+    let walletUId4
     it("Request quorum policy transfer transaction", async function () {
         await requestPurgeTransaction(manager)
         await manager.execute()
         let createWallet = await requestCreateWalletTransaction(manager, "testWallet5", Network.IC) as Array<WalletCreateTransaction>
-        let walletUId4 = createWallet[0].uid
+        walletUId4 = createWallet[0].uid
         await manager.execute()
         let trRequestResponse = await requestQuorumTransferTransaction(manager, address, walletUId4, 100)
         await manager.execute()
@@ -176,6 +180,46 @@ describe("Transfer Transactions", () => {
         expect(tr.threshold).eq(1)
         // @ts-ignore
         expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 0 } }")
+    });
+
+    it("Request quorum ICRC1 transfer transaction Rejected", async function () {
+        await requestPurgeTransaction(manager)
+        await manager.execute()
+        let trRequestResponse = await requestICRC1TransferTransaction(manager,
+            Principal.fromText("sculj-2sjuf-dxqlm-dcv5y-hin5x-zfyvr-tzngf-bt5b5-dwhcc-zbsqf-rae"),
+            undefined,
+            Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai"),
+            walletUId4,
+            100n,
+            "memo")
+        await manager.execute()
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
+        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.threshold).eq(1)
+        // @ts-ignore
+        expect(tr.error.CanisterReject.message).eq("the debit account doesn't have enough funds to complete the transaction, current balance: 0")
+    });
+
+    it("Request quorum ICRC1 transfer transaction Executed + default wallet", async function () {
+        await requestPurgeTransaction(manager)
+        await manager.execute()
+        await manager.execute()
+        let memberR = new WalletCreateTransactionRequest(DEFAULT_SUB_ACCOUNT, "defaultWallet", Network.IC);
+        let walBytes = principalToAddressBytes(Principal.fromText(canister_id) as any, fromHexString(DEFAULT_SUB_ACCOUNT))
+        await console.log(DFX.LEDGER_FILL_BALANCE(walBytes.toString().replaceAll(',', ';')))
+        await manager.requestTransaction([memberR])
+        let trRequestResponse = await requestICRC1TransferTransaction(manager,
+            Principal.fromText("sculj-2sjuf-dxqlm-dcv5y-hin5x-zfyvr-tzngf-bt5b5-dwhcc-zbsqf-rae"),
+            undefined,
+            Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai"),
+            DEFAULT_SUB_ACCOUNT,
+            100n,
+            "memo")
+        await manager.execute()
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
+        expect(tr.state).eq(TransactionState.Executed)
+        expect(tr.threshold).eq(1)
+        expect(tr.blockIndex).eq(5n)
     });
 
     it("Trs blocked because of vault trs", async function () {

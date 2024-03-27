@@ -8,15 +8,15 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-candid = "0.9.9"
+candid = "0.10.3"
 
 [dependencies]
 ic-kit = "0.4.8"
 bytemuck = "1.12.3"
-candid = "0.9.9"
-ic-cdk = "0.11.2"
+candid = "0.10.3"
+ic-cdk = "0.12.1"
 ic-cdk-macros = "0.8.1"
-ic-ledger-types = "0.8.0"
+ic-ledger-types = "0.9.0"
 serde = "1"
 byteorder = "1.4.3"
 ic-certified-map = "0.4.0"
