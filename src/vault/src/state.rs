@@ -84,7 +84,6 @@ pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Optio
 
 pub async fn save_icrc1_canister(canisters: Vec<Principal>) -> VaultState {
     ICRC1.with(|c| {
-        c.borrow_mut().clear();
         c.borrow_mut().extend(canisters);
     });
     get_state(None).await
