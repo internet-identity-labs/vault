@@ -222,8 +222,8 @@ type TransactionRequest = variant {
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
-    TransferQuorumTransactionRequestV : TransferTransactionRequest;
     TransferTransactionRequestV : TransferTransactionRequest;
+    TransferQuorumTransactionRequestV : TransferQuorumTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
@@ -240,6 +240,26 @@ type TransactionState = variant {
     Purged;
     Pending;
 };
+
+type TransferTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
+};
+
+type TransferQuorumTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
 
 type TransferICRC1QuorumTransaction = record {
     to_principal : principal;
@@ -260,23 +280,12 @@ type TransferICRC1QuorumTransactionRequest = record {
     amount : nat64;
 };
 
-type TransferQuorumTransaction = record {
-    block_index : opt nat64;
+type TransferQuorumTransactionRequest = record {
+    memo : opt text;
     currency : Currency;
     address : text;
     wallet : text;
-    common : BasicTransactionFields;
     amount : nat64;
-};
-
-type TransferTransaction = record {
-    block_index : opt nat64;
-    currency : Currency;
-    address : text;
-    wallet : text;
-    common : BasicTransactionFields;
-    amount : nat64;
-    policy : opt text;
 };
 
 type TransferTransactionRequest = record {

@@ -1,5 +1,6 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
+import type { IDL } from '@dfinity/candid';
 
 export interface Approve {
     'status' : TransactionState,
@@ -191,7 +192,7 @@ export type TransactionRequest = {
     { 'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest } |
     { 'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest } |
     { 'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest } |
-    { 'TransferQuorumTransactionRequestV' : TransferTransactionRequest } |
+    { 'TransferQuorumTransactionRequestV' : TransferQuorumTransactionRequest } |
     { 'TransferTransactionRequestV' : TransferTransactionRequest } |
     {
         'MemberUpdateRoleTransactionRequestV' : MemberUpdateRoleTransactionRequest
@@ -211,7 +212,7 @@ export type TransactionState = { 'Blocked' : null } |
     { 'Pending' : null };
 export interface TransferICRC1QuorumTransaction {
     'to_principal' : Principal,
-    'block_index' : [] | [number],
+    'block_index' : [] | [bigint],
     'to_subaccount' : [] | [Uint8Array | number[]],
     'ledger_id' : Principal,
     'wallet' : string,
@@ -232,6 +233,13 @@ export interface TransferQuorumTransaction {
     'address' : string,
     'wallet' : string,
     'common' : BasicTransactionFields,
+    'amount' : bigint,
+}
+export interface TransferQuorumTransactionRequest {
+    'memo' : [] | [string],
+    'currency' : Currency,
+    'address' : string,
+    'wallet' : string,
     'amount' : bigint,
 }
 export interface TransferTransaction {
@@ -342,3 +350,5 @@ export interface _SERVICE {
     >,
     'store_icrc1_canisters' : ActorMethod<[Array<Principal>], VaultState>,
 }
+export declare const idlFactory: IDL.InterfaceFactory;
+export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
