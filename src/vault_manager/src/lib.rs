@@ -95,6 +95,7 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
         compute_allocation: None,
         memory_allocation: None,
         freezing_threshold: None,
+        reserved_cycles_limit: None,
     };
 
     let args = CreateCanisterArgs {
@@ -143,6 +144,7 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
             compute_allocation: None,
             freezing_threshold: None,
             memory_allocation: None,
+            reserved_cycles_limit: None,
         },
     }).await;
     Ok(create_result)
