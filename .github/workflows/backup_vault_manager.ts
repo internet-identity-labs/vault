@@ -1,5 +1,5 @@
 import { idlFactory } from "../../test/vault_manager/sdk/vm_idl";
-import { idlFactory as VaultIdl } from "../../test/vault/sdk/idl/idl";
+import { idlFactory as VaultIdl } from "./idl/idl";
 import {VaultCanister} from "../../test/vault_manager/sdk/vm";
 
 import * as fs from "fs";
