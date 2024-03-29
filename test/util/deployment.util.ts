@@ -1,7 +1,6 @@
 import {Actor, ActorMethod, HttpAgent, Identity} from "@dfinity/agent";
 import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {Dfx} from "../type/dfx";
-import {idlFactory as vaultIdl} from "../vault/sdk/idl/idl";
 import {TextEncoder} from "util";
 import {App} from "../constanst/app.enum";
 import {IDL} from "@dfinity/candid";
@@ -46,18 +45,6 @@ export const deploy = async ({clean = true, apps}: { clean?: boolean, apps: App[
         }
 
         if (apps.includes(App.Vault)) {
-            DFX.USE_TEST_ADMIN();
-            await console.log(execute(`./test/resource/ledger.sh`))
-            await console.log(execute(`./test/resource/vault.sh`))
-
-            dfx.vault.id = DFX.GET_CANISTER_ID("vault");
-            console.log(">> ", dfx.vault.id);
-
-            dfx.vault.admin_actor = await getActor(dfx.vault.id, dfx.user.identity, vaultIdl);
-            dfx.vault.member_1 = Ed25519KeyIdentity.generate();
-            dfx.vault.member_2 = Ed25519KeyIdentity.generate();
-            dfx.vault.actor_member_1 = await getActor(dfx.vault.id, dfx.vault.member_1, vaultIdl);
-            dfx.vault.actor_member_2 = await getActor(dfx.vault.id, dfx.vault.member_2, vaultIdl);
             return dfx;
         }
         throw Error("Empty App")
