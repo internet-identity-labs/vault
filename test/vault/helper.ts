@@ -20,6 +20,7 @@ import {TransferTransactionRequest} from "./sdk/transaction/transfer/transfer";
 import {TransferQuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_quorum";
 import {TopUpTransactionRequest} from "./sdk/transaction/transfer/top_up";
 import {generateRandomString} from "./sdk/util/helper";
+import {TransferICRC1QuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_icrc1_quorum";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {
@@ -127,6 +128,12 @@ export async function requestTransferTransaction(manager, address, wallet, amoun
 
 export async function requestQuorumTransferTransaction(manager, address, wallet, amount): Promise<Array<Transaction>> {
     let memberR = new TransferQuorumTransactionRequest(Currency.ICP, address, wallet, amount);
+    return await manager.requestTransaction([memberR])
+}
+
+
+export async function requestICRC1TransferTransaction(manager: VaultManager, toPrincipal: Principal, toSubaccount: undefined | [Uint8Array | number[]], ledgerId: Principal, wallet: string, amount: bigint, memo: string): Promise<Array<Transaction>> {
+    let memberR = new TransferICRC1QuorumTransactionRequest(toPrincipal, toSubaccount, ledgerId, wallet, amount, memo);
     return await manager.requestTransaction([memberR])
 }
 

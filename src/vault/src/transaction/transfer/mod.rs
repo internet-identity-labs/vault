@@ -3,3 +3,4 @@ pub mod top_up_transaction;
 pub mod transfer_quorum_transaction;
 mod transfer_executor_common;
 mod transfer_common;
+pub mod transfer_icrc1_quorum_transaction;

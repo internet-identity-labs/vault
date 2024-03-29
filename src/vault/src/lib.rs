@@ -129,12 +129,6 @@ async fn canister_balance() -> u64 {
 fn sub_account_test() {}
 export_service!();
 
-#[ic_cdk_macros::query(name = "__get_candid_interface")]
-fn export_candid() -> String {
-    __export_service()
-}
-
-
 #[pre_upgrade]
 fn pre_upgrade() {
     stable_save();
@@ -178,4 +172,10 @@ async fn store_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
 #[query]
 async fn get_trusted_origins_certified() -> CertifiedResponse {
     get_trusted_origins_cert()
+}
+
+
+#[ic_cdk_macros::query(name = "__get_candid_interface")]
+fn export_candid() -> String {
+    __export_service()
 }

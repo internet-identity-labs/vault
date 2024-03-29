@@ -198,13 +198,14 @@ type TransactionCandid = variant {
     TopUpTransactionV : TopUpTransaction;
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     TransferTransactionV : TransferTransaction;
-    TransferQuorumTransactionV : TransferQuorumTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
+    TransferICRC1QuorumTransactionV : TransferICRC1QuorumTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     UpgradeTransactionV : VersionUpgradeTransaction;
     PurgeTransactionV : PurgeTransaction;
+    TransferQuorumTransactionV : TransferQuorumTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
     WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
     MemberRemoveTransactionV : MemberRemoveTransaction;
@@ -217,6 +218,7 @@ type TransactionRequest = variant {
     ControllersUpdateTransactionRequestV : ControllersUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
+    TransferICRC1QuorumTransactionRequestV : TransferICRC1QuorumTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
@@ -255,6 +257,26 @@ type TransferQuorumTransaction = record {
     address : text;
     wallet : text;
     common : BasicTransactionFields;
+    amount : nat64;
+};
+
+
+type TransferICRC1QuorumTransaction = record {
+    to_principal : principal;
+    block_index : opt nat;
+    to_subaccount : opt blob;
+    ledger_id : principal;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
+type TransferICRC1QuorumTransactionRequest = record {
+    to_principal : principal;
+    to_subaccount : opt blob;
+    memo : opt text;
+    ledger_id : principal;
+    wallet : text;
     amount : nat64;
 };
 
@@ -315,10 +337,10 @@ type VaultState = record {
     members : vec Member;
     name : opt text;
     description : opt text;
+    icrc1_canisters : vec principal;
     wallets : vec Wallet;
     quorum : Quorum;
     policies : vec Policy;
-    icrc1_canisters : vec principal;
 };
 
 type VersionUpgradeTransaction = record {
