@@ -9,9 +9,9 @@ import {
     requestPurgeTransaction,
     requestUpdateQuorumTransaction
 } from "./helper";
-import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
-import {PurgeTransaction} from "./sdk/transaction/config/purge";
-import {MemberCreateTransaction} from "./sdk/transaction/member/member_create";
+import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
+import {PurgeTransaction} from "@nfid/vaults";
+import {MemberCreateTransaction} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

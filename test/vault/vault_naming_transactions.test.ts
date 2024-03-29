@@ -1,14 +1,13 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {ActorMethod} from "@dfinity/agent";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
-import {Approve, TransactionState, TransactionType, VaultManager} from "./sdk";
-import {Transaction} from "./sdk/transaction/transaction";
-import {VaultUpdateNamingTransaction} from "./sdk/transaction/config/vault_naming";
-import {QuorumUpdateTransaction} from "./sdk/transaction/config/quorum_update";
+import {Approve, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
+import {Transaction} from "@nfid/vaults";
+import {VaultUpdateNamingTransaction} from "@nfid/vaults";
+import {QuorumUpdateTransaction} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

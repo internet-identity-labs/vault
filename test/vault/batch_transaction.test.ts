@@ -4,10 +4,14 @@ import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs} from "./helper";
-import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
-import {MemberCreateTransactionRequest} from "./sdk/transaction/member/member_create";
-import {QuorumTransactionRequest} from "./sdk/transaction/config/quorum_update";
-import {MemberRemoveTransactionRequest} from "./sdk/transaction/member/member_remove";
+import {
+    ApproveRequest,
+    MemberCreateTransactionRequest, MemberRemoveTransactionRequest,
+    QuorumTransactionRequest,
+    TransactionState,
+    VaultManager,
+    VaultRole
+} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

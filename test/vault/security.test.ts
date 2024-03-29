@@ -5,7 +5,7 @@ import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {fail} from "assert";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
-import {TransactionState, VaultManager, VaultRole} from "./sdk";
+import {TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

@@ -8,7 +8,7 @@ import {
     requestCreateMemberTransaction, requestCreateWalletTransaction,
     requestUpdateQuorumTransaction
 } from "./helper";
-import {ApproveRequest, Network, TransactionState, VaultManager, VaultRole} from "./sdk";
+import {ApproveRequest, Network, TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
 
 require('./bigintextension.js');
 
