@@ -19,12 +19,12 @@ import {
     TransactionState,
     TransactionType,
     VaultManager
-} from "./sdk";
-import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
-import {PolicyCreateTransaction, PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
-import {PolicyUpdateTransaction} from "./sdk/transaction/policy/policy_update";
-import {PolicyRemoveTransaction} from "./sdk/transaction/policy/policy_remove";
-import {hasOwnProperty} from "./sdk/util/helper";
+} from "@nfid/vaults";
+import {WalletCreateTransaction} from "@nfid/vaults";
+import {PolicyCreateTransaction, PolicyCreateTransactionRequest} from "@nfid/vaults";
+import {PolicyUpdateTransaction} from "@nfid/vaults";
+import {PolicyRemoveTransaction} from "@nfid/vaults";
+import {hasOwnProperty} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

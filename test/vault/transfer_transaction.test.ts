@@ -26,11 +26,11 @@ import {
     VaultManager,
     VaultRole,
     WalletCreateTransactionRequest
-} from "./sdk";
-import {WalletCreateTransaction} from "./sdk/transaction/wallet/wallet_create";
-import {TransferTransaction} from "./sdk/transaction/transfer/transfer";
-import {TransferQuorumTransaction} from "./sdk/transaction/transfer/transfer_quorum";
-import {hasOwnProperty} from "./sdk/util/helper";
+} from "@nfid/vaults";
+import {WalletCreateTransaction} from "@nfid/vaults";
+import {TransferTransaction} from "@nfid/vaults";
+import {TransferQuorumTransaction} from "@nfid/vaults";
+import {hasOwnProperty} from "@nfid/vaults";
 
 require('./bigintextension.js');
 const DEFAULT_SUB_ACCOUNT =

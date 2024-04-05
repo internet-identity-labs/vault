@@ -109,15 +109,6 @@ export const idlFactory = ({ IDL }) => {
         'amount_threshold' : IDL.Nat64,
         'common' : BasicTransactionFields,
     });
-    const TransferICRC1QuorumTransaction = IDL.Record({
-        'to_principal' : IDL.Principal,
-        'block_index' : IDL.Opt(IDL.Nat),
-        'to_subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-        'ledger_id' : IDL.Principal,
-        'wallet' : IDL.Text,
-        'common' : BasicTransactionFields,
-        'amount' : IDL.Nat64,
-    });
     const MemberCreateTransaction = IDL.Record({
         'name' : IDL.Text,
         'role' : VaultRole,
@@ -166,7 +157,6 @@ export const idlFactory = ({ IDL }) => {
         'TransferTransactionV' : TransferTransaction,
         'PolicyRemoveTransactionV' : PolicyRemoveTransaction,
         'PolicyUpdateTransactionV' : PolicyUpdateTransaction,
-        'TransferICRC1QuorumTransactionV' : TransferICRC1QuorumTransaction,
         'MemberCreateTransactionV' : MemberCreateTransaction,
         'MemberUpdateNameTransactionV' : MemberUpdateNameTransaction,
         'UpgradeTransactionV' : VersionUpgradeTransaction,
@@ -231,14 +221,6 @@ export const idlFactory = ({ IDL }) => {
     });
     const TopUpTransactionRequest = IDL.Record({
         'currency' : Currency,
-        'wallet' : IDL.Text,
-        'amount' : IDL.Nat64,
-    });
-    const TransferICRC1QuorumTransactionRequest = IDL.Record({
-        'to_principal' : IDL.Principal,
-        'to_subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-        'memo' : IDL.Opt(IDL.Text),
-        'ledger_id' : IDL.Principal,
         'wallet' : IDL.Text,
         'amount' : IDL.Nat64,
     });
@@ -308,7 +290,6 @@ export const idlFactory = ({ IDL }) => {
         'ControllersUpdateTransactionRequestV' : ControllersUpdateTransactionRequest,
         'MemberUpdateNameTransactionRequestV' : MemberUpdateNameTransactionRequest,
         'TopUpTransactionRequestV' : TopUpTransactionRequest,
-        'TransferICRC1QuorumTransactionRequestV' : TransferICRC1QuorumTransactionRequest,
         'WalletCreateTransactionRequestV' : WalletCreateTransactionRequest,
         'MemberRemoveTransactionRequestV' : MemberRemoveTransactionRequest,
         'MemberCreateTransactionRequestV' : MemberCreateTransactionRequest,

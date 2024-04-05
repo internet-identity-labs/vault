@@ -14,8 +14,8 @@ import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {createCanister} from "../vault_manager/sdk/ochestrator";
-import {Approve, Network, TransactionState, TransactionType, VaultManager} from "./sdk";
-import {VersionUpgradeTransaction} from "./sdk/transaction/config/version_upgrade";
+import {Approve, Network, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
+import {VersionUpgradeTransaction} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

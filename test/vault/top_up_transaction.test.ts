@@ -3,8 +3,8 @@ import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs, requestTopUpTransaction, verifyTransaction} from "./helper";
 import {sleep} from "../util/call.util";
-import {Approve, Currency, TransactionState, TransactionType, VaultManager} from "./sdk";
-import {TopUpTransaction} from "./sdk/transaction/transfer/top_up";
+import {Approve, Currency, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
+import {TopUpTransaction} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

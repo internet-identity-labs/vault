@@ -1,11 +1,11 @@
 import { idlFactory } from "../../test/vault_manager/sdk/vm_idl";
-import { idlFactory as VaultIdl } from "../../test/vault/sdk/idl/idl";
-import {VaultCanister} from "../../test/vault_manager/sdk/vm";
+import { idlFactory as VaultIdl } from "./idl/idl";
 
 import * as fs from "fs";
 import {Actor, ActorMethod, HttpAgent, Identity, SignIdentity} from "@dfinity/agent";
 import { IDL } from "@dfinity/candid";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
+import {VaultCanister} from "../../test/vault_manager/sdk/vm";
 
 require('./../../test/vault/bigintextension.js');
 
@@ -88,7 +88,7 @@ async function createBackupAll() {
     let response = JSON.stringify(canisters);
 
     let vault_manager_path = `${backupPath}/vault_manager_${canisterId}.json`;
-    writeToFile(vault_manager_path, response);
+    await writeToFile(vault_manager_path, response);
 
     let canisterIds = canisters
         .map((canister) => canister.canister_id)

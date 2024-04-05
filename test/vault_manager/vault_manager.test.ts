@@ -11,7 +11,7 @@ import {VaultWasm} from "../vault_repo/sdk/vr";
 import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {fail} from "assert";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
-import {VaultManager} from "../vault/sdk";
+import {VaultManager} from "@nfid/vaults";
 
 describe("VM Test", () => {
     let canister;

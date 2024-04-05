@@ -1,6 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {ActorMethod} from "@dfinity/agent";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
@@ -12,12 +11,14 @@ import {
     requestUpdateMemberRoleTransaction,
     verifyTransaction
 } from "./helper";
-import {Approve, TransactionState, TransactionType, VaultManager, VaultRole} from "./sdk";
-import {Transaction} from "./sdk/transaction/transaction";
-import {MemberCreateTransaction} from "./sdk/transaction/member/member_create";
-import {MemberUpdateNameTransaction} from "./sdk/transaction/member/member_update_name";
-import {MemberUpdateRoleTransaction} from "./sdk/transaction/member/member_update_role";
-import {MemberRemoveTransaction} from "./sdk/transaction/member/member_remove";
+import {
+    Approve,
+    MemberCreateTransaction, MemberRemoveTransaction, MemberUpdateNameTransaction, MemberUpdateRoleTransaction,
+    Transaction,
+    TransactionState, TransactionType,
+    VaultManager,
+    VaultRole
+} from "@nfid/vaults";
 
 require('./bigintextension.js');
 

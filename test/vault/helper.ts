@@ -1,26 +1,31 @@
 import {Principal} from "@dfinity/principal";
-import {Transaction} from "./sdk/transaction/transaction";
-import {Approve, Currency, TransactionState, VaultManager} from "./sdk";
 import {expect} from "chai";
-import {PolicyCreateTransactionRequest} from "./sdk/transaction/policy/policy_create";
-import {PolicyRemoveTransactionRequest} from "./sdk/transaction/policy/policy_remove";
-import {PolicyUpdateTransactionRequest} from "./sdk/transaction/policy/policy_update";
-import {MemberCreateTransactionRequest} from "./sdk/transaction/member/member_create";
-import {ControllersUpdateTransactionRequest} from "./sdk/transaction/config/controllers_update";
-import {MemberUpdateNameTransactionRequest} from "./sdk/transaction/member/member_update_name";
-import {MemberUpdateRoleTransactionRequest} from "./sdk/transaction/member/member_update_role";
-import {MemberRemoveTransactionRequest} from "./sdk/transaction/member/member_remove";
-import {QuorumTransactionRequest} from "./sdk/transaction/config/quorum_update";
-import {PurgeTransactionRequest} from "./sdk/transaction/config/purge";
-import {VaultNamingTransactionRequest} from "./sdk/transaction/config/vault_naming";
-import {WalletUpdateNameTransactionRequest} from "./sdk/transaction/wallet/wallet_update_name";
-import {WalletCreateTransactionRequest} from "./sdk/transaction/wallet/wallet_create";
-import {VersionUpgradeTransactionRequest} from "./sdk/transaction/config/version_upgrade";
-import {TransferTransactionRequest} from "./sdk/transaction/transfer/transfer";
-import {TransferQuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_quorum";
-import {TopUpTransactionRequest} from "./sdk/transaction/transfer/top_up";
-import {generateRandomString} from "./sdk/util/helper";
-import {TransferICRC1QuorumTransactionRequest} from "./sdk/transaction/transfer/transfer_icrc1_quorum";
+import {
+    Approve,
+    ControllersUpdateTransactionRequest,
+    Currency,
+    generateRandomString,
+    MemberCreateTransactionRequest,
+    MemberRemoveTransactionRequest,
+    MemberUpdateNameTransactionRequest,
+    MemberUpdateRoleTransactionRequest,
+    PolicyCreateTransactionRequest,
+    PolicyRemoveTransactionRequest,
+    PolicyUpdateTransactionRequest,
+    PurgeTransactionRequest,
+    QuorumTransactionRequest,
+    TopUpTransactionRequest,
+    Transaction,
+    TransactionState,
+    TransferICRC1QuorumTransactionRequest,
+    TransferQuorumTransactionRequest,
+    TransferTransactionRequest,
+    VaultManager,
+    VaultNamingTransactionRequest,
+    VersionUpgradeTransactionRequest,
+    WalletCreateTransactionRequest,
+    WalletUpdateNameTransactionRequest
+} from "@nfid/vaults";
 
 
 export function verifyTransaction(expected: Transaction, actual: Transaction, trType) {

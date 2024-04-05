@@ -4,7 +4,7 @@ import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
-import {VaultManager, VaultRole} from "./sdk";
+import {VaultManager, VaultRole} from "@nfid/vaults";
 import {Principal} from "@dfinity/principal";
 
 require('./bigintextension.js');

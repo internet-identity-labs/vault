@@ -10,10 +10,10 @@ import {
     requestUpdateWalletNameTransaction,
     verifyTransaction
 } from "./helper";
-import {Approve, Network, TransactionState, TransactionType, VaultManager} from "./sdk";
-import {WalletCreateTransaction, WalletCreateTransactionRequest} from "./sdk/transaction/wallet/wallet_create";
-import {WalletUpdateNameTransaction} from "./sdk/transaction/wallet/wallet_update_name";
-import { hasOwnProperty } from "./sdk/util/helper";
+import {Approve, Network, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
+import {WalletCreateTransaction, WalletCreateTransactionRequest} from "@nfid/vaults";
+import {WalletUpdateNameTransaction} from "@nfid/vaults";
+import { hasOwnProperty } from "@nfid/vaults";
 
 require('./bigintextension.js');
 

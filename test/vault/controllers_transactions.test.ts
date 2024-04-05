@@ -13,8 +13,7 @@ import {
 import {Ed25519KeyIdentity} from "@dfinity/identity";
 import {fail} from "assert";
 import {Principal} from "@dfinity/principal";
-import {ApproveRequest, TransactionState, VaultManager, VaultRole} from "./sdk";
-import {ControllersUpdateTransaction} from "./sdk/transaction/config/controllers_update";
+import {ApproveRequest, ControllersUpdateTransaction, TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
 
 require('./bigintextension.js');
 
