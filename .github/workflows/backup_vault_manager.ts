@@ -88,7 +88,7 @@ async function createBackupAll() {
     let response = JSON.stringify(canisters);
 
     let vault_manager_path = `${backupPath}/vault_manager_${canisterId}.json`;
-    writeToFile(vault_manager_path, response);
+    await writeToFile(vault_manager_path, response);
 
     let canisterIds = canisters
         .map((canister) => canister.canister_id)
