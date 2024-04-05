@@ -1,11 +1,11 @@
 import { idlFactory } from "../../test/vault_manager/sdk/vm_idl";
 import { idlFactory as VaultIdl } from "./idl/idl";
-import {VaultCanister} from "../../test/vault_manager/sdk/vm";
 
 import * as fs from "fs";
 import {Actor, ActorMethod, HttpAgent, Identity, SignIdentity} from "@dfinity/agent";
 import { IDL } from "@dfinity/candid";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
+import {VaultCanister} from "../../test/vault_manager/sdk/vm";
 
 require('./../../test/vault/bigintextension.js');
 
