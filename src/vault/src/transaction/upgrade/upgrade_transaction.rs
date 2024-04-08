@@ -141,7 +141,7 @@ async fn upgrade_self(version: String) -> Result<(), String> {
     ic_cdk::println!("Upgrade result: {:?}", result);
     if let Err((code, msg)) = result {
         ic_cdk::eprintln!("Error while upgrading canister: [{:?}] {}", code, msg);
-        return Err("Error while upgrading canister".to_string());
+        return Err(format!("Error while upgrading canister: [{:?}] {}", code, msg));
     }
     Ok(())
 }
