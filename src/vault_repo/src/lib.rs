@@ -116,21 +116,6 @@ async fn get_by_version(version: String) -> VaultWasm {
     )
 }
 
-#[update]
-async fn delete_by_version(version: String) {
-    VAULT_VERSIONS.with(|vv| {
-        let mut versions = vv.borrow_mut();
-        let index = versions.iter().position(|v| v.version == version);
-        match index {
-            Some(i) => {
-                versions.remove(i);
-            }
-            None => {
-                trap("Version not found");
-            }
-        }
-    });
-}
 
 #[update]
 async fn add_version(args: WalletStoreWASMArgs) {
