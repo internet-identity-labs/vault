@@ -151,7 +151,7 @@ pub fn get_id() -> u64 {
 struct Memory {
     transactions: Vec<TransactionCandid>,
     config: Conf,
-    icrc1_canisters: Vec<Principal>,
+    icrc1_canisters: Option<Vec<Principal>>,
 }
 
 
@@ -170,7 +170,7 @@ pub fn stable_save() {
     let mem = Memory {
         config: conf,
         transactions: trs,
-        icrc1_canisters,
+        icrc1_canisters: Some(icrc1_canisters)
     };
     storage::stable_save((mem, )).unwrap();
 }
@@ -183,15 +183,23 @@ pub async fn stable_restore() {
         conf.replace(mo.config.clone())
     });
     let mut trs: Vec<Box<dyn ITransaction>> = mo.transactions
-        .into_iter().map(|x| x.to_transaction())
+        .into_iter()
+        .map(|x| x.to_transaction())
         .collect();
     trs.sort_by(|a, b| -> std::cmp::Ordering {
         a.get_id().cmp(&b.get_id())
     });
-    let icrc1_canisters = mo.icrc1_canisters.clone();
+    let icrc1_canisters_opt = mo.icrc1_canisters.clone();
     ICRC1.with(|icrc1| {
         icrc1.borrow_mut();
-        icrc1.replace(icrc1_canisters);
+        icrc1.replace( match icrc1_canisters_opt {
+            None => {
+                Vec::default()
+            }
+            Some(icrc1) => {
+                icrc1
+            }
+        } );
     });
     let state = define_state(trs.clone(), None).await;
     restore_state(state);

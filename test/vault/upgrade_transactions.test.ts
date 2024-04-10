@@ -30,8 +30,6 @@ describe("Upgrade Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        console.log(execute(`./test/resource/ledger.sh`))
-
         console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {}; })' --specified-id=7jlkn-paaaa-aaaap-abvpa-cai`))
         vault_repo_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(admin_identity.getPrincipal().toText(), vault_repo_id);
@@ -76,17 +74,24 @@ describe("Upgrade Transactions", () => {
     });
 
     it("Upgrade approved and executed", async function () {
-        let wasm_bytes = readWasmFile("test/vault_repo/vault_002.wasm");
+        //build the latest version and add it to the vault repo
+        await console.log(execute(`./test/resource/vault.sh`))
+        let canister_id = DFX.GET_CANISTER_ID("vault");
+        let vm = new VaultManager(canister_id, admin_identity);
+        await vm.resetToLocalEnv();
+        let latestVaultVersion = await vm.getVersion();
+
+        let wasm_bytes = readWasmFile(".dfx/local/canisters/vault/vault.wasm");
         let actor = await getActor(vault_repo_id, admin, vrIdl);
         let hash = sha256(wasm_bytes);
         let wasm: VaultWasm = {
             description: [],
             wasm_module: Array.from(wasm_bytes),
             hash: hash,
-            version: "0.0.2"
+            version: latestVaultVersion
         }
         await actor.add_version(wasm);
-        let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.2");
+        let trRequestResponse = await requestVersionUpgradeTransaction(manager, latestVaultVersion);
         let trs = trRequestResponse[0];
         try {
             await manager.execute();
@@ -98,7 +103,7 @@ describe("Upgrade Transactions", () => {
         expect(tr.state).eq(TransactionState.Executed)
         expect(tr.initial_version).eq("0.0.1")
         let version = await manager.getVersion();
-        expect(version).eq("0.0.2")
+        expect(version).eq(latestVaultVersion)
         let state = await manager.getState()
         expect(state.members.length).eq(1);
         expect(state.wallets.length).eq(2);
