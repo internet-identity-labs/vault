@@ -3,7 +3,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Currency, TransactionState};
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::{ThresholdAlreadyExists, UIDAlreadyExists, WalletNotExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -42,7 +42,7 @@ impl PolicyCreateTransaction {
 impl ITransaction for PolicyCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         if state.policies.iter().find(|p| p.uid.eq(&self.uid)).is_some() {
-            self.set_state(Rejected);
+            self.set_state(Failed);
             self.common.error = Some(UIDAlreadyExists);
             return state;
         }
@@ -50,7 +50,7 @@ impl ITransaction for PolicyCreateTransaction {
         for w in self.wallets.clone() {
             match state.wallets.iter().find(|wal| wal.uid.eq(&w)) {
                 None => {
-                    self.set_state(Rejected);
+                    self.set_state(Failed);
                     self.common.error = Some(WalletNotExists);
                     return state;
                 }
@@ -70,7 +70,7 @@ impl ITransaction for PolicyCreateTransaction {
             .find(|policy| policy.amount_threshold.eq(&self.amount_threshold)) {
             None => {}
             Some(_) => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.common.error = Some(ThresholdAlreadyExists);
                 return state;
             }

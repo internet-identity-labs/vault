@@ -41,7 +41,7 @@ describe.skip("TopUp Transactions", () => {
         let tr = trRequestResponse[0] as TopUpTransaction
         await manager.execute()
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TopUpTransaction
-        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.state).eq(TransactionState.Failed)
         expect(tr.memo).contains("ledger transfer error: InsufficientFunds")
     });
 

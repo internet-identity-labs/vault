@@ -78,7 +78,7 @@ describe("Transfer Transactions", () => {
         expect(tr.blockIndex).eq(2n)
     });
 
-    it("Trs approved and rejected ", async function () {
+    it("Trs approved and failed ", async function () {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 300_000_000)
         let tr = trRequestResponse[0] as TransferTransaction
         let expected = buildExpectedTransferTransaction(TransactionState.Approved)
@@ -86,7 +86,7 @@ describe("Transfer Transactions", () => {
         verifyTransferTransaction(expected, trRequestResponse[0] as TransferTransaction)
         await manager.execute()
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
-        expected.state = TransactionState.Rejected
+        expected.state = TransactionState.Failed
         verifyTransferTransaction(expected, tr)
         // @ts-ignore
         expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 99989900 } }")
@@ -107,11 +107,11 @@ describe("Transfer Transactions", () => {
         verifyTransferTransaction(expected, tr)
     });
 
-    it("Trs approved and rejected by system", async function () {
+    it("Trs approved and failed by system", async function () {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 10)
         await manager.execute()
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
-        let expected = buildExpectedTransferTransaction(TransactionState.Rejected)
+        let expected = buildExpectedTransferTransaction(TransactionState.Failed)
         expected.amount = 10n
         expected.threshold = undefined
         expect(hasOwnProperty(tr.error, "CouldNotDefinePolicy")).eq(true)
@@ -176,13 +176,13 @@ describe("Transfer Transactions", () => {
         let trRequestResponse = await requestQuorumTransferTransaction(manager, address, walletUId4, 100)
         await manager.execute()
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
-        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.state).eq(TransactionState.Failed)
         expect(tr.threshold).eq(1)
         // @ts-ignore
         expect(tr.error.CanisterReject.message).eq("ledger transfer error: InsufficientFunds { balance: Tokens { e8s: 0 } }")
     });
 
-    it("Request quorum ICRC1 transfer transaction Rejected", async function () {
+    it("Request quorum ICRC1 transfer transaction failed", async function () {
         await requestPurgeTransaction(manager)
         await manager.execute()
         let trRequestResponse = await requestICRC1TransferTransaction(manager,
@@ -194,7 +194,7 @@ describe("Transfer Transactions", () => {
             "memo")
         await manager.execute()
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
-        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.state).eq(TransactionState.Failed)
         expect(tr.threshold).eq(1)
         // @ts-ignore
         expect(tr.error.CanisterReject.message).eq("the debit account doesn't have enough funds to complete the transaction, current balance: 0")

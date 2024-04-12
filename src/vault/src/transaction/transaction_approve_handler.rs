@@ -6,6 +6,7 @@ use crate::enums::TransactionState;
 use crate::enums::TransactionState::Approved;
 use crate::enums::TransactionState::Executed;
 use crate::enums::TransactionState::Rejected;
+use crate::enums::TransactionState::Failed;
 use crate::security_service::verify_caller;
 use crate::transaction::transaction::TransactionCandid;
 use crate::transaction::transaction_service::{get_by_id, restore_transaction};
@@ -44,7 +45,7 @@ pub fn handle_approve(tr_id: u64, state: TransactionState) -> TransactionCandid 
     let mut trs = get_by_id(tr_id);
 
     match trs.get_state() {
-        Rejected | Executed => {
+        Rejected | Executed | Failed => {
             trap("Transaction is immutable")
         }
         _ => {}

@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::TransactionState::{Approved, Blocked, Pending, Rejected};
+use crate::enums::TransactionState::{Approved, Blocked, Failed, Pending, Rejected};
 use crate::enums::VaultRole;
 use crate::errors::VaultError;
 use crate::state::{get_current_state, VaultState};
@@ -43,7 +43,7 @@ pub trait ITransaction: BasicTransaction {
             }
 
             let threshold_response = self.define_threshold();
-            if self.get_state().eq(&Rejected) {
+            if self.get_state().eq(&Failed) {
                 return;
             }
             let threshold;
@@ -52,7 +52,7 @@ pub trait ITransaction: BasicTransaction {
                     threshold = t;
                 }
                 Err(s) => {
-                    self.set_state(Rejected);
+                    self.set_state(Failed);
                     self.get_common_mut().error = Some(s);
                     return;
                 }

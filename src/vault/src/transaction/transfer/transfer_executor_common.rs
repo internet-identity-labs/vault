@@ -1,6 +1,8 @@
 use std::convert::TryFrom;
+
 use ic_ledger_types::{AccountIdentifier, BlockIndex};
-use crate::enums::TransactionState::{Executed, Rejected};
+
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::transaction::ITransaction;
@@ -23,7 +25,7 @@ pub trait TransferExecutor: ITransaction {
                 self.set_state(Executed);
             }
             Err(message) => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.get_common_mut().error = Some(CanisterReject { message });
             }
         }

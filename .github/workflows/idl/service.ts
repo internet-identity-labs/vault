@@ -203,6 +203,7 @@ export type TransactionRequest = {
 export type TransactionState = { 'Blocked' : null } |
     { 'Approved' : null } |
     { 'Rejected' : null } |
+    { 'Failed' : null } |
     { 'Executed' : null } |
     { 'Purged' : null } |
     { 'Pending' : null };

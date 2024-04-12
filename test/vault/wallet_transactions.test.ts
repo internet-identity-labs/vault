@@ -1,6 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
-import {getActor, getIdentity} from "../util/deployment.util";
-import {ActorMethod} from "@dfinity/agent";
+import {getIdentity} from "../util/deployment.util";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -26,8 +25,6 @@ describe("Wallet Transactions", () => {
         DFX.USE_TEST_ADMIN();
         await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
-        const admin = getIdentity("87654321876543218765432187654321");
-        const member = getIdentity("87654321876543218765432187654320");
         canister_id = DFX.GET_CANISTER_ID("vault");
         manager = new VaultManager(canister_id, admin_identity);
         await manager.resetToLocalEnv();
@@ -76,16 +73,16 @@ describe("Wallet Transactions", () => {
         expect(walletActual.name).eq(walletName_2)
     });
 
-    it("UpdateWalletName  rejected no such wallet", async function () {
+    it("UpdateWalletName failed no such wallet", async function () {
         let trRequestResponse = await requestUpdateWalletNameTransaction(manager, "uidUnexistene", walletName);
         await manager.execute()
         let trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
-        let expected = buildExpectedWalletCreateTransaction(TransactionState.Rejected)
+        let expected = buildExpectedWalletCreateTransaction(TransactionState.Failed)
         verifyWalletUpdateTransaction(expected, trFromAll)
     });
 
 
-    it("Request 2 Wallets With The Same Uid rejected", async function () {
+    it("Request 2 Wallets With The Same Uid failed", async function () {
         let request1 = new WalletCreateTransactionRequest("uniqueId", "11112123123", Network.IC);
         let response1 = await manager.requestTransaction([request1])
         await manager.execute()
@@ -95,7 +92,7 @@ describe("Wallet Transactions", () => {
         let response2 = await manager.requestTransaction([request2])
         await manager.execute()
         let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as WalletCreateTransaction
-        expect(transaction2.state).eq(TransactionState.Rejected)
+        expect(transaction2.state).eq(TransactionState.Failed)
         expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)
     });
 

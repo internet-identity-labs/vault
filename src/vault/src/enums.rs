@@ -9,6 +9,7 @@ pub enum TransactionState {
     Blocked,
     Executed,
     Purged,
+    Failed,
 }
 
 
@@ -21,6 +22,7 @@ impl ToString for TransactionState {
             TransactionState::Blocked => {"Blocked".to_string()}
             TransactionState::Executed => {"Executed".to_string()}
             TransactionState::Purged => {"Purged".to_string()}
+            TransactionState::Failed => {"Failed".to_string()}
         }
     }
 }

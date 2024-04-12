@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use candid::{CandidType, Principal};
-use ic_cdk::api::management_canister::main::{CanisterSettings, update_settings, UpdateSettingsArgument};
 use ic_cdk::{id, trap};
-use ic_cdk::api::call::{RejectionCode};
+use ic_cdk::api::call::RejectionCode;
+use ic_cdk::api::management_canister::main::{CanisterSettings, update_settings, UpdateSettingsArgument};
 use serde::{Deserialize, Serialize};
 
 use crate::{get_controllers, impl_basic_for_transaction};
@@ -25,7 +25,7 @@ pub struct ControllersUpdateTransaction {
 }
 
 impl ControllersUpdateTransaction {
-    fn new(state: TransactionState, principals: Vec<Principal>,  current_controllers: Vec<Principal>,) -> Self {
+    fn new(state: TransactionState, principals: Vec<Principal>, current_controllers: Vec<Principal>) -> Self {
         ControllersUpdateTransaction {
             common: BasicTransactionFields::new(state, None, false),
             current_controllers,
@@ -63,7 +63,7 @@ impl TransactionBuilder for ControllersUpdateTransactionBuilder {
         let trs = ControllersUpdateTransaction::new(
             state,
             self.request.principals.clone(),
-            current_controllers
+            current_controllers,
         );
         Box::new(trs)
     }
@@ -96,7 +96,7 @@ impl ITransaction for ControllersUpdateTransaction {
         let controllers = get_controllers().await;
         self.current_controllers = controllers.clone();
 
-        let result: Result<(), (RejectionCode, String)>    = update_settings(UpdateSettingsArgument {
+        let result: Result<(), (RejectionCode, String)> = update_settings(UpdateSettingsArgument {
             canister_id: id(),
             settings: CanisterSettings {
                 controllers: Some(self.principals.clone()),
@@ -112,8 +112,8 @@ impl ITransaction for ControllersUpdateTransaction {
                 state
             }
             Err((_, msg)) => {
-                self.set_state(TransactionState::Rejected);
-                self.common.error = Some(ControllersUpdateError { message: msg, });
+                self.set_state(TransactionState::Failed);
+                self.common.error = Some(ControllersUpdateError { message: msg });
                 state
             }
         }

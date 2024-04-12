@@ -64,11 +64,12 @@ describe("Upgrade Transactions", () => {
         DFX.STOP();
     });
 
-    it("Upgrade approved and rejected", async function () {
+    it("Upgrade approved and rejected (because of 0.0.1 version)", async function () {
         let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.1");
         let trs = trRequestResponse[0];
         await manager.execute();
         let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
+        //0.0.1 build marked this transaction as rejected. In 0.0.2 it was improved to mark it as failed
         let expected = buildExpectedVersionUpgradeTransaction(TransactionState.Rejected)
         verifyUpgradeTransaction(expected, tr)
     });
@@ -110,13 +111,24 @@ describe("Upgrade Transactions", () => {
     });
 
 
-    it("Upgrade approved and rejected with smaller version", async function () {
+    it("Upgrade approved and failed with smaller version", async function () {
         let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.1");
         let trs = trRequestResponse[0];
         await manager.execute();
         let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
-        expect(tr.state).eq(TransactionState.Rejected)
+        expect(tr.state).eq(TransactionState.Failed)
     });
+
+
+    it("Upgrade approved and failed", async function () {
+        let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.2");
+        let trs = trRequestResponse[0];
+        await manager.execute();
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
+        let expected = buildExpectedVersionUpgradeTransaction(TransactionState.Failed)
+        verifyUpgradeTransaction(expected, tr)
+    });
+
 
     function buildExpectedVersionUpgradeTransaction(state) {
         let expectedApprove: Approve = {

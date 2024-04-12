@@ -6,7 +6,7 @@ use icrc_ledger_types::icrc1::account::Subaccount;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{TransactionState, VaultRole};
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError;
 use crate::errors::VaultError::CanisterReject;
 use crate::impl_basic_for_transaction;
@@ -76,7 +76,7 @@ impl ITransaction for TransferICRC1QuorumTransaction {
                         self.set_state(Executed);
                     }
                     TransferResult::Err(message) => {
-                        self.set_state(Rejected);
+                        self.set_state(Failed);
                         self.get_common_mut().error = Some(CanisterReject {
                             message: message.to_string()
                         });
@@ -84,7 +84,7 @@ impl ITransaction for TransferICRC1QuorumTransaction {
                 }
             }
             Err(message) => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.get_common_mut().error = Some(CanisterReject {
                     message: message.1,
                 });
@@ -150,8 +150,8 @@ impl TransferCommon for TransferICRC1QuorumTransaction {
         self.amount.clone()
     }
 
-    fn set_policy(&mut self, x: Option<String>) {
-        self.set_state(Rejected);
+    fn set_policy(&mut self, _: Option<String>) {
+        self.set_state(Failed);
         self.common.error = Some(VaultError::CouldNotDefinePolicy);
     }
 }

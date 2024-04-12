@@ -46,7 +46,7 @@ impl ITransaction for MemberCreateTransaction {
         };
         if state.members.iter()
             .any(|m| m.member_id.eq_ignore_ascii_case(&self.member_id)) {
-            self.set_state(TransactionState::Rejected);
+            self.set_state(TransactionState::Failed);
             self.common.error = Some(MemberAlreadyExists);
             state
         } else {

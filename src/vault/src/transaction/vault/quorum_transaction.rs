@@ -4,7 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::enums::VaultRole::Admin;
 use crate::errors::VaultError::QuorumNotReachable;
 use crate::impl_basic_for_transaction;
@@ -65,13 +65,13 @@ impl TransactionBuilder for QuorumUpdateTransactionBuilder {
 impl ITransaction for QuorumUpdateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         if self.quorum == 0 {
-            self.set_state(Rejected);
+            self.set_state(Failed);
             self.common.error = Some(QuorumNotReachable);
             state
         } else if state.members.iter()
             .filter(|m| m.role.eq(&Admin))
             .count() < self.quorum as usize {
-            self.set_state(Rejected);
+            self.set_state(Failed);
             self.common.error = Some(QuorumNotReachable);
             state
         } else {
