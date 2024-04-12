@@ -126,6 +126,8 @@ describe("Upgrade Transactions", () => {
         await manager.execute();
         let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
         let expected = buildExpectedVersionUpgradeTransaction(TransactionState.Failed)
+        expected.initial_version = "0.0.2"
+        expected.version = "0.0.2"
         verifyUpgradeTransaction(expected, tr)
     });
 
