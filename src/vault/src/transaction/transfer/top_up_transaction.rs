@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{impl_basic_for_transaction, impl_transfer_common_for_transaction};
 use crate::enums::{Currency, TransactionState};
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError;
 use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
@@ -78,13 +78,13 @@ impl ITransaction for TopUpTransaction {
                         self.set_state(Executed);
                     }
                     Err(message) => {
-                        self.set_state(Rejected);
+                        self.set_state(Failed);
                         self.get_common_mut().error = Some(CanisterReject { message });
                     }
                 }
             }
             Err(message) => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.get_common_mut().error = Some(CanisterReject { message });
             }
         }

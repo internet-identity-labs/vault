@@ -1,6 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
-import {ActorMethod} from "@dfinity/agent";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";
 import {expect} from "chai";
@@ -78,10 +77,10 @@ describe("Policy Transactions", () => {
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
 
-    it("CreatePolicy rejected because of nonexistent wallet", async function () {
+    it("CreatePolicy failed because of nonexistent wallet", async function () {
         let policyCreateResponse = await requestCreatePolicyTransaction(manager, 3, 3n, ["test_unex_uid"])
         await manager.execute()
-        let expected = buildExpectedPolicyCreateTransaction(policyCreateResponse[0], TransactionState.Rejected)
+        let expected = buildExpectedPolicyCreateTransaction(policyCreateResponse[0], TransactionState.Failed)
         expected.wallets = ["test_unex_uid"]
         expected.member_threshold = 3
         expected.amount_threshold = 3n
@@ -92,10 +91,10 @@ describe("Policy Transactions", () => {
         expect(state.policies.length).eq(1)
     });
 
-    it("CreatePolicy rejected because threshold already exists wallet", async function () {
+    it("CreatePolicy failed because threshold already exists wallet", async function () {
         let policyCreateResponse = await requestCreatePolicyTransaction(manager, 3, 2n, [walletUid_1])
         await manager.execute()
-        let expected = buildExpectedPolicyCreateTransaction(policyCreateResponse[0], TransactionState.Rejected)
+        let expected = buildExpectedPolicyCreateTransaction(policyCreateResponse[0], TransactionState.Failed)
         expected.wallets = [walletUid_1]
         expected.member_threshold = 3
         expected.amount_threshold = 2n
@@ -138,10 +137,10 @@ describe("Policy Transactions", () => {
         expect(state.policies[0].wallets[0]).eq(walletUid_1)
     });
 
-    it("UpdatePolicy not exist rejected", async function () {
+    it("UpdatePolicy not exist failed", async function () {
         let policyCreateResponse = await requestUpdatePolicyTransaction(manager, 4, 4n, "policyUidNE")
         await manager.execute()
-        let expected = buildExpectedPoliceUpdateTransaction(policyCreateResponse[0], TransactionState.Rejected)
+        let expected = buildExpectedPoliceUpdateTransaction(policyCreateResponse[0], TransactionState.Failed)
         expected.member_threshold = 4
         expected.amount_threshold = 4n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyCreateResponse[0].id)
@@ -150,7 +149,7 @@ describe("Policy Transactions", () => {
         expect(state.policies.length).eq(1)
     });
 
-    it("UpdatePolicy amount exist - rejected", async function () {
+    it("UpdatePolicy amount exist - failed", async function () {
         let resp = await requestCreateWalletTransaction(manager, walletName_2, Network.IC);
         walletUid_2 = (resp[0] as WalletCreateTransaction).uid
         let policyCreateResponsePredefined = await requestCreatePolicyTransaction(manager, 3, 3n, [walletUid_2])
@@ -160,7 +159,7 @@ describe("Policy Transactions", () => {
         let policyUpdateResponse = await requestUpdatePolicyTransaction(manager, 3, 3n, policyUid2)
         await manager.execute()
 
-        let expected = buildExpectedPoliceUpdateTransaction(policyUpdateResponse[0], TransactionState.Rejected)
+        let expected = buildExpectedPoliceUpdateTransaction(policyUpdateResponse[0], TransactionState.Failed)
         expected.member_threshold = 3
         expected.amount_threshold = 3n
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyUpdateResponse[0].id)
@@ -173,10 +172,10 @@ describe("Policy Transactions", () => {
         expect(state.policies[2].wallets[0]).eq(walletUid_2)
     });
 
-    it("RemovePolicy not exist rejected", async function () {
+    it("RemovePolicy not exist failed", async function () {
         let policyRemoveResponse = await requestRemovePolicyTransaction(manager, "nonexistentUID")
         await manager.execute()
-        let expected = buildExpectedPolicyRemoveTransaction(TransactionState.Rejected)
+        let expected = buildExpectedPolicyRemoveTransaction(TransactionState.Failed)
         expected.uid = "nonexistentUID"
         let tr = await getTransactionByIdFromGetAllTrs(manager, policyRemoveResponse[0].id)
         verifyPolicyRemoveTransaction(expected, tr)
@@ -196,7 +195,7 @@ describe("Policy Transactions", () => {
         expect(state.policies[0]).not.eq(policyUid2)
     });
 
-    it("Request 2 Policy With Th eSame Uid rejected", async function () {
+    it("Request 2 Policy With The Same Uid failed", async function () {
         let request1 = new PolicyCreateTransactionRequest("uniqueId", 2, 10n, [walletUid_1]);
         let response1 = await manager.requestTransaction([request1])
         await manager.execute()
@@ -206,7 +205,7 @@ describe("Policy Transactions", () => {
         let response2 = await manager.requestTransaction([request2])
         await manager.execute()
         let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as PolicyCreateTransaction
-        expect(transaction2.state).eq(TransactionState.Rejected)
+        expect(transaction2.state).eq(TransactionState.Failed)
         expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)
     });
 

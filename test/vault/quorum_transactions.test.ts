@@ -33,12 +33,12 @@ describe("Quorum Transactions", () => {
         DFX.STOP();
     });
 
-    it("UpdateQuorum ADMIN rejected because of amount of admins less than quorum", async function () {
+    it("UpdateQuorum ADMIN failed because of amount of admins less than quorum", async function () {
         let trReqResp: Array<Transaction> = await requestUpdateQuorumTransaction(manager, 2)
         let trId = trReqResp[0].id
         await manager.execute();
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
-        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Rejected, 2)
+        let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Failed, 2)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
         let state = await manager.getState();
         expect(state.quorum.quorum).eq(1)

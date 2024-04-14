@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{impl_basic_for_transaction, impl_transfer_executor_for_transaction};
 use crate::enums::{Currency, TransactionState, VaultRole};
-use crate::enums::TransactionState::Rejected;
+use crate::enums::TransactionState::Failed;
 use crate::errors::VaultError;
 use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -117,8 +117,8 @@ impl TransferCommon for TransferQuorumTransaction {
         self.amount.clone()
     }
 
-    fn set_policy(&mut self, x: Option<String>) {
-        self.set_state(Rejected);
+    fn set_policy(&mut self, _: Option<String>) {
+        self.set_state(Failed);
         self.common.error = Some(VaultError::CouldNotDefinePolicy);
     }
 }

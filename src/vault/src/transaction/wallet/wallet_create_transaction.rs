@@ -3,7 +3,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::{Network, TransactionState};
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::UIDAlreadyExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -37,7 +37,7 @@ impl WalletCreateTransaction {
 impl ITransaction for WalletCreateTransaction {
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         if state.wallets.iter().find(|p| p.uid.eq(&self.uid)).is_some() {
-            self.set_state(Rejected);
+            self.set_state(Failed);
             self.common.error = Some(UIDAlreadyExists);
             return state;
         }

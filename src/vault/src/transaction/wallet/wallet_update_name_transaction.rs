@@ -4,7 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::WalletNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -38,7 +38,7 @@ impl ITransaction for WalletUpdateNameTransaction {
         match state.wallets.iter()
             .find(|w| w.uid.eq(&self.uid)) {
             None => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.common.error = Some(WalletNotExists);
                 state
             }

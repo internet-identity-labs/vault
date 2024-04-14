@@ -3,7 +3,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::MemberNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -37,7 +37,7 @@ impl ITransaction for MemberUpdateNameTransaction {
         match state.members.iter()
             .find(|x| x.member_id.eq_ignore_ascii_case(&self.member_id)) {
             None => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.common.error = Some(MemberNotExists);
                 state
             }

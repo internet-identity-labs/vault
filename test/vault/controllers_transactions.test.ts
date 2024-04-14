@@ -64,7 +64,7 @@ describe("Controller Transactions", () => {
         await manager2.approveTransaction([approveRequest])
         await manager.execute();
         let rejectedTransaction = await getTransactionByIdFromGetAllTrs(manager, tr[0].id) as ControllersUpdateTransaction;
-        expect(rejectedTransaction.state).eq(TransactionState.Rejected);
+        expect(rejectedTransaction.state).eq(TransactionState.Failed);
         expect(rejectedTransaction.threshold).eq(2);
     });
 

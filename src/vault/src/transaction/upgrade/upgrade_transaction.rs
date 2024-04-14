@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::{impl_basic_for_transaction, VERSION};
 use crate::config::get_repo_canister_id;
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::CanisterReject;
 use crate::state::VaultState;
 use crate::transaction::basic_transaction::BasicTransaction;
@@ -58,7 +58,7 @@ impl TransactionBuilder for VersionUpgradeTransactionBuilder {
         let initial_version = Version::parse(VERSION).unwrap();
         let expected_version = Version::parse(&self.request.version).unwrap();
         if expected_version <= initial_version {
-            state = Rejected;
+            state = Failed;
         }
         let trs = VersionUpgradeTransaction::new(
             state, None, self.request.version.clone(),
@@ -81,7 +81,7 @@ impl ITransaction for VersionUpgradeTransaction {
                     self.set_state(Executed);
                 }
                 Err(msg) => {
-                    self.set_state(Rejected);
+                    self.set_state(Failed);
                     self.get_common_mut().error = Some(CanisterReject { message: msg.clone() });
                 }
             }

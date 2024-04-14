@@ -3,7 +3,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::enums::VaultRole::Admin;
 use crate::errors::VaultError::{MemberNotExists, QuorumNotReachable};
 use crate::impl_basic_for_transaction;
@@ -64,7 +64,7 @@ impl ITransaction for MemberRemoveTransaction {
         match state.members.iter()
             .find(|mbr| mbr.member_id.eq_ignore_ascii_case(&self.member_id)) {
             None => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.common.error = Some(MemberNotExists);
                 state
             }
@@ -74,7 +74,7 @@ impl ITransaction for MemberRemoveTransaction {
                 if state_sandbox.members.iter()
                     .filter(|m| m.role.eq(&Admin))
                     .count() < state.quorum.quorum as usize {
-                    self.set_state(Rejected);
+                    self.set_state(Failed);
                     self.common.error = Some(QuorumNotReachable);
                     state
                 } else {

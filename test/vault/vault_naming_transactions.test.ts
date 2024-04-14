@@ -1,5 +1,5 @@
 import {DFX} from "../constanst/dfx.const";
-import {getActor, getIdentity} from "../util/deployment.util";
+import {getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute} from "../util/call.util";

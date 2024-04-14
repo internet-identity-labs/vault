@@ -4,7 +4,7 @@ use ic_cdk::api::time;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::{PolicyNotExists, ThresholdAlreadyExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -26,7 +26,7 @@ impl PolicyUpdateTransaction {
     fn new(state: TransactionState, batch_uid: Option<String>, uid: String, amount_threshold: u64,
            member_threshold: u8, ) -> Self {
         PolicyUpdateTransaction {
-            common: BasicTransactionFields::new(state, batch_uid,  true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             uid,
             amount_threshold,
             member_threshold,
@@ -40,7 +40,7 @@ impl ITransaction for PolicyUpdateTransaction {
         match state.policies.iter()
             .find(|p| p.uid.eq(&self.uid)) {
             None => {
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 self.common.error = Some(PolicyNotExists);
                 state
             }
@@ -58,7 +58,7 @@ impl ITransaction for PolicyUpdateTransaction {
                     .find(|pp| pp.amount_threshold.eq(&self.amount_threshold)) {
                     None => {}
                     Some(_) => {
-                        self.set_state(Rejected);
+                        self.set_state(Failed);
                         self.common.error = Some(ThresholdAlreadyExists);
                         return state;
                     }

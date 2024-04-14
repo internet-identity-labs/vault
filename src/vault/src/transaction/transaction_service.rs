@@ -7,8 +7,7 @@ use nfid_certified::update_trusted_origins;
 use crate::config::{Conf, CONF};
 use crate::state::{ICRC1};
 
-use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Approved, Rejected};
+use crate::enums::TransactionState::{Approved, Executed, Failed, Purged, Rejected};
 use crate::state::{define_state, get_current_state, get_icrc1_canisters, get_vault_state, restore_state};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
@@ -29,13 +28,14 @@ pub async fn execute_approved_transactions() {
         if trs.get_state().eq(&Approved) {
             state = trs.execute(state).await;
             trs.update_modified_date();
-            //check that rejected transaction not in batch - if so reject whole batch and rollback the state
-            if trs.get_state().eq(&Rejected) && trs.get_batch_uid().is_some() {
+            let current_state = trs.get_state();
+            //check that rejected/failed transaction not in batch - if so reject whole batch and rollback the state
+            if (current_state.eq(&Rejected) || current_state.eq(&Failed)) && trs.get_batch_uid().is_some() {
                 let mut rejected_batch: Vec<Box<dyn ITransaction>> = get_all_transactions()
                     .into_iter()
                     .filter(|t| t.get_batch_uid() == trs.get_batch_uid())
                     .map(|mut t| {
-                        t.set_state(Rejected);
+                        t.set_state(current_state.clone());
                         t
                     })
                     .collect();
@@ -107,7 +107,7 @@ pub fn get_unfinished_transactions() -> Vec<Box<dyn ITransaction>> {
         let trs = TransactionIterator::new(trss);
         let mut transactions: Vec<Box<dyn ITransaction>> = trs.into_iter()
             .filter(|t| {
-                ![TransactionState::Executed, TransactionState::Rejected, TransactionState::Purged].contains(t.get_state())
+                ![Executed, Rejected,  Failed, Purged].contains(t.get_state())
             })
             .collect();
         transactions.sort();

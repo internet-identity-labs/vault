@@ -3,7 +3,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
-use crate::enums::TransactionState::{Executed, Rejected};
+use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError::PolicyNotExists;
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -22,7 +22,7 @@ pub struct PolicyRemoveTransaction {
 impl PolicyRemoveTransaction {
     fn new(uid: String, state: TransactionState, batch_uid: Option<String>) -> Self {
         PolicyRemoveTransaction {
-            common: BasicTransactionFields::new(state, batch_uid,  true),
+            common: BasicTransactionFields::new(state, batch_uid, true),
             uid,
         }
     }
@@ -63,7 +63,7 @@ impl ITransaction for PolicyRemoveTransaction {
         match state.policies.iter().find(|p| p.uid.eq(&self.uid)) {
             None => {
                 self.common.error = Some(PolicyNotExists);
-                self.set_state(Rejected);
+                self.set_state(Failed);
                 state
             }
             Some(_) => {

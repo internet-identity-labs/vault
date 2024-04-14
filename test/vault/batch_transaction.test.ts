@@ -52,8 +52,8 @@ describe("Batch Transactions", () => {
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
         expect(state.members.length).eq(1)
         expect(state.quorum.quorum).eq(1)
-        expect(tr1.state).eq(TransactionState.Rejected)
-        expect(tr2.state).eq(TransactionState.Rejected)
+        expect(tr1.state).eq(TransactionState.Failed)
+        expect(tr2.state).eq(TransactionState.Failed)
     });
 
 
@@ -71,8 +71,8 @@ describe("Batch Transactions", () => {
         let state = await manager.getState();
         expect(state.members.length).eq(1)
         expect(state.quorum.quorum).eq(1)
-        expect(tr1.state).eq(TransactionState.Rejected)
-        expect(tr2.state).eq(TransactionState.Rejected)
+        expect(tr1.state).eq(TransactionState.Failed)
+        expect(tr2.state).eq(TransactionState.Failed)
         let memberReCreate = new MemberCreateTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any), "memberName", VaultRole.ADMIN);
         res = await manager.requestTransaction([memberReCreate])
         await manager.execute()
@@ -100,8 +100,8 @@ describe("Batch Transactions", () => {
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
         expect(state.members.length).eq(1)
         expect(state.quorum.quorum).eq(1)
-        expect(tr1.state).eq(TransactionState.Rejected)
-        expect(tr2.state).eq(TransactionState.Rejected)
+        expect(tr1.state).eq(TransactionState.Failed)
+        expect(tr2.state).eq(TransactionState.Failed)
     });
 
     it("Request batch transaction - executed", async function () {
