@@ -1,6 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {getTransactionByIdFromGetAllTrs} from "./helper";
@@ -46,7 +46,7 @@ describe("Batch Transactions", () => {
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([quorumTransactionRequest, memberCreate])
-        await manager.execute()
+        await sleep(2)
         let state = await manager.getState();
         let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
@@ -64,7 +64,7 @@ describe("Batch Transactions", () => {
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
-        await manager.execute()
+        await sleep(2)
         let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
 
@@ -75,14 +75,14 @@ describe("Batch Transactions", () => {
         expect(tr2.state).eq(TransactionState.Failed)
         let memberReCreate = new MemberCreateTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any), "memberName", VaultRole.ADMIN);
         res = await manager.requestTransaction([memberReCreate])
-        await manager.execute()
+        await sleep(2)
         tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         state = await manager.getState();
         expect(state.members.length).eq(2)
         expect(tr1.state).eq(TransactionState.Executed)
         let memberRemove = new MemberRemoveTransactionRequest(principalToAddress(admin_identity4.getPrincipal() as any));
         await manager.requestTransaction([memberRemove])
-        await manager.execute()
+        await sleep(2)
         state = await manager.getState();
         expect(state.members.length).eq(1)
     });
@@ -94,7 +94,7 @@ describe("Batch Transactions", () => {
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
-        await manager.execute()
+        await sleep(2)
         let state = await manager.getState();
         let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
@@ -111,7 +111,7 @@ describe("Batch Transactions", () => {
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
-        await manager.execute()
+        await sleep(2)
         let state = await manager.getState();
         let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
@@ -129,7 +129,7 @@ describe("Batch Transactions", () => {
         memberCreate.batch_uid = batchUid
         quorumTransactionRequest.batch_uid = batchUid
         let res = await manager.requestTransaction([memberCreate, quorumTransactionRequest])
-        await manager.execute()
+        await sleep(2)
         let tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         let tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
         expect(tr1.state).eq(TransactionState.Pending)
@@ -143,7 +143,7 @@ describe("Batch Transactions", () => {
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve1, approve2])
-        await manager.execute();
+        await sleep(2)
         tr1 = await getTransactionByIdFromGetAllTrs(manager, res[0].id)
         tr2 = await getTransactionByIdFromGetAllTrs(manager, res[1].id)
 

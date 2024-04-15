@@ -92,7 +92,7 @@ describe("VR Test", () => {
     });
 
     it("Get versions after upgrade", async function () {
-        DFX.UPGRADE_FORCE("vault_repo")
+        await console.log(execute(`dfx canister install --mode upgrade --upgrade-unchanged vault_repo --argument '(record { controllers = vec {}; origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; })' `))
         let actor =  await getActor(canister_id, identity, idlFactory);
         let versions = await actor.get_available_versions() as VersionWrapper[];
         expect(versions.length).eq(2);

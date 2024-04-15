@@ -3,7 +3,7 @@ import {getActor, getIdentity} from "../util/deployment.util";
 import {ActorMethod} from "@dfinity/agent";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
@@ -36,7 +36,7 @@ describe("Quorum Transactions", () => {
     it("UpdateQuorum ADMIN failed because of amount of admins less than quorum", async function () {
         let trReqResp: Array<Transaction> = await requestUpdateQuorumTransaction(manager, 2)
         let trId = trReqResp[0].id
-        await manager.execute();
+        await sleep(2);
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Failed, 2)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
@@ -53,7 +53,7 @@ describe("Quorum Transactions", () => {
         let expectedTrs: QuorumUpdateTransaction = buildExpectedQuorumTransaction(TransactionState.Approved, 2)
         verifyQuorumUpdateTransaction(tr as QuorumUpdateTransaction, trReqResp[0] as QuorumUpdateTransaction)
         verifyQuorumUpdateTransaction(expectedTrs, tr as QuorumUpdateTransaction)
-        await manager.execute();
+        await sleep(2);
         let state = await manager.getState();
         expect(state.quorum.quorum).eq(2)
     });

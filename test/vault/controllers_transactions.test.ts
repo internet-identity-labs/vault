@@ -3,7 +3,7 @@ import {getActor, getIdentity} from "../util/deployment.util";
 import {ActorMethod} from "@dfinity/agent";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
@@ -42,9 +42,8 @@ describe("Controller Transactions", () => {
 
     it("Controllers rejects transactions because canister not controller but transaction not blocked by queue", async function () {
         await requestCreateMemberTransaction(manager, principalToAddress(member.getPrincipal() as any), "memberName", VaultRole.ADMIN)
-        await manager.execute()
         await requestUpdateQuorumTransaction(manager, 2)
-        await manager.execute();
+        await sleep(2);
         let controllers = await manager.getControllers();
         let principal1 = Ed25519KeyIdentity.generate().getPrincipal();
         let principal2 = Ed25519KeyIdentity.generate().getPrincipal();
@@ -62,7 +61,7 @@ describe("Controller Transactions", () => {
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approveRequest])
-        await manager.execute();
+        await manager2.execute();
         let rejectedTransaction = await getTransactionByIdFromGetAllTrs(manager, tr[0].id) as ControllersUpdateTransaction;
         expect(rejectedTransaction.state).eq(TransactionState.Failed);
         expect(rejectedTransaction.threshold).eq(2);
@@ -78,7 +77,7 @@ describe("Controller Transactions", () => {
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approveRequest])
-        await manager.execute();
+        await manager2.execute();
         let controllers = await manager.getControllers();
         let actualPrincipals = controllers.map(c => c.toText());
         expect(actualPrincipals).contains(principal1.toText());
