@@ -2,7 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {idlFactory as vrIdl} from "./../vault_repo/sdk/vr_idl";
 import {fromHexString, principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
 import {
     getTransactionByIdFromGetAllTrs,
@@ -54,7 +54,7 @@ describe("Upgrade Transactions", () => {
         await manager.resetToLocalEnv()
         await requestCreateWalletTransaction(manager, "walletName", Network.IC);
         await requestCreateWalletTransaction(manager, "walletName2", Network.IC);
-        await manager.execute();
+        await sleep(2);
         let state = await manager.getState()
         expect(state.members.length).eq(1);
         expect(state.wallets.length).eq(2);
@@ -67,7 +67,7 @@ describe("Upgrade Transactions", () => {
     it("Upgrade approved and rejected (because of 0.0.1 version)", async function () {
         let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.1");
         let trs = trRequestResponse[0];
-        await manager.execute();
+        await sleep(2);
         let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
         //0.0.1 build marked this transaction as rejected. In 0.0.2 it was improved to mark it as failed
         let expected = buildExpectedVersionUpgradeTransaction(TransactionState.Rejected)
@@ -95,7 +95,7 @@ describe("Upgrade Transactions", () => {
         let trRequestResponse = await requestVersionUpgradeTransaction(manager, latestVaultVersion);
         let trs = trRequestResponse[0];
         try {
-            await manager.execute();
+            await sleep(2);
         }catch (e) {
             console.log(e)
         }
@@ -114,7 +114,7 @@ describe("Upgrade Transactions", () => {
     it("Upgrade approved and failed with smaller version", async function () {
         let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.1");
         let trs = trRequestResponse[0];
-        await manager.execute();
+        await sleep(2);
         let tr = await getTransactionByIdFromGetAllTrs(manager, trs.id);
         expect(tr.state).eq(TransactionState.Failed)
     });

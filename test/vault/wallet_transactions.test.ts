@@ -1,7 +1,7 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
 import {
     getTransactionByIdFromGetAllTrs,
@@ -43,7 +43,7 @@ describe("Wallet Transactions", () => {
         verifyWalletCreateTransaction(expected, trRequestResponse[0] as WalletCreateTransaction)
         let trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         verifyWalletCreateTransaction(expected, trFromAll);
-        await manager.execute()
+        await sleep(2)
         trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         expected = buildExpectedWalletCreateTransaction(TransactionState.Executed)
         verifyWalletCreateTransaction(expected, trFromAll)
@@ -62,7 +62,7 @@ describe("Wallet Transactions", () => {
         verifyWalletUpdateTransaction(expected, trRequestResponse[0] as WalletCreateTransaction)
         let trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         verifyWalletUpdateTransaction(expected, trFromAll);
-        await manager.execute()
+        await sleep(2)
         trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         expected = buildExpectedWalletCreateTransaction(TransactionState.Executed)
         expected.name = walletName_2
@@ -75,7 +75,7 @@ describe("Wallet Transactions", () => {
 
     it("UpdateWalletName failed no such wallet", async function () {
         let trRequestResponse = await requestUpdateWalletNameTransaction(manager, "uidUnexistene", walletName);
-        await manager.execute()
+        await sleep(2)
         let trFromAll = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
         let expected = buildExpectedWalletCreateTransaction(TransactionState.Failed)
         verifyWalletUpdateTransaction(expected, trFromAll)
@@ -85,12 +85,12 @@ describe("Wallet Transactions", () => {
     it("Request 2 Wallets With The Same Uid failed", async function () {
         let request1 = new WalletCreateTransactionRequest("uniqueId", "11112123123", Network.IC);
         let response1 = await manager.requestTransaction([request1])
-        await manager.execute()
+        await sleep(2)
         let transaction1 = await getTransactionByIdFromGetAllTrs(manager, response1[0].id) as WalletCreateTransaction
         expect(transaction1.state).eq(TransactionState.Executed)
         let request2 = new WalletCreateTransactionRequest("uniqueId", "345346456", Network.IC);
         let response2 = await manager.requestTransaction([request2])
-        await manager.execute()
+        await sleep(2)
         let transaction2 = await getTransactionByIdFromGetAllTrs(manager, response2[0].id) as WalletCreateTransaction
         expect(transaction2.state).eq(TransactionState.Failed)
         expect(hasOwnProperty(transaction2.error, "UIDAlreadyExists")).eq(true)

@@ -2,7 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {getTransactionByIdFromGetAllTrs, requestUpdateVaultNamingTransaction, verifyTransaction} from "./helper";
 import {Approve, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
 import {Transaction} from "@nfid/vaults";
@@ -33,7 +33,7 @@ describe("Vault Naming Transactions", () => {
     it("UpdateVault naming", async function () {
         let trReqResp: Array<Transaction> = await requestUpdateVaultNamingTransaction(manager, "Name", "Description")
         let trId = trReqResp[0].id
-        await manager.execute();
+        await sleep(2);
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         let expectedTrs: VaultUpdateNamingTransaction = buildExpectedNamingTransaction(TransactionState.Executed)
         verifyUpdateVaultNamingTransaction(expectedTrs, tr as QuorumUpdateTransaction)

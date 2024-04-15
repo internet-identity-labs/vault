@@ -2,7 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
@@ -41,14 +41,14 @@ describe("Purge Transactions", () => {
         await requestCreateMemberTransaction(manager, principalToAddress(member.getPrincipal() as any), "memberName", VaultRole.ADMIN)
         await manager.execute()
         await requestUpdateQuorumTransaction(manager, 2)
-        await manager.execute();
+        await sleep(2);
         let tr2 = await requestCreateMemberTransaction(manager, "memberAddress3", "memberName", VaultRole.ADMIN)
         let tr3 = await requestCreateMemberTransaction(manager, "memberAddress4", "memberName", VaultRole.ADMIN)
-        await manager.execute();
+        await sleep(2);
         let tr = await requestPurgeTransaction(manager);
         let tr4 = await requestCreateMemberTransaction(manager, "memberAddress5", "memberName", VaultRole.ADMIN)
         let tr5 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.ADMIN)
-        await manager.execute();
+        await sleep(2);
         let approveRequest: ApproveRequest = {
             trId: tr[0].id,
             state: TransactionState.Approved

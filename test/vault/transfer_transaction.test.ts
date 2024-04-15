@@ -1,6 +1,6 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
 import {fromHexString, principalToAddress, principalToAddressBytes} from "ictool";
 import {Principal} from "@dfinity/principal";
@@ -71,7 +71,7 @@ describe("Transfer Transactions", () => {
         let tr = trRequestResponse[0] as TransferTransaction
         let expected = buildExpectedTransferTransaction(TransactionState.Approved)
         verifyTransferTransaction(expected, trRequestResponse[0] as TransferTransaction)
-        await manager.execute()
+        await sleep(5)
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
         expected = buildExpectedTransferTransaction(TransactionState.Executed)
         verifyTransferTransaction(expected, tr)
@@ -101,7 +101,7 @@ describe("Transfer Transactions", () => {
         expected.initiator = member_address
         expected.approves[0].signer = member_address
         verifyTransferTransaction(expected, trRequestResponse[0] as TransferTransaction)
-        await manager.execute()
+        await sleep(5)
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
         expected.state = TransactionState.Executed
         verifyTransferTransaction(expected, tr)
@@ -215,7 +215,7 @@ describe("Transfer Transactions", () => {
             DEFAULT_SUB_ACCOUNT,
             100n,
             "memo")
-        await manager.execute()
+        await sleep(5)
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id) as TransferQuorumTransaction
         expect(tr.state).eq(TransactionState.Executed)
         expect(tr.threshold).eq(1)

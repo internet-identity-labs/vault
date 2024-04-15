@@ -2,7 +2,7 @@ import {DFX} from "../constanst/dfx.const";
 import {getActor, getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
@@ -62,7 +62,7 @@ describe("Member Transactions", () => {
         //verify transaction from the getAll
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
 
-        await manager.execute();
+        await sleep(2);
         let state = await manager.getState();
         let member = state.members.find(m => m.userId === memberAddress)
 
@@ -100,7 +100,7 @@ describe("Member Transactions", () => {
         let tr = await getTransactionByIdFromGetAllTrs(manager, trId);
         verifyCreateMemberTransaction(tr as MemberCreateTransaction, trReqRespBlocked[0] as MemberCreateTransaction)
 
-        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(TransactionState.Blocked)
+        let expectedTrs: MemberCreateTransaction = buildExpectedCreateMemberTransaction(TransactionState.Approved)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId)
@@ -109,7 +109,7 @@ describe("Member Transactions", () => {
         let members = state.members.length
         expect(members).eq(2)
 
-        await manager.execute();
+        await sleep(2);
         tr = await getTransactionByIdFromGetAllTrs(manager, approvedButNotExecuted[0].id);
         expectedTrs = buildExpectedCreateMemberTransaction(TransactionState.Executed)
         expectedTrs.memberId = memberAddress2

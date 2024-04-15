@@ -1,7 +1,7 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
 import {
     getTransactionByIdFromGetAllTrs,
@@ -40,7 +40,6 @@ describe("Approve Handler Transactions", () => {
         await requestCreateMemberTransaction(manager1, principalToAddress(admin_identity3.getPrincipal() as any), "a3", VaultRole.ADMIN);
         await requestCreateMemberTransaction(manager1, principalToAddress(member_identity4.getPrincipal() as any), "m3", VaultRole.MEMBER);
         await requestUpdateQuorumTransaction(manager1, 2);
-        await manager1.execute()
     });
 
     after(() => {
@@ -64,7 +63,6 @@ describe("Approve Handler Transactions", () => {
         expect(tr.approves.length).eq(3);
         expect(tr.state).eq(TransactionState.Rejected);
 
-        await manager1.execute();
         tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.state).eq(TransactionState.Rejected);
     });
@@ -76,7 +74,7 @@ describe("Approve Handler Transactions", () => {
             state: TransactionState.Approved
         }
         await manager2.approveTransaction([approve])
-        await manager1.execute();
+        await sleep(2)
         let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.approves.length).eq(2);
         expect(tr.state).eq(TransactionState.Executed);
@@ -117,8 +115,7 @@ describe("Approve Handler Transactions", () => {
         tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.approves.length).eq(3);
         expect(tr.state).eq(TransactionState.Approved);
-
-        await manager1.execute();
+        await sleep(2)
         tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.state).eq(TransactionState.Executed);
     });
@@ -133,8 +130,6 @@ describe("Approve Handler Transactions", () => {
         let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.approves.length).eq(2);
         expect(tr.state).eq(TransactionState.Rejected);
-
-        await manager1.execute();
         tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr.state).eq(TransactionState.Rejected);
 
@@ -148,7 +143,6 @@ describe("Approve Handler Transactions", () => {
     it("Trs blocked and then executed", async function () {
         let tr_id = (await requestCreateMemberTransaction(manager1, "1", "1", VaultRole.MEMBER))[0].id
         let tr_id2 = (await requestCreateMemberTransaction(manager1, "2", "2", VaultRole.MEMBER))[0].id
-        await manager1.execute();
         let tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id2));
         expect(tr.state).eq(TransactionState.Blocked);
         let approve: ApproveRequest = {
@@ -157,7 +151,7 @@ describe("Approve Handler Transactions", () => {
         }
         await manager2.approveTransaction([approve])
         await manager3.approveTransaction([approve])
-        await manager1.execute();
+        await sleep(2)
         tr = (await getTransactionByIdFromGetAllTrs(manager1, tr_id2));
         let tr1 = (await getTransactionByIdFromGetAllTrs(manager1, tr_id));
         expect(tr1.state).eq(TransactionState.Executed);
