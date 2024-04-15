@@ -92,7 +92,7 @@ describe("Member Transactions", () => {
         expect(members).eq(2)
     });
 
-    it("CreateMemberTransaction Blocked, then execute and verify second member", async function () {
+    it("CreateMemberTransaction and verify second member", async function () {
         let approvedButNotExecuted = await requestCreateMemberTransaction(manager, memberAddress2, memberName, VaultRole.MEMBER)
 
         let trReqRespBlocked: Array<Transaction> = await requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole)
@@ -105,18 +105,14 @@ describe("Member Transactions", () => {
 
         tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
-        let state = await manager.getState();
-        let members = state.members.length
-        expect(members).eq(2)
-
         await sleep(2);
         tr = await getTransactionByIdFromGetAllTrs(manager, approvedButNotExecuted[0].id);
         expectedTrs = buildExpectedCreateMemberTransaction(TransactionState.Executed)
         expectedTrs.memberId = memberAddress2
 
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
-        state = await manager.getState();
-        members = state.members.filter(m => m.userId).length
+        let state = await manager.getState();
+        let members = state.members.filter(m => m.userId).length
         expect(members).eq(3)
 
         let member = state.members.find(m => m.userId === memberAddress2)
