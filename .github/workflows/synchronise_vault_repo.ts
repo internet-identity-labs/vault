@@ -54,7 +54,7 @@ async function synchroniseWASMRepos() {
     console.log({wasmFilePath,version,canisterId,description});
 
     //clean vault_repo
-    //before this run `dfx canister install vault_repo '(ARGUMENTS DEPENDS ON NETWORK)' --network DEV/STAGE  `
+    //before this run `dfx canister install vault_repo '(ARGUMENTS DEPENDS ON NETWORK)' --network DEV/STAGE  --mode reinstall`
 
     try {
         const identity = getIdentity(identitySeed);
