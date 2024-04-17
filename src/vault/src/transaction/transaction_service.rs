@@ -8,6 +8,7 @@ use crate::config::{Conf, CONF};
 use crate::state::{ICRC1};
 
 use crate::enums::TransactionState::{Approved, Executed, Failed, Purged, Rejected};
+use crate::execute;
 use crate::state::{define_state, get_current_state, get_icrc1_canisters, get_vault_state, restore_state};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
@@ -207,6 +208,7 @@ pub async fn stable_restore() {
         utrs.borrow_mut();
         utrs.replace(trs)
     });
+    execute().await;
 }
 
 
