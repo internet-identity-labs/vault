@@ -72,7 +72,7 @@ impl ITransaction for VersionUpgradeTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
         let initial_version = Version::parse(VERSION).unwrap();
         let expected_version = Version::parse(&self.version).unwrap();
-        if expected_version.eq(&initial_version)  {
+        if expected_version <= initial_version {
             self.set_state(Executed);
             state
         } else {
