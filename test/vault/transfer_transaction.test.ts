@@ -20,17 +20,17 @@ import {
     Approve,
     ApproveRequest,
     Currency,
+    hasOwnProperty,
     Network,
     TransactionState,
     TransactionType,
+    TransferQuorumTransaction,
+    TransferTransaction,
     VaultManager,
     VaultRole,
+    WalletCreateTransaction,
     WalletCreateTransactionRequest
 } from "@nfid/vaults";
-import {WalletCreateTransaction} from "@nfid/vaults";
-import {TransferTransaction} from "@nfid/vaults";
-import {TransferQuorumTransaction} from "@nfid/vaults";
-import {hasOwnProperty} from "@nfid/vaults";
 
 require('./bigintextension.js');
 const DEFAULT_SUB_ACCOUNT =
@@ -78,6 +78,18 @@ describe("Transfer Transactions", () => {
         expect(tr.blockIndex).eq(2n)
     });
 
+    it("Trs approved and rejected - wallet not hex", async function () {
+        let memberR = new WalletCreateTransactionRequest("uniqueId", "walletName_incorrect_UID", Network.IC);
+        let createWallet = await manager.requestTransaction([memberR]) as WalletCreateTransaction[]
+        await requestCreatePolicyTransaction(manager, 1, 10, [createWallet[0].uid])
+        await manager.execute()
+        let trRequestResponse = await requestTransferTransaction(manager, address, createWallet[0].uid, 100)
+        let tr = trRequestResponse[0] as TransferTransaction
+        await sleep(5)
+        tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
+        expect(tr.state).eq(TransactionState.Failed)
+    });
+
     it("Trs approved and failed ", async function () {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 300_000_000)
         let tr = trRequestResponse[0] as TransferTransaction
@@ -107,7 +119,21 @@ describe("Transfer Transactions", () => {
         verifyTransferTransaction(expected, tr)
     });
 
-    it("Trs approved and failed by system", async function () {
+    it("Trs approved and failed from member", async function () {
+        await requestCreateMemberTransaction(manager, member_address, "memberName", VaultRole.MEMBER)
+        await manager.execute()
+        let trRequestResponse = await requestTransferTransaction(manager_member, "address", walletUId, 100)
+        let tr = trRequestResponse[0] as TransferTransaction
+        let expected = buildExpectedTransferTransaction(TransactionState.Approved)
+        expected.initiator = member_address
+        expected.approves[0].signer = member_address
+        await sleep(5)
+        tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TransferTransaction
+        expected.state = TransactionState.Failed
+        expect(hasOwnProperty(tr.error, "CanisterReject")).eq(true)
+    });
+
+    it("Trs approved and failed by system ", async function () {
         let trRequestResponse = await requestTransferTransaction(manager, address, walletUId, 10)
         await manager.execute()
         let tr = await getTransactionByIdFromGetAllTrs(manager, trRequestResponse[0].id)
@@ -145,11 +171,11 @@ describe("Transfer Transactions", () => {
         //have to be blocked by previous transfer transactions
         expect(walletTransaction.state).eq(TransactionState.Blocked)
         let reject1: ApproveRequest = {
-            trId: trs[9].id,
+            trId:  trs[trs.length - 2].id,
             state: TransactionState.Rejected
         }
         let reject2: ApproveRequest = {
-            trId: trs[10].id,
+            trId:  trs[trs.length - 1].id,
             state: TransactionState.Rejected
         }
         await manager_member.approveTransaction([reject1, reject2])

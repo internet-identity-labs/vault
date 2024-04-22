@@ -14,8 +14,15 @@ import {readWasmFile} from "../vault_repo/vault_repo.test";
 import {sha256} from "ethers/lib/utils";
 import {VaultWasm} from "../vault_repo/sdk/vr";
 import {createCanister} from "../vault_manager/sdk/ochestrator";
-import {Approve, Network, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
-import {VersionUpgradeTransaction} from "@nfid/vaults";
+import {
+    Approve,
+    Network,
+    TransactionState,
+    TransactionType,
+    VaultManager,
+    VersionUpgradeTransaction
+} from "@nfid/vaults";
+import {fail} from "assert";
 
 require('./bigintextension.js');
 
@@ -96,7 +103,7 @@ describe("Upgrade Transactions", () => {
         let trs = trRequestResponse[0];
         try {
             await sleep(2);
-        }catch (e) {
+        } catch (e) {
             console.log(e)
         }
         await manager.execute();
@@ -129,6 +136,16 @@ describe("Upgrade Transactions", () => {
         expected.initial_version = "0.0.2"
         expected.version = "0.0.2"
         verifyUpgradeTransaction(expected, tr)
+    });
+
+
+    it("Upgrade approved and failed because not semver", async function () {
+        try {
+            let trRequestResponse = await requestVersionUpgradeTransaction(manager, "0.0.n");
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("Failed to parse semver!")
+        }
     });
 
 

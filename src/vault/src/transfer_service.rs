@@ -1,6 +1,6 @@
 use candid::CandidType;
 use candid::Principal;
-use ic_cdk::api::call::CallResult;
+use ic_cdk::api::call::{CallResult, RejectionCode};
 use ic_cdk::call;
 use ic_ledger_types::{AccountIdentifier, BlockIndex as BlockIndexLegacy, DEFAULT_FEE, MAINNET_LEDGER_CANISTER_ID, Memo as MemoLegacy, Subaccount as SubLegacy, Tokens};
 use icrc_ledger_types::icrc1;
@@ -13,7 +13,22 @@ use crate::to_array;
 
 pub async fn transfer(amount: u64, to: AccountIdentifier, from_hex: String, memo: Option<u64>) -> Result<BlockIndexLegacy, String> {
     let tokens = Tokens::from_e8s(amount);
-    let from_decoded = hex::decode(from_hex).unwrap();
+    let from_decoded = match hex::decode(from_hex) {
+        Ok(x) => { x }
+        Err(err) => {
+            match err {
+                hex::FromHexError::InvalidHexCharacter { c, index } => {
+                    return Err(format!("Invalid hex character {} at index {}", c, index));
+                }
+                hex::FromHexError::OddLength => {
+                    return Err("OddLength".to_string());
+                }
+                hex::FromHexError::InvalidStringLength => {
+                    return Err("InvalidStringLength".to_string());
+                }
+            }
+        }
+    };
     let from_sub = SubLegacy(to_array(from_decoded));
     let ledger_canister_id = MAINNET_LEDGER_CANISTER_ID;
     let memo = match memo {
@@ -38,7 +53,12 @@ pub enum TransferResult { Ok(BlockIndex), Err(TransferError) }
 
 pub async fn transfer_icrc1(icrc1_canister: Principal, amount: u64, to_owner: Principal, subaccount: Option<Subaccount>, from_wallet_hex: String) -> CallResult<(TransferResult, )> {
     let amount_nat = NumTokens::from(amount);
-    let from_decoded = hex::decode(from_wallet_hex).unwrap();
+    let from_decoded = match hex::decode(from_wallet_hex) {
+        Ok(x) => { x }
+        Err(err) => {
+            return Err((RejectionCode::DestinationInvalid, format!("Failed to decode hex: {:?}", err)));
+        }
+    };
     let from_sub = to_array(from_decoded);
     let args = icrc1::transfer::TransferArg {
         from_subaccount: Some(from_sub),
