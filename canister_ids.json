@@ -4,7 +4,7 @@
     "dev": "a4gq6-oaaaa-aaaab-qaa4q-cai"
   },
   "vault": {
-    "dev": "6jq2j-daaaa-aaaap-absuq-cai",
+    "dev": "WYK2M-KQAAA-AAAAN-QMCRQ-CAI",
     "stage": "6jq2j-daaaa-aaaap-absuq-cai",
     "ic": "6jq2j-daaaa-aaaap-absuq-cai",
     "test": "pe6xu-5qaaa-aaaan-qltsa-cai",
@@ -13,7 +13,8 @@
   },
   "vault_manager": {
     "dev": "sgk26-7yaaa-aaaan-qaovq-cai",
-    "stage": "rhu7u-iyaaa-aaaag-acipq-cai",
+    "stage": "45czg-qqaaa-aaaar-qaesq-cai",
+    "stage-old": "rhu7u-iyaaa-aaaag-acipq-cai",
     "ic": "z2cpg-maaaa-aaaal-adx2q-cai"
   },
   "vault_repo": {
