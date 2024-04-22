@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use candid::CandidType;
 use ic_cdk::api::call;
 use ic_cdk::api::management_canister::main::{CanisterInstallMode, InstallCodeArgument};
-use ic_cdk::id;
+use ic_cdk::{id, trap};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
@@ -56,7 +56,14 @@ impl VersionUpgradeTransactionBuilder {
 impl TransactionBuilder for VersionUpgradeTransactionBuilder {
     async fn build_dyn_transaction(&mut self, mut state: TransactionState) -> Box<dyn ITransaction> {
         let initial_version = Version::parse(VERSION).unwrap();
-        let expected_version = Version::parse(&self.request.version).unwrap();
+        let expected_version = match Version::parse(&self.request.version) {
+            Ok(x) => {
+                x
+            }
+            Err(_) => {
+                trap("Failed to parse semver!");
+            }
+        };
         if expected_version <= initial_version {
             state = Failed;
         }
@@ -71,7 +78,16 @@ impl TransactionBuilder for VersionUpgradeTransactionBuilder {
 impl ITransaction for VersionUpgradeTransaction {
     async fn execute(&mut self, state: VaultState) -> VaultState {
         let initial_version = Version::parse(VERSION).unwrap();
-        let expected_version = Version::parse(&self.version).unwrap();
+        let expected_version =  match Version::parse(&self.version) {
+            Ok(x) => {
+                x
+            }
+            Err(msg) => {
+                self.set_state(Failed);
+                self.get_common_mut().error = Some(CanisterReject { message: format!("Failed to parse semver!: {}", msg) });
+                return state;
+            }
+        };
         if expected_version <= initial_version {
             self.set_state(Executed);
             state
