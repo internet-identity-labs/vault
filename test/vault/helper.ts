@@ -137,7 +137,7 @@ export async function requestQuorumTransferTransaction(manager, address, wallet,
 }
 
 
-export async function requestICRC1TransferTransaction(manager: VaultManager, toPrincipal: Principal, toSubaccount: undefined | [Uint8Array | number[]], ledgerId: Principal, wallet: string, amount: bigint, memo: string): Promise<Array<Transaction>> {
+export async function requestICRC1TransferTransaction(manager: VaultManager, toPrincipal: Principal, toSubaccount: undefined | Uint8Array | number[], ledgerId: Principal, wallet: string, amount: bigint, memo: string): Promise<Array<Transaction>> {
     let memberR = new TransferICRC1QuorumTransactionRequest(toPrincipal, toSubaccount, ledgerId, wallet, amount, memo);
     return await manager.requestTransaction([memberR])
 }
