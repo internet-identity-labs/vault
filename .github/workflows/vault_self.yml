@@ -267,12 +267,6 @@ jobs:
           ci_echo_debug "Command output was '${result}'" >&2
           ci_echo_success "Canister '${CANISTER_NAME}' was installed" >&2
 
-      - name: Save artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.CANISTER_WASM }}${{ env.ARTIFACT_VERSION }}
-          path: ${{ github.workspace }}/${{ env.CANISTER_WASM }}
-
       - name: DEPLOY => Upload WASM to the Vault Repo.
         if: ${{ github.event.inputs.canister_name == 'vault' }}
         env:
