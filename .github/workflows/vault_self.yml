@@ -328,6 +328,7 @@ jobs:
           ci_echo_info "TAG=${TAG}" >&2
 
       - name: Create Tag
+        if: ${{ github.event.inputs.canister_name == 'vault' }}
         uses: actions/github-script@v7
         with:
           script: |
