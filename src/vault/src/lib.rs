@@ -95,7 +95,7 @@ async fn get_state(tr_id: Option<u64>) -> VaultState {
     get_vault_state(tr_id).await
 }
 
-#[update]
+#[update (guard = "is_caller_registered")]
 async fn approve(request: Vec<TransactionApproveRequest>) -> Vec<TransactionCandid> {
     let mut approved_trs = Vec::default();
     for approve in request {
