@@ -4,7 +4,7 @@ This repository represents a protocol for creating and managing Vault products. 
 
 - **Vault**: A self-sovereign protocol, serving as a smart contract for managing access to canister signature of the Internet Computer protocol.
 - **VaultManager**: A smart contract for creating Vault objects.
-- **VaultRepository**: A smart contract for storing versions of Vault products.
+- **VaultRepository**: A smart contract for storing versions (WASM) of Vault products.
 
 ## Vault
 
