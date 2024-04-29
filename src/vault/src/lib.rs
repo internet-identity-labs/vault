@@ -26,6 +26,7 @@ use crate::transaction::transaction_request_handler::{handle_transaction_request
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
 use crate::util::{to_address, to_array};
 use crate::version_const::VERSION;
+use crate::security_service::is_caller_registered;
 
 mod util;
 mod enums;
@@ -64,7 +65,7 @@ async fn get_version() -> String {
     VERSION.to_string()
 }
 
-#[update]
+#[update (guard = "is_caller_registered")]
 async fn request_transaction(transaction_request: Vec<TransactionRequest>) -> Vec<TransactionCandid> {
     let mut trs: Vec<TransactionCandid> = Default::default();
     for tr in transaction_request {
