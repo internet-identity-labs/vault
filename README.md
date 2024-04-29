@@ -23,11 +23,11 @@ Where:
 VaultManager allows the creation of vault canisters. To deploy a local vault manager canister, run the following command:
 
 ```bash
-dfx deploy vault_manager  --argument '(record { origins = vec {"TRUSTED_ORIGIN";}; initial_cycles_balance = INITILA_CYCLE_BALANCE : nat; icp_price = E8S_PRICE : nat64; repo_canister_id = "VAULT_REPO_CANISTER_ID"; destination_address = "PROTOCOL_WALLET_ADDRESS" } )'
+dfx deploy vault_manager  --argument '(record { origins = vec {"TRUSTED_ORIGIN";}; initial_cycles_balance = INITIAL_CYCLES_BALANCE : nat; icp_price = E8S_PRICE : nat64; repo_canister_id = "VAULT_REPO_CANISTER_ID"; destination_address = "PROTOCOL_WALLET_ADDRESS" } )'
 ```
 
 - `TRUSTED_ORIGIN` is the list of origins that can call the vault manager canister.
-- `INITILA_CYCLE_BALANCE` is the initial cycles balance of the created vault canister.
+- `INITIAL_CYCLES_BALANCE` is the initial cycles balance of the created vault canister.
 - `E8S_PRICE` is the protocol price of vault creation.
 - `VAULT_REPO_CANISTER_ID` is the ID of the vault repository canister that manages upgrades of the vault version.
 - `PROTOCOL_WALLET_ADDRESS` is the address of the protocol wallet that receives the protocol fee.
@@ -37,6 +37,7 @@ To create a Vault canister through the VaultManager, run the following method wi
 - `TRANSACTION_ID` is the transaction ID in the ledger to verify that `E8S_PRICE` is paid.
 - `Pro` or `Light` is the type of the vault canister to create (default is `Pro`).
 - `VAULT_ADMIN_PRINCIPAL` is the principal of the admin of the newly created vault canister.
+
 ## VaultRepository
 
 VaultRepository allows storing and managing versions of vault canisters.
