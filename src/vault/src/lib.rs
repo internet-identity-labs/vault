@@ -148,9 +148,8 @@ async fn get_controllers() -> Vec<Principal> {
     res.unwrap().0.settings.controllers
 }
 
-#[update]
+#[update (guard = "is_caller_registered")]
 async fn store_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
-    verify_caller([VaultRole::Admin, VaultRole::Member].to_vec());
     save_icrc1_canister(canister_id).await
 }
 
