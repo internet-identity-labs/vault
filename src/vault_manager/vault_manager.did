@@ -20,11 +20,6 @@ type VaultType = variant {
     Light
 };
 
-type Result_1 = variant {
-    Ok;
-    Err : text
-};
-
 type VaultCanister = record {
     initiator : principal;
     canister_id : principal;
@@ -34,6 +29,5 @@ type VaultCanister = record {
     canister_balance : () -> (nat64) query;
     create_canister_call : (nat64, opt VaultType, opt principal) -> (Result);
     get_all_canisters : () -> (vec VaultCanister) query;
-    update_canister_self : (text) -> (Result_1);
     get_config : () -> (Conf) query;
 }
