@@ -1,0 +1,8 @@
+# Repo codeowner
+* @olsemeno
+
+# Pipelines codeowner
+.github/workflows/* @DaniilIdentity
+
+# Comments explaining ownership
+# This section is owned by the Internet Identity Labs, Inc. team
