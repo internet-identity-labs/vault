@@ -14,7 +14,7 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout CI repo.
+      - name: Checkout repo.
         uses: actions/checkout@v4
 
       - name: Checkout CI repo.
