@@ -5,22 +5,22 @@ use std::cell::RefCell;
 use std::string::ToString;
 
 use candid::{CandidType, export_service, Principal};
-use ic_cdk::{call, id};
+use ic_cdk::{call, id, trap};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use ic_cdk::api::time;
 use ic_cdk_macros::*;
 use serde::Deserialize;
+use sha2::digest::generic_array::functional::FunctionalSequence;
 
 use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
 
 use crate::config::{Conf, CONF};
 use crate::enums::{TransactionState, VaultRole};
-use crate::security_service::verify_caller;
 use crate::state::{get_vault_state, save_icrc1_canister, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
-use crate::transaction::transaction::TransactionCandid;
+use crate::transaction::transaction::{Candid, TransactionCandid};
 use crate::transaction::transaction_approve_handler::{Approve, handle_approve, TransactionApproveRequest};
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
 use crate::transaction::transaction_service::{execute_approved_transactions, get_all_transactions, stable_restore, stable_save, store_transaction};
@@ -71,6 +71,16 @@ async fn request_transaction(transaction_request: Vec<TransactionRequest>) -> Ve
     for tr in transaction_request {
         let a = handle_transaction_request(tr).await;
         trs.push(a);
+    }
+    let uids: Vec<_> = trs.clone().into_iter()
+        .map(|l| l.to_transaction())
+        .map(|l| l.get_batch_uid())
+        .collect();
+
+    let all_same = uids.iter().all(|x| uids[0].eq(x));
+
+    if !all_same {
+        trap("All objects should have the same batch UID, or do not have it at all");
     }
     trs
 }

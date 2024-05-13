@@ -12,6 +12,7 @@ import {
     VaultManager,
     VaultRole
 } from "@nfid/vaults";
+import {fail} from "assert";
 
 require('./bigintextension.js');
 
@@ -39,6 +40,8 @@ describe("Batch Transactions", () => {
         DFX.STOP();
     });
 
+    let trs;
+
     it("Request batch transaction incorrect order - rejected", async function () {
         let memberCreate = new MemberCreateTransactionRequest("memberAddress", "memberName", VaultRole.ADMIN);
         let quorumTransactionRequest = new QuorumTransactionRequest(2);
@@ -54,6 +57,36 @@ describe("Batch Transactions", () => {
         expect(state.quorum.quorum).eq(1)
         expect(tr1.state).eq(TransactionState.Failed)
         expect(tr2.state).eq(TransactionState.Failed)
+        let allTransactions = await manager.getTransactions()
+        trs = allTransactions.length
+    });
+
+    it("Request batch transaction with different batch UIDs - rejected", async function () {
+        let memberCreate = new MemberCreateTransactionRequest("memberAddress", "memberName", VaultRole.ADMIN);
+        let quorumTransactionRequest = new QuorumTransactionRequest(2);
+        let batchUid = "someRandomGeneratedUID_1"
+        memberCreate.batch_uid = batchUid
+        try {
+            await manager.requestTransaction([memberCreate, quorumTransactionRequest])
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("All objects should have the same batch UID, or do not have it at all")
+        }
+        let state = await manager.getState();
+        expect(state.quorum.quorum).eq(1)
+        expect(state.members.length).eq(1)
+        quorumTransactionRequest.batch_uid = "someRandomGeneratedUID_2"
+        try {
+            await manager.requestTransaction([memberCreate, quorumTransactionRequest])
+            fail("Should throw error")
+        } catch (e) {
+            expect(e.message).contains("All objects should have the same batch UID, or do not have it at all")
+        }
+        state = await manager.getState();
+        expect(state.quorum.quorum).eq(1)
+        expect(state.members.length).eq(1)
+        let allTransactions = await manager.getTransactions()
+        expect(allTransactions.length).eq(trs)
     });
 
 
