@@ -2,6 +2,7 @@
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
+use std::hash::Hash;
 use crate::enums::TransactionState::Executed;
 use crate::get_state;
 use crate::transaction::member::members::Member;
@@ -13,7 +14,25 @@ use crate::transaction::wallet::wallet::Wallet;
 
 thread_local! {
     pub static STATE: RefCell<VaultState> = RefCell::new(VaultState::default());
-    pub static ICRC1: RefCell<Vec<Principal>> = RefCell::new(Default::default());
+    pub static ICRC1_STORAGE: RefCell<Vec<ICRC1>> = RefCell::new(Default::default());
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize, Eq)]
+pub struct ICRC1 {
+    pub ledger: Principal,
+    pub index: Option<Principal>,
+}
+
+impl PartialEq for ICRC1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.ledger == other.ledger
+    }
+}
+
+impl Hash for ICRC1 {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.ledger.hash(state);
+    }
 }
 
 
@@ -25,7 +44,7 @@ pub struct VaultState {
     pub policies: Vec<Policy>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub icrc1_canisters: Vec<Principal>,
+    pub icrc1_canisters: Vec<ICRC1>,
 }
 
 impl VaultState {
@@ -82,23 +101,24 @@ pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Optio
     state
 }
 
-pub async fn save_icrc1_canister(canisters: Vec<Principal>) -> VaultState {
-    ICRC1.with(|c| {
-        c.borrow_mut().extend(canisters);
+pub async fn save_icrc1_canister(ledger: Principal, index: Option<Principal>) -> VaultState {
+    ICRC1_STORAGE.with(|c| {
+        c.borrow_mut().push(ICRC1 {
+            ledger,
+            index
+        });
     });
     get_state(None).await
 }
 
-pub async fn delete_icrc1_canisters(canisters: Vec<Principal>) -> VaultState {
-    ICRC1.with(|c| {
+pub async fn delete_icrc1_canister(ledger: Principal) -> VaultState {
+    ICRC1_STORAGE.with(|c| {
         let mut canisters_borrowed = c.borrow_mut();
-        for canister in canisters.iter() {
-            canisters_borrowed.retain(|c| c != canister);
-        }
+        canisters_borrowed.retain(|c| c.ledger != ledger);
     });
     get_state(None).await
 }
 
-pub fn get_icrc1_canisters() -> Vec<Principal> {
-    ICRC1.with(|c| c.borrow().clone())
+pub fn get_icrc1_canisters() -> Vec<ICRC1> {
+    ICRC1_STORAGE.with(|c| c.borrow().clone())
 }

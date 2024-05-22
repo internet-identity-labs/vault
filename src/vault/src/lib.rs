@@ -17,7 +17,7 @@ use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted
 
 use crate::config::{Conf, CONF};
 use crate::enums::{TransactionState, VaultRole};
-use crate::state::{delete_icrc1_canisters, get_vault_state, save_icrc1_canister, VaultState};
+use crate::state::{delete_icrc1_canister, get_vault_state, save_icrc1_canister, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
 use crate::transaction::transaction::{Candid, TransactionCandid};
@@ -155,13 +155,13 @@ async fn get_controllers() -> Vec<Principal> {
 }
 
 #[update (guard = "is_caller_registered")]
-async fn store_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
-    save_icrc1_canister(canister_id).await
+async fn store_icrc1_canister(canister_id: Principal, index_id: Option<Principal>) -> VaultState {
+    save_icrc1_canister(canister_id, index_id).await
 }
 
 #[update (guard = "is_caller_registered")]
-async fn remove_icrc1_canisters(canister_id: Vec<Principal>) -> VaultState {
-    delete_icrc1_canisters(canister_id).await
+async fn remove_icrc1_canister(canister_id: Principal) -> VaultState {
+    delete_icrc1_canister(canister_id).await
 }
 
 #[query]
