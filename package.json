@@ -18,7 +18,7 @@
     "printWidth": 120
   },
   "devDependencies": {
-    "@nfid/vaults": "0.0.4-alpha.4",
+    "@nfid/vaults": "0.0.4-alpha.5",
     "@dfinity/agent": "1.0.1",
     "@dfinity/candid": "1.0.1",
     "@dfinity/identity": "1.0.1",
