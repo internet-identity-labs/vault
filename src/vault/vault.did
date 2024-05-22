@@ -401,4 +401,5 @@ type WalletUpdateNameTransactionRequest = record {
         witness: vec nat8;
     }) query;
     store_icrc1_canisters: (vec principal) -> (VaultState);
+    remove_icrc1_canisters: (vec principal) -> (VaultState);
 }

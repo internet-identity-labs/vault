@@ -25,7 +25,7 @@ pub struct VaultState {
     pub policies: Vec<Policy>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub icrc1_canisters: Vec<Principal>
+    pub icrc1_canisters: Vec<Principal>,
 }
 
 impl VaultState {
@@ -85,6 +85,16 @@ pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Optio
 pub async fn save_icrc1_canister(canisters: Vec<Principal>) -> VaultState {
     ICRC1.with(|c| {
         c.borrow_mut().extend(canisters);
+    });
+    get_state(None).await
+}
+
+pub async fn delete_icrc1_canisters(canisters: Vec<Principal>) -> VaultState {
+    ICRC1.with(|c| {
+        let mut canisters_borrowed = c.borrow_mut();
+        for canister in canisters.iter() {
+            canisters_borrowed.retain(|c| c != canister);
+        }
     });
     get_state(None).await
 }
