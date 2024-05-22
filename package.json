@@ -37,6 +37,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@nfid/vaults": "^0.0.4-alpha.6"
+    "@nfid/vaults": "^0.0.4-alpha.7"
   }
 }

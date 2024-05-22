@@ -28,58 +28,58 @@ describe("State Transactions", () => {
         DFX.STOP();
     });
 
-    // it("Request transactions - redefine state", async function () {
-    //     let tr1 = await requestCreateMemberTransaction(manager, "memberAddress1", "memberName", VaultRole.MEMBER)
-    //     let tr2 = await requestCreateMemberTransaction(manager, "memberAddress2", "memberName", VaultRole.MEMBER)
-    //     let tr3 = await requestCreateMemberTransaction(manager, "memberAddress3", "memberName", VaultRole.MEMBER)
-    //     let tr4 = await requestCreateMemberTransaction(manager, "memberAddress4", "memberName", VaultRole.MEMBER)
-    //     let tr5 = await requestCreateMemberTransaction(manager, "memberAddress5", "memberName", VaultRole.MEMBER)
-    //     await manager.execute()
-    //
-    //     let currentState = await manager.getState();
-    //
-    //     expect(currentState.members.length).eq(6)
-    //
-    //     let state1trs = await manager.getState(1n)
-    //
-    //     expect(state1trs.members.length).eq(1)
-    //     expect(state1trs.members[0].userId).eq(principalToAddress(admin_identity.getPrincipal() as any))
-    //
-    //     let state2trs = await manager.getState(tr3[0].id)
-    //
-    //     expect(state2trs.members.length).eq(4)
-    // });
-    //
-    // it("Request transactions - redefine state after reject", async function () {
-    //     let tr1 = await requestUpdateQuorumTransaction(manager, 3)
-    //     let tr2 = await requestUpdateQuorumTransaction(manager, 5)
-    //     let tr3 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.MEMBER)
-    //     let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.ADMIN)
-    //     await manager.execute()
-    //
-    //     let state2trs = await manager.getState(tr2[0].id)
-    //
-    //     expect(state2trs.quorum.quorum).eq(1)
-    //     expect(state2trs.members.length).eq(6)
-    // });
-    //
-    // it("Request transactions - redefine state after blocked", async function () {
-    //     let tr1 = await requestUpdateQuorumTransaction(manager, 2)
-    //     await manager.execute()
-    //     let tr3 = await requestCreateMemberTransaction(manager, "memberAddress8", "memberName", VaultRole.ADMIN)
-    //     let tr4 = await requestCreateMemberTransaction(manager, "memberAddress9", "memberName", VaultRole.MEMBER)
-    //     let state2trs = await manager.getState(tr4[0].id)
-    //
-    //     expect(state2trs.quorum.quorum).eq(2)
-    //     //7 from previous + 1 admin and 2 in blocked (not executed)
-    //     expect(state2trs.members.length).eq(8)
-    // });
+    it("Request transactions - redefine state", async function () {
+        let tr1 = await requestCreateMemberTransaction(manager, "memberAddress1", "memberName", VaultRole.MEMBER)
+        let tr2 = await requestCreateMemberTransaction(manager, "memberAddress2", "memberName", VaultRole.MEMBER)
+        let tr3 = await requestCreateMemberTransaction(manager, "memberAddress3", "memberName", VaultRole.MEMBER)
+        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress4", "memberName", VaultRole.MEMBER)
+        let tr5 = await requestCreateMemberTransaction(manager, "memberAddress5", "memberName", VaultRole.MEMBER)
+        await manager.execute()
+
+        let currentState = await manager.getState();
+
+        expect(currentState.members.length).eq(6)
+
+        let state1trs = await manager.getState(1n)
+
+        expect(state1trs.members.length).eq(1)
+        expect(state1trs.members[0].userId).eq(principalToAddress(admin_identity.getPrincipal() as any))
+
+        let state2trs = await manager.getState(tr3[0].id)
+
+        expect(state2trs.members.length).eq(4)
+    });
+
+    it("Request transactions - redefine state after reject", async function () {
+        let tr1 = await requestUpdateQuorumTransaction(manager, 3)
+        let tr2 = await requestUpdateQuorumTransaction(manager, 5)
+        let tr3 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.MEMBER)
+        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.ADMIN)
+        await manager.execute()
+
+        let state2trs = await manager.getState(tr2[0].id)
+
+        expect(state2trs.quorum.quorum).eq(1)
+        expect(state2trs.members.length).eq(6)
+    });
+
+    it("Request transactions - redefine state after blocked", async function () {
+        let tr1 = await requestUpdateQuorumTransaction(manager, 2)
+        await manager.execute()
+        let tr3 = await requestCreateMemberTransaction(manager, "memberAddress8", "memberName", VaultRole.ADMIN)
+        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress9", "memberName", VaultRole.MEMBER)
+        let state2trs = await manager.getState(tr4[0].id)
+
+        expect(state2trs.quorum.quorum).eq(2)
+        //7 from previous + 1 admin and 2 in blocked (not executed)
+        expect(state2trs.members.length).eq(8)
+    });
 
     it( "ICRC1 Add" , async function () {
         let state = await manager.addICRC1Canister(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id))
         expect(state.icrc1_canisters.length).eq(1)
         expect(state.icrc1_canisters[0].ledger.toText()).eq("6jq2j-daaaa-aaaap-absuq-cai")
-        expect(state.icrc1_canisters[0].index[0]).eq(canister_id)
+        expect(state.icrc1_canisters[0].index.toText()).eq(canister_id)
     });
 
     it( "ICRC1 Remove" , async function () {
