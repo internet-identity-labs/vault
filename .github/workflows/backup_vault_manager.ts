@@ -51,6 +51,7 @@ async function writeToFile(filePath, dataToWrite) {
     if (!filePath) {
         throw new Error("File path was not provided.");
     }
+    console.log(`Working with '${filePath}'`);
 
     await fs.access(filePath, fs.constants.F_OK, (err) => {
         if (!err) {
