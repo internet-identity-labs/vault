@@ -100,12 +100,17 @@ async function createBackupAll() {
     console.log(canisterIds);
 
     for (let i = 0; i < canisterIds.length; i++) {
-        let canister_path = `${backupPath}/${canisterIds[i]}.json`
-        let vaultActor = await getActor(canisterIds[i], identity, VaultIdl);
-        let transactions = await vaultActor.get_transactions_all();
-        let transactionsResponse = JSON.stringify(transactions);
+        try {
+            let canister_path = `${backupPath}/${canisterIds[i]}.json`
+            let vaultActor = await getActor(canisterIds[i], identity, VaultIdl);
+            let transactions = await vaultActor.get_transactions_all();
+            let transactionsResponse = JSON.stringify(transactions);
 
-        await writeToFile(canister_path, transactionsResponse);
+            await writeToFile(canister_path, transactionsResponse);
+        } catch (e) {
+            console.log(`Error Happen in canister '` + canisterIds[i] + `'` );
+            console.log(JSON.stringify(e));
+        }
     }
 }
 
