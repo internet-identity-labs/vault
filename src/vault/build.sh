@@ -9,6 +9,9 @@ fi
 REPO_DIR="$(dirname "$0")"
 TARGET="wasm32-unknown-unknown"
 
+echo "adding target ${TARGET}">&2
+rustup target add ${TARGET}
+
 cargo_build_args=(
   --manifest-path "$REPO_DIR/Cargo.toml"
   --target "$TARGET"

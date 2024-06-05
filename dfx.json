@@ -47,6 +47,12 @@
       ],
       "type": "persistent"
     },
+    "test2": {
+      "providers": [
+        "https://icp0.io/"
+      ],
+      "type": "persistent"
+    },
     "test_clean_job": {
       "providers": [
         "https://icp0.io/"
