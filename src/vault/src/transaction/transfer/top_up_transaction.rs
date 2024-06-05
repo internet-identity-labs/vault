@@ -9,7 +9,7 @@ use crate::enums::{Currency, TransactionState};
 use crate::enums::TransactionState::{Executed, Failed};
 use crate::errors::VaultError;
 use crate::errors::VaultError::CanisterReject;
-use crate::state::VaultState;
+use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::basic_transaction::BasicTransactionFields;
 use crate::transaction::transaction::{ITransaction, TransactionCandid};
@@ -59,7 +59,27 @@ impl ITransaction for TopUpTransaction {
     }
 
     fn define_threshold(&mut self) -> Result<u8, VaultError> {
-        self.define_transfer_threshold()
+        let state = get_current_state();
+        let wallet = self.get_wallet();
+        let amount = self.get_amount();
+        let policy = state.policies.iter()
+            .filter(|p| p.wallets.contains(&wallet))
+            .filter(|p| p.amount_threshold < amount)
+            .max_by(|a, b| {
+                a.amount_threshold.cmp(&b.amount_threshold)
+            });
+        match policy {
+            None => {
+                let threshold = state.quorum.quorum;
+                self.set_threshold(threshold.clone());
+                Ok(threshold)
+            }
+            Some(x) => {
+                self.set_policy(Some(x.uid.clone()));
+                self.set_threshold(x.member_threshold);
+                Ok(x.member_threshold)
+            }
+        }
     }
 
     async fn execute(&mut self, state: VaultState) -> VaultState {

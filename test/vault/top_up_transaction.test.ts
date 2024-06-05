@@ -1,10 +1,15 @@
 import {getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
-import {getTransactionByIdFromGetAllTrs, requestTopUpTransaction, verifyTransaction} from "./helper";
+import {
+    getTransactionByIdFromGetAllTrs, requestCreateMemberTransaction, requestCreatePolicyTransaction,
+    requestCreateWalletTransaction,
+    requestTopUpTransaction,
+    verifyTransaction
+} from "./helper";
 import {sleep} from "../util/call.util";
-import {Approve, Currency, TransactionState, TransactionType, VaultManager} from "@nfid/vaults";
-import {TopUpTransaction} from "@nfid/vaults";
+import {Approve,
+    ApproveRequest, Currency, WalletCreateTransaction, Network, TopUpTransaction, TransactionState, TransactionType, VaultManager, VaultRole} from "@nfid/vaults";
 
 require('./bigintextension.js');
 
@@ -14,13 +19,17 @@ describe.skip("TopUp Transactions", () => {
     const walletUid = "ba7f3c8953f15ae2e66f8def7d3a7c388e5af7f35e9c74f7d95aa3faa4b20c22";
     let canisterId = "hygn6-wiaaa-aaaal-qcr7a-cai";
     let admin_identity = getIdentity("87654321876543218765432187654321")
+    let member_identity = getIdentity("87654321876543218765432187654322")
+    console.log(admin_identity.getPrincipal().toText())
     let manager: VaultManager;
+    let member_manager: VaultManager;
     before(async () => {
         manager = new VaultManager(canisterId, admin_identity);
-        await manager.resetToLocalEnv();
+        await requestCreateMemberTransaction(manager, principalToAddress(member_identity.getPrincipal() as any), "DummeMember", VaultRole.MEMBER);
+        member_manager = new VaultManager(canisterId, member_identity);
     });
 
-    it("Trs approved and transferred", async function () {
+    it("Trs approved and transferred without Policy", async function () {
         let cycleBalance = await manager.canisterBalance()
         await manager.execute()
         let trRequestResponse = await requestTopUpTransaction(manager, walletUid, 100000)
@@ -35,14 +44,35 @@ describe.skip("TopUp Transactions", () => {
         expect(cycleBalance2 > cycleBalance).eq(true)
     });
 
-    it("Trs Rejected", async function () {
+    it("Trs Rejected without Policy", async function () {
         await manager.execute()
         let trRequestResponse = await requestTopUpTransaction(manager, walletUid, 999999999)
         let tr = trRequestResponse[0] as TopUpTransaction
         await manager.execute()
         tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TopUpTransaction
         expect(tr.state).eq(TransactionState.Failed)
-        expect(tr.memo).contains("ledger transfer error: InsufficientFunds")
+        expect(JSON.stringify(tr.error)).contains("ledger transfer error: InsufficientFunds")
+    });
+
+    it("Trs Rejected with Policy", async function () {
+        let wallet = await requestCreateWalletTransaction(manager, "walletUid", Network.IC)
+        await manager.execute()
+        let uid = (wallet[0] as WalletCreateTransaction).uid
+        await requestCreatePolicyTransaction(manager, 2, 100000, [uid])
+        await manager.execute()
+        let trs = await manager.getTransactions()
+        let trRequestResponse = await requestTopUpTransaction(manager, uid, 999999999)
+        let tr = trRequestResponse[0] as TopUpTransaction
+        let approve: ApproveRequest = {
+            trId: tr.id,
+            state: TransactionState.Approved
+        }
+        await member_manager.approveTransaction([approve])
+        await manager.execute()
+        tr = await getTransactionByIdFromGetAllTrs(manager, tr.id) as TopUpTransaction
+        expect(tr.state).eq(TransactionState.Failed)
+        expect(tr.threshold).eq(2)
+        expect(JSON.stringify(tr.error)).contains("ledger transfer error: InsufficientFunds")
     });
 
 
