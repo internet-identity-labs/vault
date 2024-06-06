@@ -214,8 +214,8 @@ jobs:
 
       - name: PRE-BUILD => Write identity.
         env:
-          DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
-          PROD_VAULT_KEY: ${{secrets.PROD_VAULT_KEY}}
+          DEV_ADMIN_KEY: ${{ secrets.DEV_ADMIN_KEY }}
+          PROD_VAULT_KEY: ${{ secrets.PROD_VAULT_KEY }}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 
@@ -270,8 +270,8 @@ jobs:
       - name: DEPLOY => Upload WASM to the Vault Repo.
         if: ${{ github.event.inputs.canister_name == 'vault' }}
         env:
-          DEV_IDENTITY_SEED: ${{secrets.DEV_IDENTITY_SEED}}
-          PROD_IDENTITY_SEED: ${{secrets.PROD_IDENTITY_SEED}}
+          DEV_IDENTITY_SEED: ${{ secrets.DEV_IDENTITY_SEED }}
+          PROD_IDENTITY_SEED: ${{ secrets.PROD_IDENTITY_SEED }}
         run: |
           source ${{ github.workspace }}/ci_libs/CI_LIBS.sh
 

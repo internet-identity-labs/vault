@@ -141,7 +141,7 @@ jobs:
           ci_echo_info "Decoding..." >&2
           echo "${!IDENTITY_PEM_NAME_VAR}" | base64 -d > "${ID_PATH}/identity.pem"
         env:
-          DEV_ADMIN_KEY: ${{secrets.DEV_ADMIN_KEY}}
+          DEV_ADMIN_KEY: ${{ secrets.DEV_ADMIN_KEY }}
 
       - name: BUILD => Build the canister.
         run: |
