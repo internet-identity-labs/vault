@@ -334,11 +334,16 @@ type VaultRole = variant {
     Admin
 };
 
+type ICRC1 = record {
+    ledger : principal;
+    index : opt principal;
+};
+
 type VaultState = record {
     members : vec Member;
     name : opt text;
     description : opt text;
-    icrc1_canisters : vec principal;
+    icrc1_canisters : vec ICRC1;
     wallets : vec Wallet;
     quorum : Quorum;
     policies : vec Policy;
@@ -400,5 +405,6 @@ type WalletUpdateNameTransactionRequest = record {
         certificate: vec nat8;
         witness: vec nat8;
     }) query;
-    store_icrc1_canisters: (vec principal) -> (VaultState);
+    store_icrc1_canister: (principal, opt principal) -> (VaultState);
+    remove_icrc1_canister: (principal) -> (VaultState);
 }
