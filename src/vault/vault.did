@@ -179,7 +179,21 @@ type TopUpTransaction = record {
     policy : opt text;
 };
 
+type TopUpQuorumTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
 type TopUpTransactionRequest = record {
+    currency : Currency;
+    wallet : text;
+    amount : nat64;
+};
+
+type TopUpQuorumTransactionRequest = record {
     currency : Currency;
     wallet : text;
     amount : nat64;
@@ -196,6 +210,7 @@ type TransactionCandid = variant {
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
     TopUpTransactionV : TopUpTransaction;
+    TopUpQuorumTransactionV : TopUpQuorumTransaction;
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     TransferTransactionV : TransferTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
@@ -218,6 +233,7 @@ type TransactionRequest = variant {
     ControllersUpdateTransactionRequestV : ControllersUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
+    TopUpQuorumTransactionRequestV : TopUpQuorumTransactionRequest;
     TransferICRC1QuorumTransactionRequestV : TransferICRC1QuorumTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
