@@ -15,6 +15,7 @@ import {
     PurgeTransactionRequest,
     QuorumTransactionRequest,
     TopUpTransactionRequest,
+    TopUpQuorumTransactionRequest,
     Transaction,
     TransactionState,
     TransferICRC1QuorumTransactionRequest,
@@ -144,6 +145,11 @@ export async function requestICRC1TransferTransaction(manager: VaultManager, toP
 
 export async function requestTopUpTransaction(manager, wallet, amount): Promise<Array<Transaction>> {
     let memberR = new TopUpTransactionRequest(Currency.ICP, wallet, amount);
+    return await manager.requestTransaction([memberR])
+}
+
+export async function requestTopUpQuorumTransaction(manager, wallet, amount): Promise<Array<Transaction>> {
+    let memberR = new TopUpQuorumTransactionRequest(Currency.ICP, wallet, amount);
     return await manager.requestTransaction([memberR])
 }
 

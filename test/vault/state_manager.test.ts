@@ -5,7 +5,7 @@ import {execute} from "../util/call.util";
 import {expect} from "chai";
 import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
 import {VaultManager, VaultRole} from "@nfid/vaults";
-import {Principal} from "@dfinity/principal";
+import { Principal } from "@dfinity/principal";
 
 require('./bigintextension.js');
 
@@ -18,7 +18,6 @@ describe("State Transactions", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        await console.log(execute(`./test/resource/ledger.sh`))
         await console.log(execute(`./test/resource/vault.sh`))
         canister_id = DFX.GET_CANISTER_ID("vault");
         manager = new VaultManager(canister_id, admin_identity);
@@ -76,13 +75,17 @@ describe("State Transactions", () => {
         expect(state2trs.members.length).eq(8)
     });
 
-    it( "ICRC1" , async function () {
-        let ictc1 = [Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id)]
-        let state = await manager.addICRC1Canisters(ictc1)
-        expect(state.icrc1_canisters.length).eq(2)
-        DFX.UPGRADE_FORCE(vaultInitString)
-        state = await manager.getState()
-        expect(state.icrc1_canisters.length).eq(2)
+    it( "ICRC1 Add" , async function () {
+        let state = await manager.addICRC1Canister(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id))
+        expect(state.icrc1_canisters.length).eq(1)
+        expect(state.icrc1_canisters[0].ledger.toText()).eq("6jq2j-daaaa-aaaap-absuq-cai")
+        expect(state.icrc1_canisters[0].index.toText()).eq(canister_id)
+    });
+
+    it( "ICRC1 Remove" , async function () {
+        let icrc1 = Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai")
+        let state = await manager.removeICRC1Canister(icrc1)
+        expect(state.icrc1_canisters.length).eq(0)
     });
 
 })
