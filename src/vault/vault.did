@@ -37,18 +37,51 @@ type Currency = variant {
     ICP
 };
 
+type SubAccount = blob;
+
+type Account = record {
+    subaccount : opt SubAccount;
+    owner : principal;
+};
+
 type Member = record {
     modified_date : nat64;
     name : text;
     role : VaultRole;
     member_id : text;
     created_date : nat64;
+    account : opt Account;
 };
 
 type MemberCreateTransaction = record {
     name : text;
     role : VaultRole;
     member_id : text;
+    common : BasicTransactionFields;
+};
+
+type MemberCreateTransactionV2 = record {
+    name : text;
+    role : VaultRole;
+    account : Account;
+    common : BasicTransactionFields;
+};
+
+type MemberCreateTransactionRequestV2 = record {
+    name : text;
+    role : VaultRole;
+    account : Account;
+    batch_uid : opt text;
+};
+
+type MemberExtendICRC1AccountRequest = record {
+    account : Account;
+    batch_uid : opt text;
+};
+
+type MemberExtendICRC1AccountTransaction = record {
+    account : Account;
+    batch_uid : opt text;
     common : BasicTransactionFields;
 };
 
@@ -217,6 +250,8 @@ type TransactionCandid = variant {
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     TransferICRC1QuorumTransactionV : TransferICRC1QuorumTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
+    MemberCreateTransactionV2 : MemberCreateTransactionV2;
+    MemberExtendICRC1AccountTransactionV : MemberExtendICRC1AccountTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     UpgradeTransactionV : VersionUpgradeTransaction;
     PurgeTransactionV : PurgeTransaction;
@@ -238,6 +273,8 @@ type TransactionRequest = variant {
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
+    MemberCreateTransactionRequestV2 : MemberCreateTransactionRequestV2;
+    MemberExtendICRC1AccountRequestV : MemberExtendICRC1AccountRequest;
     TransferTransactionRequestV : TransferTransactionRequest;
     TransferQuorumTransactionRequestV : TransferQuorumTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;

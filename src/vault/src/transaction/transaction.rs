@@ -11,6 +11,8 @@ use crate::errors::VaultError;
 use crate::state::{get_current_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
 use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
+use crate::transaction::member::member_create_transaction_v2::MemberCreateTransactionV2;
+use crate::transaction::member::member_extend_account_transaction::MemberExtendICRC1AccountTransaction;
 use crate::transaction::member::member_remove_transaction::MemberRemoveTransaction;
 use crate::transaction::member::member_update_name_transaction::MemberUpdateNameTransaction;
 use crate::transaction::member::member_update_role_transaction::MemberUpdateRoleTransaction;
@@ -197,6 +199,8 @@ pub enum TransactionCandid {
     PurgeTransactionV(PurgeTransaction),
     VaultNamingUpdateTransactionV(VaultNamingUpdateTransaction),
     MemberCreateTransactionV(MemberCreateTransaction),
+    MemberCreateTransactionV2(MemberCreateTransactionV2),
+    MemberExtendICRC1AccountTransactionV(MemberExtendICRC1AccountTransaction),
     MemberUpdateNameTransactionV(MemberUpdateNameTransaction),
     MemberUpdateRoleTransactionV(MemberUpdateRoleTransaction),
     MemberRemoveTransactionV(MemberRemoveTransaction),
@@ -239,6 +243,8 @@ impl Candid for TransactionCandid {
             TransactionCandid::ControllersUpdateTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TransferQuorumTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::TransferICRC1QuorumTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::MemberCreateTransactionV2(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::MemberExtendICRC1AccountTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }
