@@ -1,9 +1,11 @@
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use ic_cdk::api::time;
 use ic_cdk::trap;
+use ic_ledger_types::{AccountIdentifier, DEFAULT_SUBACCOUNT};
+use icrc_ledger_types::icrc1::account::Subaccount;
 use serde::{Deserialize, Serialize};
 
-use crate::enums::{VaultRole};
+use crate::enums::VaultRole;
 use crate::state::{STATE, VaultState};
 use crate::util::caller_to_address;
 
@@ -14,12 +16,20 @@ pub struct Member {
     pub name: String,
     pub modified_date: u64,
     pub created_date: u64,
+    pub account: Option<Account>,
+}
+
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct Account {
+    pub owner: Principal,
+    pub subaccount: Option<Subaccount>,
 }
 
 impl Member {
-    pub fn new(id: String, role: VaultRole, name: String) -> Self {
+    pub fn new(account: Account, role: VaultRole, name: String) -> Self {
         Member {
-            member_id: id,
+            member_id: calculate_id(account.clone()),
+            account: Some(account),
             role,
             name,
             modified_date: time(),
@@ -49,6 +59,16 @@ pub fn restore_member(member: Member, mut state: VaultState) -> VaultState {
     state.members.retain(|existing| existing.member_id != member.member_id);
     state.members.push(member);
     state
+}
+
+pub fn calculate_id(acc: Account) -> String {
+    let member_id = AccountIdentifier::new(
+        &acc.owner,
+        &match acc.subaccount.clone() {
+            None => { DEFAULT_SUBACCOUNT }
+            Some(x) => { ic_ledger_types::Subaccount(x) }
+        }).to_hex();
+    member_id
 }
 
 

@@ -43,6 +43,7 @@ pub trait TransferCommon: ITransaction {
         if tr.get_common_ref().is_vault_state {
             return true;
         }
+        //TODO it's already too big. Refactor to use some internal field from mentioned classes
         if let TransactionCandid::TransferTransactionV(transfer) = tr.to_candid() {
             return transfer.get_wallet() == self.get_wallet();
         }
@@ -50,6 +51,9 @@ pub trait TransferCommon: ITransaction {
             return transfer.get_wallet() == self.get_wallet();
         }
         if let TransactionCandid::TransferQuorumTransactionV(transfer) = tr.to_candid() {
+            return transfer.get_wallet() == self.get_wallet();
+        }
+        if let TransactionCandid::TopUpQuorumTransactionV(transfer) = tr.to_candid() {
             return transfer.get_wallet() == self.get_wallet();
         }
         false

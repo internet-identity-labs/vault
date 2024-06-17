@@ -1,11 +1,12 @@
 import {DFX} from "../constanst/dfx.const";
-import {getActor, getIdentity} from "../util/deployment.util";
+import {getIdentity} from "../util/deployment.util";
 import {expect} from "chai";
 import {principalToAddress} from "ictool";
 import {execute, sleep} from "../util/call.util";
 import {
     getTransactionByIdFromGetAllTrs,
     requestCreateMemberTransaction,
+    requestCreateMemberTransactionV2, requestMemberExtendICRC1Transaction,
     requestRemoveMemberTransaction,
     requestUpdateMemberNameTransaction,
     requestUpdateMemberRoleTransaction,
@@ -13,14 +14,21 @@ import {
 } from "./helper";
 import {
     Approve,
-    MemberCreateTransaction, MemberRemoveTransaction, MemberUpdateNameTransaction, MemberUpdateRoleTransaction,
+    MemberCreateTransaction,
+    MemberCreateTransactionV2,
+    MemberRemoveTransaction,
+    MemberUpdateNameTransaction,
+    MemberUpdateRoleTransaction,
     Transaction,
-    TransactionState, TransactionType,
+    TransactionState,
+    TransactionType,
     VaultManager,
     VaultRole
 } from "@nfid/vaults";
 
 require('./bigintextension.js');
+
+const SUBAACCOUNT = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 describe("Member Transactions", () => {
     let canister_id;
@@ -49,6 +57,7 @@ describe("Member Transactions", () => {
     let memberName2 = "name_2";
     let memberName3 = "name_3";
     let memberRole = VaultRole.MEMBER;
+    let memberId;
 
     it("CreateMemberTransaction approved + executed", async function () {
         let trReqResp: Array<Transaction> = await requestCreateMemberTransaction(manager, memberAddress, memberName, memberRole)
@@ -72,6 +81,7 @@ describe("Member Transactions", () => {
         tr = await getTransactionByIdFromGetAllTrs(manager, trId)
         expectedTrs = buildExpectedCreateMemberTransaction(TransactionState.Executed)
         verifyCreateMemberTransaction(expectedTrs, tr as MemberCreateTransaction)
+        memberId = member.userId
     });
 
 
@@ -240,6 +250,81 @@ describe("Member Transactions", () => {
         expect(member.role).eq(VaultRole.ADMIN)
     });
 
+    const v2_identity = getIdentity("87654321876543218765432187654123")
+
+    it("CreateMemberTransactionV2 approved + executed default subaccount", async function () {
+        let trReqResp: Array<Transaction> = await requestCreateMemberTransactionV2(manager, {
+            owner: v2_identity.getPrincipal(),
+            subaccount: undefined
+        }, memberName, memberRole)
+        let trId = trReqResp[0].id
+        await sleep(2);
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
+        expect(tr.account.subaccount).eq(undefined)
+        let expectedTrs = buildExpectedCreateMemberTransactionV2(TransactionState.Executed, v2_identity.getPrincipal())
+        let state = await manager.getState();
+        let member = state.members
+            .filter(m => m.account)
+            .find(m => m.account.owner.toText() === v2_identity.getPrincipal().toText())
+        expect(member.userId).eq(principalToAddress(v2_identity.getPrincipal() as any))
+        expect(member.name).eq(memberName)
+        expect(member.role).eq(VaultRole.MEMBER)
+        expect(member.account.subaccount !== undefined).eq(false)
+        verifyCreateMemberTransactionV2(expectedTrs, tr as MemberCreateTransactionV2)
+    });
+
+    const v2_identity2 = getIdentity("87654321876543218765432187654124")
+
+    it("CreateMemberTransactionV2 approved + executed not default subaccount", async function () {
+        let trReqResp: Array<Transaction> = await requestCreateMemberTransactionV2(manager, {
+            owner: v2_identity2.getPrincipal(),
+            subaccount: SUBAACCOUNT
+        }, memberName, memberRole)
+        let trId = trReqResp[0].id
+        await sleep(2);
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
+        expect(tr.account.subaccount).not.eq(undefined)
+        let expectedTrs = buildExpectedCreateMemberTransactionV2(TransactionState.Executed, v2_identity2.getPrincipal())
+        let state = await manager.getState();
+        let member = state.members
+            .filter(m => m.account)
+            .find(m => m.account.owner.toText() === v2_identity2.getPrincipal().toText())
+        expect(member.userId).eq(principalToAddress(v2_identity2.getPrincipal() as any, SUBAACCOUNT))
+        expect(member.name).eq(memberName)
+        expect(member.role).eq(VaultRole.MEMBER)
+        expect(member.account.subaccount.length).eq(32)
+        expect(member.account.subaccount[0]).eq(1)
+        verifyCreateMemberTransactionV2(expectedTrs, tr as MemberCreateTransactionV2)
+    });
+
+    it("ExtendMemberICRC1Transaction approved + executed", async function () {
+        let trReqResp: Array<Transaction> = await requestMemberExtendICRC1Transaction(manager, {
+            owner: v2_identity2.getPrincipal(),
+            subaccount: SUBAACCOUNT
+        }, )
+        let trId = trReqResp[0].id
+        await sleep(2);
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
+        expect(tr.account.subaccount).not.eq(undefined)
+        let state = await manager.getState();
+        let member = state.members
+            .filter(m => m.account)
+            .find(m => m.account.owner.toText() === v2_identity2.getPrincipal().toText())
+        expect(member.account.subaccount.length).eq(32)
+        expect(member.account.subaccount[0]).eq(1)
+    });
+
+    it("ExtendMemberICRC1Transaction already exists", async function () {
+        let trReqResp: Array<Transaction> = await requestMemberExtendICRC1Transaction(manager, {
+            owner: v2_identity2.getPrincipal(),
+            subaccount: SUBAACCOUNT
+        }, )
+        let trId = trReqResp[0].id
+        await sleep(2);
+        let tr = await getTransactionByIdFromGetAllTrs(manager, trId)
+        expect(tr.state).eq(TransactionState.Failed)
+    });
+
 
     function buildExpectedUpdateNameTransaction(actualTr, state, name) {
         let expectedApprove: Approve = {
@@ -334,6 +419,34 @@ describe("Member Transactions", () => {
         return expectedTrs
     }
 
+
+    function buildExpectedCreateMemberTransactionV2(state, owner) {
+        let expectedApprove: Approve = {
+            createdDate: 0n,
+            signer: principalToAddress(admin_identity.getPrincipal() as any),
+            status: TransactionState.Approved
+        }
+        let expectedTrs: MemberCreateTransactionV2 = {
+            threshold: 1,
+            approves: [expectedApprove],
+            batchUid: undefined,
+            createdDate: 0n,
+            id: 0n,
+            initiator: principalToAddress(admin_identity.getPrincipal() as any),
+            isVaultState: true,
+            account: {
+                owner: owner,
+                subaccount: undefined
+            },
+            modifiedDate: 0n,
+            name: memberName,
+            role: memberRole,
+            state,
+            transactionType: TransactionType.MemberCreateV2
+        }
+        return expectedTrs
+    }
+
 })
 
 function verifyUpdateMemberNameTransaction(expected: MemberUpdateNameTransaction, actual: MemberUpdateNameTransaction) {
@@ -358,4 +471,11 @@ function verifyCreateMemberTransaction(expected: MemberCreateTransaction, actual
     expect(expected.role).eq(actual.role)
     expect(expected.memberId).eq(actual.memberId)
     verifyTransaction(expected, actual, TransactionType.MemberCreate)
+}
+
+function verifyCreateMemberTransactionV2(expected: MemberCreateTransactionV2, actual: MemberCreateTransactionV2) {
+    expect(expected.name).eq(actual.name)
+    expect(expected.role).eq(actual.role)
+    expect(expected.account.owner.toText()).eq(actual.account.owner.toText())
+    verifyTransaction(expected, actual, TransactionType.MemberCreateV2)
 }

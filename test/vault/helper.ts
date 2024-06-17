@@ -6,6 +6,7 @@ import {
     Currency,
     generateRandomString,
     MemberCreateTransactionRequest,
+    MemberCreateTransactionRequestV2,
     MemberRemoveTransactionRequest,
     MemberUpdateNameTransactionRequest,
     MemberUpdateRoleTransactionRequest,
@@ -25,7 +26,8 @@ import {
     VaultNamingTransactionRequest,
     VersionUpgradeTransactionRequest,
     WalletCreateTransactionRequest,
-    WalletUpdateNameTransactionRequest
+    WalletUpdateNameTransactionRequest,
+    MemberExtendICRC1AccountRequest
 } from "@nfid/vaults";
 
 
@@ -66,6 +68,22 @@ export async function requestUpdatePolicyTransaction(manager, membersTr, amountT
 
 export async function requestCreateMemberTransaction(manager: VaultManager, memberAddress, memberName, memberRole): Promise<Array<Transaction>> {
     let transactionRequest = new MemberCreateTransactionRequest(memberAddress, memberName, memberRole);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestCreateMemberTransactionV2(manager: VaultManager, account: {
+    owner: Principal;
+    subaccount: undefined | Uint8Array | number[];
+}, memberName, memberRole): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberCreateTransactionRequestV2(account, memberName, memberRole);
+    return await manager.requestTransaction([transactionRequest])
+}
+
+export async function requestMemberExtendICRC1Transaction(manager: VaultManager, account: {
+    owner: Principal;
+    subaccount: undefined | Uint8Array | number[];
+}): Promise<Array<Transaction>> {
+    let transactionRequest = new MemberExtendICRC1AccountRequest(account);
     return await manager.requestTransaction([transactionRequest])
 }
 

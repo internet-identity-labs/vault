@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::enums::TransactionState;
 use crate::security_service::verify_caller;
 use crate::transaction::member::member_create_transaction::{MemberCreateTransactionBuilder, MemberCreateTransactionRequest};
+use crate::transaction::member::member_create_transaction_v2::{MemberCreateTransactionBuilderV2, MemberCreateTransactionRequestV2};
+use crate::transaction::member::member_extend_account_transaction::{MemberExtendICRC1AccountBuilder, MemberExtendICRC1AccountRequest};
 use crate::transaction::member::member_remove_transaction::{MemberRemoveTransactionBuilder, MemberRemoveTransactionRequest};
 use crate::transaction::member::member_update_name_transaction::{MemberUpdateNameTransactionBuilder, MemberUpdateNameTransactionRequest};
 use crate::transaction::member::member_update_role_transaction::{MemberUpdateRoleTransactionBuilder, MemberUpdateRoleTransactionRequest};
@@ -32,6 +34,8 @@ use crate::util::caller_to_address;
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub enum TransactionRequest {
     MemberCreateTransactionRequestV(MemberCreateTransactionRequest),
+    MemberCreateTransactionRequestV2(MemberCreateTransactionRequestV2),
+    MemberExtendICRC1AccountRequestV(MemberExtendICRC1AccountRequest),
     MemberUpdateNameTransactionRequestV(MemberUpdateNameTransactionRequest),
     MemberUpdateRoleTransactionRequestV(MemberUpdateRoleTransactionRequest),
     MemberRemoveTransactionRequestV(MemberRemoveTransactionRequest),
@@ -57,6 +61,12 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
     let mut trs: Box<dyn ITransaction> = match trr {
         TransactionRequest::MemberCreateTransactionRequestV(request) => {
             MemberCreateTransactionBuilder::init(request).build().await
+        }
+        TransactionRequest::MemberCreateTransactionRequestV2(request) => {
+            MemberCreateTransactionBuilderV2::init(request).build().await
+        }
+        TransactionRequest::MemberExtendICRC1AccountRequestV(request) => {
+            MemberExtendICRC1AccountBuilder::init(request).build().await
         }
         TransactionRequest::MemberUpdateNameTransactionRequestV(r) => {
             MemberUpdateNameTransactionBuilder::init(r).build().await
