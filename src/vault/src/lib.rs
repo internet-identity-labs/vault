@@ -1,7 +1,6 @@
 extern crate core;
 extern crate maplit;
 
-use std::cell::RefCell;
 use std::string::ToString;
 
 use candid::{CandidType, export_service, Principal};
@@ -17,9 +16,10 @@ use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted
 
 use crate::config::{Conf, CONF};
 use crate::enums::{TransactionState, VaultRole};
-use crate::state::{delete_icrc1_canister, get_vault_state, save_icrc1_canister, VaultState};
+use crate::state::{get_vault_state, VaultState};
 use crate::transaction::basic_transaction::BasicTransaction;
-use crate::transaction::member::member_create_transaction::MemberCreateTransaction;
+use crate::transaction::member::member_create_transaction_v2::MemberCreateTransactionV2;
+use crate::transaction::member::members::Account;
 use crate::transaction::transaction::{Candid, TransactionCandid};
 use crate::transaction::transaction_approve_handler::{Approve, handle_approve, TransactionApproveRequest};
 use crate::transaction::transaction_request_handler::{handle_transaction_request, TransactionRequest};
@@ -44,8 +44,12 @@ async fn init(initiator: Principal, conf: Conf) {
     update_trusted_origins(conf.origins.clone());
     CONF.with(|c| c.replace(conf));
     let member_id = to_address(initiator);
-    let mut mc = MemberCreateTransaction::new(
-        TransactionState::Approved, None, member_id.clone(), "Initiator".to_string(), VaultRole::Admin,
+    let account = Account {
+        owner: initiator,
+        subaccount: None,
+    };
+    let mut mc = MemberCreateTransactionV2::new(
+        TransactionState::Approved, None, account, "Initiator".to_string(), VaultRole::Admin,
     );
     mc.get_common_mut().approves.insert(Approve {
         signer: member_id,
@@ -61,7 +65,7 @@ async fn get_version() -> String {
     VERSION.to_string()
 }
 
-#[update (guard = "is_caller_registered")]
+#[update(guard = "is_caller_registered")]
 async fn request_transaction(transaction_request: Vec<TransactionRequest>) -> Vec<TransactionCandid> {
     let mut trs: Vec<TransactionCandid> = Default::default();
     for tr in transaction_request {
@@ -101,7 +105,7 @@ async fn get_state(tr_id: Option<u64>) -> VaultState {
     get_vault_state(tr_id).await
 }
 
-#[update (guard = "is_caller_registered")]
+#[update(guard = "is_caller_registered")]
 async fn approve(request: Vec<TransactionApproveRequest>) -> Vec<TransactionCandid> {
     let mut approved_trs = Vec::default();
     for approve in request {
@@ -152,16 +156,6 @@ async fn get_controllers() -> Vec<Principal> {
     ).await;
 
     res.unwrap().0.settings.controllers
-}
-
-#[update (guard = "is_caller_registered")]
-async fn store_icrc1_canister(canister_id: Principal, index_id: Option<Principal>) -> VaultState {
-    save_icrc1_canister(canister_id, index_id).await
-}
-
-#[update (guard = "is_caller_registered")]
-async fn remove_icrc1_canister(canister_id: Principal) -> VaultState {
-    delete_icrc1_canister(canister_id).await
 }
 
 #[query]

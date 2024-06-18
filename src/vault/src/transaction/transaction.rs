@@ -29,8 +29,10 @@ use crate::transaction::transfer::transfer_quorum_transaction::TransferQuorumTra
 use crate::transaction::transfer::transfer_transaction::TransferTransaction;
 use crate::transaction::upgrade::upgrade_transaction::VersionUpgradeTransaction;
 use crate::transaction::vault::controllers_transaction::ControllersUpdateTransaction;
+use crate::transaction::vault::add_icrc1_canisters_transaction::ICRC1CanistersAddTransaction;
 use crate::transaction::vault::quorum::get_quorum;
 use crate::transaction::vault::quorum_transaction::QuorumUpdateTransaction;
+use crate::transaction::vault::remove_icrc1_canisters_transaction::ICRC1CanistersRemoveTransaction;
 use crate::transaction::vault::vault_naming_transaction::VaultNamingUpdateTransaction;
 use crate::transaction::wallet::wallet_create_transaction::WalletCreateTransaction;
 use crate::transaction::wallet::wallet_update_name_transaction::WalletUpdateNameTransaction;
@@ -215,6 +217,8 @@ pub enum TransactionCandid {
     TopUpTransactionV(TopUpTransaction),
     UpgradeTransactionV(VersionUpgradeTransaction),
     TopUpQuorumTransactionV(TopUpQuorumTransaction),
+    ICRC1CanistersAddTransactionV(ICRC1CanistersAddTransaction),
+    ICRC1CanistersRemoveTransactionV(ICRC1CanistersRemoveTransaction)
 }
 
 pub trait Candid {
@@ -245,6 +249,8 @@ impl Candid for TransactionCandid {
             TransactionCandid::TransferICRC1QuorumTransactionV(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::MemberCreateTransactionV2(tr) => { Box::new(tr.to_owned()) }
             TransactionCandid::MemberExtendICRC1AccountTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::ICRC1CanistersAddTransactionV(tr) => { Box::new(tr.to_owned()) }
+            TransactionCandid::ICRC1CanistersRemoveTransactionV(tr) => { Box::new(tr.to_owned()) }
         }
     }
 }

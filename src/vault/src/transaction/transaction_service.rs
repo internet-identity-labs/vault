@@ -1,4 +1,4 @@
-use candid::{CandidType, Principal};
+use candid::{CandidType};
 use ic_cdk::{storage, trap};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -7,8 +7,7 @@ use nfid_certified::update_trusted_origins;
 use crate::config::{Conf, CONF};
 use crate::enums::TransactionState::{Approved, Executed, Failed, Purged, Rejected};
 use crate::execute;
-use crate::state::{define_state, get_current_state, get_icrc1_canisters, get_vault_state, ICRC1, restore_state};
-use crate::state::ICRC1_STORAGE;
+use crate::state::{define_state, get_current_state, get_vault_state, restore_state};
 use crate::transaction::transaction::{Candid, ITransaction, TransactionCandid, TransactionIterator};
 
 thread_local! {
@@ -151,8 +150,6 @@ pub fn get_id() -> u64 {
 struct Memory {
     transactions: Vec<TransactionCandid>,
     config: Conf,
-    icrc1_canisters: Option<Vec<Principal>>,
-    icrc1_canister_pairs: Option<Vec<ICRC1>>,
 }
 
 
@@ -167,12 +164,9 @@ pub fn stable_save() {
         let a = conf.borrow();
         a.clone()
     });
-    let icrc1_canisters = get_icrc1_canisters();
     let mem = Memory {
         config: conf,
         transactions: trs,
-        icrc1_canisters: None,
-        icrc1_canister_pairs: Some(icrc1_canisters),
     };
     storage::stable_save((mem, )).unwrap();
 }
@@ -190,28 +184,6 @@ pub async fn stable_restore() {
         .collect();
     trs.sort_by(|a, b| -> std::cmp::Ordering {
         a.get_id().cmp(&b.get_id())
-    });
-
-    let mut icrc1_canisters_pairs_opt = mo.icrc1_canister_pairs.unwrap_or_else(|| Vec::default());
-
-    //TODO remove after release
-
-    let mut icrc1_canisters_opt = mo.icrc1_canisters.clone();
-    if icrc1_canisters_opt.is_some() {
-        icrc1_canisters_opt.unwrap().iter().for_each(|icrc1| {
-            let pair = ICRC1 {
-                ledger: icrc1.clone(),
-                index: None,
-            };
-            if !icrc1_canisters_pairs_opt.contains(&pair) {
-                icrc1_canisters_pairs_opt.push(pair);
-            };
-        });
-    }
-
-    ICRC1_STORAGE.with(|icrc1| {
-        icrc1.borrow_mut();
-        icrc1.replace(icrc1_canisters_pairs_opt);
     });
 
     let state = define_state(trs.clone(), None).await;
