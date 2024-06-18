@@ -1,20 +1,21 @@
 import {DFX} from "../constanst/dfx.const";
 import {getIdentity} from "../util/deployment.util";
 import {principalToAddress} from "ictool";
-import {execute} from "../util/call.util";
+import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
-import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
-import {VaultManager, VaultRole} from "@nfid/vaults";
+import {requestCreateMemberTransaction, requestPurgeTransaction, requestUpdateQuorumTransaction} from "./helper";
+import {ApproveRequest, ICRC1CanistersAddTransactionRequest, ICRC1CanistersRemoveTransactionRequest,
+    TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
 import { Principal } from "@dfinity/principal";
 
 require('./bigintextension.js');
 
-const vaultInitString = "vault --argument '(principal \"3ekng-5nqql-esu4u-64sla-pcm5o-hjatn-hwjo7-vk7ya-ianug-zqqyy-iae\", record { origins = vec {}; repo_canister = \"7jlkn-paaaa-aaaap-abvpa-cai\" })'"
-
 describe("State Transactions", () => {
     let canister_id;
     let admin_identity = getIdentity("87654321876543218765432187654321")
+    let admin_identity2 = getIdentity("87654321876543218765432187654322")
     let manager: VaultManager;
+    let manager2: VaultManager;
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
@@ -22,6 +23,8 @@ describe("State Transactions", () => {
         canister_id = DFX.GET_CANISTER_ID("vault");
         manager = new VaultManager(canister_id, admin_identity);
         await manager.resetToLocalEnv();
+        manager2 = new VaultManager(canister_id, admin_identity2);
+        await manager2.resetToLocalEnv();
     });
 
     after(() => {
@@ -54,7 +57,7 @@ describe("State Transactions", () => {
         let tr1 = await requestUpdateQuorumTransaction(manager, 3)
         let tr2 = await requestUpdateQuorumTransaction(manager, 5)
         let tr3 = await requestCreateMemberTransaction(manager, "memberAddress6", "memberName", VaultRole.MEMBER)
-        let tr4 = await requestCreateMemberTransaction(manager, "memberAddress7", "memberName", VaultRole.ADMIN)
+        let tr4 = await requestCreateMemberTransaction(manager, principalToAddress(admin_identity2.getPrincipal() as any), "memberName", VaultRole.ADMIN)
         await manager.execute()
 
         let state2trs = await manager.getState(tr2[0].id)
@@ -76,15 +79,29 @@ describe("State Transactions", () => {
     });
 
     it( "ICRC1 Add" , async function () {
-        let state = await manager.addICRC1Canister(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id))
+        let purge = await requestPurgeTransaction(manager)
+        let approve : ApproveRequest = {
+            trId: purge[0].id,
+            state: TransactionState.Approved
+        }
+        await manager2.approveTransaction([approve])
+        await manager2.execute()
+        let addICRC1Transaction = new ICRC1CanistersAddTransactionRequest(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id))
+        await manager.requestTransaction([addICRC1Transaction])
+        await sleep(2)
+        await manager.execute()
+        let state = await manager.getState()
+        let trs = await manager.getTransactions()
         expect(state.icrc1_canisters.length).eq(1)
         expect(state.icrc1_canisters[0].ledger.toText()).eq("6jq2j-daaaa-aaaap-absuq-cai")
         expect(state.icrc1_canisters[0].index.toText()).eq(canister_id)
     });
 
     it( "ICRC1 Remove" , async function () {
-        let icrc1 = Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai")
-        let state = await manager.removeICRC1Canister(icrc1)
+        let removceICRC1 = new ICRC1CanistersRemoveTransactionRequest(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"))
+        await manager.requestTransaction([removceICRC1])
+        await manager.execute()
+        let state = await manager.getState()
         expect(state.icrc1_canisters.length).eq(0)
     });
 

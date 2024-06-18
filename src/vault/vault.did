@@ -1,3 +1,8 @@
+type Account = record {
+    owner : principal;
+    subaccount : opt blob
+};
+
 type Approve = record {
     status : TransactionState;
     signer : text;
@@ -37,20 +42,40 @@ type Currency = variant {
     ICP
 };
 
-type SubAccount = blob;
+type ICRC1 = record {
+    ledger : principal;
+    index : opt principal
+};
 
-type Account = record {
-    subaccount : opt SubAccount;
-    owner : principal;
+type ICRC1CanistersAddTransaction = record {
+    index_canister : opt principal;
+    ledger_canister : principal;
+    common : BasicTransactionFields;
+};
+
+type ICRC1CanistersAddTransactionRequest = record {
+    index_canister : opt principal;
+    ledger_canister : principal;
+    batch_uid : opt text;
+};
+
+type ICRC1CanistersRemoveTransaction = record {
+    ledger_canister : principal;
+    common : BasicTransactionFields;
+};
+
+type ICRC1CanistersRemoveTransactionRequest = record {
+    ledger_canister : principal;
+    batch_uid : opt text;
 };
 
 type Member = record {
     modified_date : nat64;
     name : text;
     role : VaultRole;
+    account : opt Account;
     member_id : text;
     created_date : nat64;
-    account : opt Account;
 };
 
 type MemberCreateTransaction = record {
@@ -60,11 +85,11 @@ type MemberCreateTransaction = record {
     common : BasicTransactionFields;
 };
 
-type MemberCreateTransactionV2 = record {
+type MemberCreateTransactionRequest = record {
     name : text;
     role : VaultRole;
-    account : Account;
-    common : BasicTransactionFields;
+    member_id : text;
+    batch_uid : opt text;
 };
 
 type MemberCreateTransactionRequestV2 = record {
@@ -74,6 +99,13 @@ type MemberCreateTransactionRequestV2 = record {
     batch_uid : opt text;
 };
 
+type MemberCreateTransactionV2 = record {
+    name : text;
+    role : VaultRole;
+    account : Account;
+    common : BasicTransactionFields;
+};
+
 type MemberExtendICRC1AccountRequest = record {
     account : Account;
     batch_uid : opt text;
@@ -81,15 +113,7 @@ type MemberExtendICRC1AccountRequest = record {
 
 type MemberExtendICRC1AccountTransaction = record {
     account : Account;
-    batch_uid : opt text;
     common : BasicTransactionFields;
-};
-
-type MemberCreateTransactionRequest = record {
-    name : text;
-    role : VaultRole;
-    member_id : text;
-    batch_uid : opt text;
 };
 
 type MemberRemoveTransaction = record {
@@ -203,6 +227,14 @@ type QuorumUpdateTransactionRequest = record {
     batch_uid : opt text;
 };
 
+type TopUpQuorumTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
 type TopUpTransaction = record {
     block_index : opt nat64;
     currency : Currency;
@@ -212,21 +244,7 @@ type TopUpTransaction = record {
     policy : opt text;
 };
 
-type TopUpQuorumTransaction = record {
-    block_index : opt nat64;
-    currency : Currency;
-    wallet : text;
-    common : BasicTransactionFields;
-    amount : nat64;
-};
-
 type TopUpTransactionRequest = record {
-    currency : Currency;
-    wallet : text;
-    amount : nat64;
-};
-
-type TopUpQuorumTransactionRequest = record {
     currency : Currency;
     wallet : text;
     amount : nat64;
@@ -242,78 +260,62 @@ type TransactionCandid = variant {
     WalletCreateTransactionV : WalletCreateTransaction;
     PolicyCreateTransactionV : PolicyCreateTransaction;
     MemberUpdateRoleTransactionV : MemberUpdateRoleTransaction;
+    ICRC1CanistersRemoveTransactionV : ICRC1CanistersRemoveTransaction;
     TopUpTransactionV : TopUpTransaction;
     TopUpQuorumTransactionV : TopUpQuorumTransaction;
+    ICRC1CanistersAddTransactionV : ICRC1CanistersAddTransaction;
     VaultNamingUpdateTransactionV : VaultNamingUpdateTransaction;
     TransferTransactionV : TransferTransaction;
     PolicyRemoveTransactionV : PolicyRemoveTransaction;
+    MemberExtendICRC1AccountTransactionV : MemberExtendICRC1AccountTransaction;
     PolicyUpdateTransactionV : PolicyUpdateTransaction;
     TransferICRC1QuorumTransactionV : TransferICRC1QuorumTransaction;
     MemberCreateTransactionV : MemberCreateTransaction;
-    MemberCreateTransactionV2 : MemberCreateTransactionV2;
-    MemberExtendICRC1AccountTransactionV : MemberExtendICRC1AccountTransaction;
     MemberUpdateNameTransactionV : MemberUpdateNameTransaction;
     UpgradeTransactionV : VersionUpgradeTransaction;
     PurgeTransactionV : PurgeTransaction;
     TransferQuorumTransactionV : TransferQuorumTransaction;
     QuorumUpdateTransactionV : QuorumUpdateTransaction;
+    MemberCreateTransactionV2 : MemberCreateTransactionV2;
     WalletUpdateNameTransactionV : WalletUpdateNameTransaction;
     MemberRemoveTransactionV : MemberRemoveTransaction;
 };
 
 type TransactionRequest = variant {
+    ICRC1CanistersRemoveTransactionRequestV : ICRC1CanistersRemoveTransactionRequest;
     QuorumUpdateTransactionRequestV : QuorumUpdateTransactionRequest;
     VaultNamingUpdateTransactionRequestV : VaultNamingUpdateTransactionRequest;
     PurgeTransactionRequestV : record {};
+    ICRC1CanistersAddTransactionRequestV : ICRC1CanistersAddTransactionRequest;
     ControllersUpdateTransactionRequestV : ControllersUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
-    TopUpQuorumTransactionRequestV : TopUpQuorumTransactionRequest;
     TransferICRC1QuorumTransactionRequestV : TransferICRC1QuorumTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
+    TransferQuorumTransactionRequestV : TransferTransactionRequest;
     MemberCreateTransactionRequestV2 : MemberCreateTransactionRequestV2;
-    MemberExtendICRC1AccountRequestV : MemberExtendICRC1AccountRequest;
     TransferTransactionRequestV : TransferTransactionRequest;
-    TransferQuorumTransactionRequestV : TransferQuorumTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
     VersionUpgradeTransactionRequestV : VersionUpgradeTransactionRequest;
+    TopUpQuorumTransactionRequestV : TopUpTransactionRequest;
+    MemberExtendICRC1AccountRequestV : MemberExtendICRC1AccountRequest;
     PolicyRemoveTransactionRequestV : PolicyRemoveTransactionRequest;
     PolicyCreateTransactionRequestV : PolicyCreateTransactionRequest;
 };
 
 type TransactionState = variant {
     Blocked;
+    Failed;
     Approved;
     Rejected;
-    Failed;
     Executed;
     Purged;
     Pending;
 };
-
-type TransferTransaction = record {
-    block_index : opt nat64;
-    currency : Currency;
-    address : text;
-    wallet : text;
-    common : BasicTransactionFields;
-    amount : nat64;
-    policy : opt text;
-};
-
-type TransferQuorumTransaction = record {
-    block_index : opt nat64;
-    currency : Currency;
-    address : text;
-    wallet : text;
-    common : BasicTransactionFields;
-    amount : nat64;
-};
-
 
 type TransferICRC1QuorumTransaction = record {
     to_principal : principal;
@@ -334,12 +336,23 @@ type TransferICRC1QuorumTransactionRequest = record {
     amount : nat64;
 };
 
-type TransferQuorumTransactionRequest = record {
-    memo : opt text;
+type TransferQuorumTransaction = record {
+    block_index : opt nat64;
     currency : Currency;
     address : text;
     wallet : text;
+    common : BasicTransactionFields;
     amount : nat64;
+};
+
+type TransferTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+    policy : opt text;
 };
 
 type TransferTransactionRequest = record {
@@ -351,19 +364,19 @@ type TransferTransactionRequest = record {
 };
 
 type VaultError = variant {
-    QuorumNotReachable;
+    ControllersUpdateError : record {
+        message : text
+    };
     WalletNotExists;
     CouldNotDefinePolicy;
     ThresholdAlreadyExists;
+    QuorumNotReachable;
     CanisterReject : record {
         message : text
     };
     MemberNotExists;
     MemberAlreadyExists;
     ThresholdDefineError : record {
-        message : text
-    };
-    ControllersUpdateError : record {
         message : text
     };
     UIDAlreadyExists;
@@ -385,11 +398,6 @@ type VaultNamingUpdateTransactionRequest = record {
 type VaultRole = variant {
     Member;
     Admin
-};
-
-type ICRC1 = record {
-    ledger : principal;
-    index : opt principal;
 };
 
 type VaultState = record {
@@ -458,6 +466,4 @@ type WalletUpdateNameTransactionRequest = record {
         certificate: vec nat8;
         witness: vec nat8;
     }) query;
-    store_icrc1_canister: (principal, opt principal) -> (VaultState);
-    remove_icrc1_canister: (principal) -> (VaultState);
 }

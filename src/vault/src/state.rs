@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::hash::Hash;
 use crate::enums::TransactionState::Executed;
-use crate::get_state;
 use crate::transaction::member::members::Member;
 use crate::transaction::policy::policy::Policy;
 use crate::transaction::vault::quorum::Quorum;
@@ -14,7 +13,6 @@ use crate::transaction::wallet::wallet::Wallet;
 
 thread_local! {
     pub static STATE: RefCell<VaultState> = RefCell::new(VaultState::default());
-    pub static ICRC1_STORAGE: RefCell<Vec<ICRC1>> = RefCell::new(Default::default());
 }
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize, Eq)]
@@ -97,28 +95,5 @@ pub async fn define_state(transactions: Vec<Box<dyn ITransaction>>, tr_id: Optio
     while let Some(mut trs) = sorted_trs.pop() {
         state = trs.execute(state).await;
     }
-    state.icrc1_canisters = get_icrc1_canisters();
     state
-}
-
-pub async fn save_icrc1_canister(ledger: Principal, index: Option<Principal>) -> VaultState {
-    ICRC1_STORAGE.with(|c| {
-        c.borrow_mut().push(ICRC1 {
-            ledger,
-            index
-        });
-    });
-    get_state(None).await
-}
-
-pub async fn delete_icrc1_canister(ledger: Principal) -> VaultState {
-    ICRC1_STORAGE.with(|c| {
-        let mut canisters_borrowed = c.borrow_mut();
-        canisters_borrowed.retain(|c| c.ledger != ledger);
-    });
-    get_state(None).await
-}
-
-pub fn get_icrc1_canisters() -> Vec<ICRC1> {
-    ICRC1_STORAGE.with(|c| c.borrow().clone())
 }

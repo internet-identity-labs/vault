@@ -25,7 +25,9 @@ use crate::transaction::transfer::transfer_quorum_transaction::{TransferQuorumTr
 use crate::transaction::transfer::transfer_transaction::{TransferTransactionBuilder, TransferTransactionRequest};
 use crate::transaction::upgrade::upgrade_transaction::{VersionUpgradeTransactionBuilder, VersionUpgradeTransactionRequest};
 use crate::transaction::vault::controllers_transaction::{ControllersUpdateTransactionBuilder, ControllersUpdateTransactionRequest};
+use crate::transaction::vault::add_icrc1_canisters_transaction::{ICRC1CanistersAddTransactionBuilder, ICRC1CanistersAddTransactionRequest};
 use crate::transaction::vault::quorum_transaction::{QuorumUpdateTransactionBuilder, QuorumUpdateTransactionRequest};
+use crate::transaction::vault::remove_icrc1_canisters_transaction::{ICRC1CanistersRemoveTransactionBuilder, ICRC1CanistersRemoveTransactionRequest};
 use crate::transaction::vault::vault_naming_transaction::{VaultNamingUpdateTransactionBuilder, VaultNamingUpdateTransactionRequest};
 use crate::transaction::wallet::wallet_create_transaction::{WalletCreateTransactionBuilder, WalletCreateTransactionRequest};
 use crate::transaction::wallet::wallet_update_name_transaction::{WalletUpdateNameTransactionBuilder, WalletUpdateNameTransactionRequest};
@@ -54,6 +56,8 @@ pub enum TransactionRequest {
     VersionUpgradeTransactionRequestV(VersionUpgradeTransactionRequest),
     ControllersUpdateTransactionRequestV(ControllersUpdateTransactionRequest),
     TransferICRC1QuorumTransactionRequestV(TransferICRC1QuorumTransactionRequest),
+    ICRC1CanistersAddTransactionRequestV(ICRC1CanistersAddTransactionRequest),
+    ICRC1CanistersRemoveTransactionRequestV(ICRC1CanistersRemoveTransactionRequest),
 }
 
 
@@ -121,6 +125,12 @@ pub async fn handle_transaction_request(trr: TransactionRequest) -> TransactionC
         }
         TransactionRequest::TransferICRC1QuorumTransactionRequestV(request) => {
             TransferICRC1QuorumTransactionBuilder::init(request).build().await
+        }
+        TransactionRequest::ICRC1CanistersAddTransactionRequestV(request) => {
+            ICRC1CanistersAddTransactionBuilder::init(request).build().await
+        }
+        TransactionRequest::ICRC1CanistersRemoveTransactionRequestV(request) => {
+            ICRC1CanistersRemoveTransactionBuilder::init(request).build().await
         }
     };
     verify_caller(trs.get_accepted_roles());
