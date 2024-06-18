@@ -3,10 +3,14 @@ import {getIdentity} from "../util/deployment.util";
 import {principalToAddress} from "ictool";
 import {execute, sleep} from "../util/call.util";
 import {expect} from "chai";
-import {requestCreateMemberTransaction, requestPurgeTransaction, requestUpdateQuorumTransaction} from "./helper";
-import {ApproveRequest, ICRC1CanistersAddTransactionRequest, ICRC1CanistersRemoveTransactionRequest,
-    TransactionState, VaultManager, VaultRole} from "@nfid/vaults";
-import { Principal } from "@dfinity/principal";
+import {requestCreateMemberTransaction, requestUpdateQuorumTransaction} from "./helper";
+import {
+    ICRC1CanistersAddTransactionRequest,
+    ICRC1CanistersRemoveTransactionRequest,
+    VaultManager,
+    VaultRole
+} from "@nfid/vaults";
+import {Principal} from "@dfinity/principal";
 
 require('./bigintextension.js');
 
@@ -78,26 +82,18 @@ describe("State Transactions", () => {
         expect(state2trs.members.length).eq(8)
     });
 
-    it( "ICRC1 Add" , async function () {
-        let purge = await requestPurgeTransaction(manager)
-        let approve : ApproveRequest = {
-            trId: purge[0].id,
-            state: TransactionState.Approved
-        }
-        await manager2.approveTransaction([approve])
-        await manager2.execute()
+    it("ICRC1 Add", async function () {
         let addICRC1Transaction = new ICRC1CanistersAddTransactionRequest(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"), Principal.fromText(canister_id))
         await manager.requestTransaction([addICRC1Transaction])
         await sleep(2)
         await manager.execute()
         let state = await manager.getState()
-        let trs = await manager.getTransactions()
         expect(state.icrc1_canisters.length).eq(1)
         expect(state.icrc1_canisters[0].ledger.toText()).eq("6jq2j-daaaa-aaaap-absuq-cai")
         expect(state.icrc1_canisters[0].index.toText()).eq(canister_id)
     });
 
-    it( "ICRC1 Remove" , async function () {
+    it("ICRC1 Remove", async function () {
         let removceICRC1 = new ICRC1CanistersRemoveTransactionRequest(Principal.fromText("6jq2j-daaaa-aaaap-absuq-cai"))
         await manager.requestTransaction([removceICRC1])
         await manager.execute()

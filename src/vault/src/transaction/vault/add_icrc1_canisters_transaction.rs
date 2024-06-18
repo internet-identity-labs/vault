@@ -64,6 +64,10 @@ impl TransactionBuilder for ICRC1CanistersAddTransactionBuilder {
 
 #[async_trait]
 impl ITransaction for ICRC1CanistersAddTransaction {
+    fn get_block_predicate(&mut self, _: &Box<dyn ITransaction>) -> bool {
+        false
+    }
+
     fn define_threshold(&mut self) -> Result<u8, VaultError> {
         Ok(1)
     }
