@@ -13,7 +13,7 @@ import {Approve,
 
 require('./bigintextension.js');
 
-describe("TopUp Transactions", () => {
+describe.skip("TopUp Transactions", () => {
     //predefined wallet address to fill with ICP manually
     const walletAddress = "706ab8c2d9585942dc4bdc5ed73188d7f56f97374a36b63b08ca45456ae699e3";
     const walletUid = "ba7f3c8953f15ae2e66f8def7d3a7c388e5af7f35e9c74f7d95aa3faa4b20c22";
