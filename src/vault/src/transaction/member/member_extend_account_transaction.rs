@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::enums::TransactionState;
 use crate::enums::TransactionState::{Executed, Failed};
+use crate::errors::VaultError;
 use crate::errors::VaultError::{MemberAlreadyExists, MemberNotExists};
 use crate::impl_basic_for_transaction;
 use crate::state::VaultState;
@@ -31,6 +32,14 @@ impl MemberExtendICRC1AccountTransaction {
 
 #[async_trait]
 impl ITransaction for MemberExtendICRC1AccountTransaction {
+    fn get_block_predicate(&mut self, _: &Box<dyn ITransaction>) -> bool {
+        false
+    }
+
+    fn define_threshold(&mut self) -> Result<u8, VaultError> {
+        Ok(1)
+    }
+
     async fn execute(&mut self, mut state: VaultState) -> VaultState {
         let member_id = calculate_id(self.account.clone());
         match state.members.iter()
