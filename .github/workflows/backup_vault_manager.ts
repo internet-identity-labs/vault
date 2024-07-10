@@ -1,11 +1,11 @@
 import { idlFactory } from "../../test/vault_manager/sdk/vm_idl";
-import { idlFactory as VaultIdl } from "./idl/idl";
 
 import * as fs from "fs";
 import {Actor, ActorMethod, HttpAgent, Identity, SignIdentity} from "@dfinity/agent";
 import { IDL } from "@dfinity/candid";
 import { Ed25519KeyIdentity } from "@dfinity/identity";
 import {VaultCanister} from "../../test/vault_manager/sdk/vm";
+import { VaultManager } from "@nfid/vaults";
 
 require('./../../test/vault/bigintextension.js');
 
@@ -102,10 +102,9 @@ async function createBackupAll() {
     for (let i = 0; i < canisterIds.length; i++) {
         try {
             let canister_path = `${backupPath}/${canisterIds[i]}.json`
-            let vaultActor = await getActor(canisterIds[i], identity, VaultIdl);
-            let transactions = await vaultActor.get_transactions_all();
+            let vm = new VaultManager(canisterIds[i], identity);
+            let transactions = await vm.getTransactions();
             let transactionsResponse = JSON.stringify(transactions);
-
             await writeToFile(canister_path, transactionsResponse);
         } catch (e) {
             console.log(`Error Happen in canister '` + canisterIds[i] + `'` );
