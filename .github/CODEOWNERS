@@ -1,8 +1,5 @@
-# Repo codeowner
-* @olsemeno
-
-# Pipelines codeowner
-.github/workflows/* @DaniilIdentity
-
-# Comments explaining ownership
 # This section is owned by the Internet Identity Labs, Inc. team
+# Each line is a file pattern followed by one or more owners.
+
+# vault repository owners
+* @olsemeno @dmytroidentitylabs
