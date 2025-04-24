@@ -227,14 +227,6 @@ type QuorumUpdateTransactionRequest = record {
     batch_uid : opt text;
 };
 
-type TopUpQuorumTransaction = record {
-    block_index : opt nat64;
-    currency : Currency;
-    wallet : text;
-    common : BasicTransactionFields;
-    amount : nat64;
-};
-
 type TopUpTransaction = record {
     block_index : opt nat64;
     currency : Currency;
@@ -244,7 +236,21 @@ type TopUpTransaction = record {
     policy : opt text;
 };
 
+type TopUpQuorumTransaction = record {
+    block_index : opt nat64;
+    currency : Currency;
+    wallet : text;
+    common : BasicTransactionFields;
+    amount : nat64;
+};
+
 type TopUpTransactionRequest = record {
+    currency : Currency;
+    wallet : text;
+    amount : nat64;
+};
+
+type TopUpQuorumTransactionRequest = record {
     currency : Currency;
     wallet : text;
     amount : nat64;
@@ -290,18 +296,18 @@ type TransactionRequest = variant {
     ControllersUpdateTransactionRequestV : ControllersUpdateTransactionRequest;
     MemberUpdateNameTransactionRequestV : MemberUpdateNameTransactionRequest;
     TopUpTransactionRequestV : TopUpTransactionRequest;
+    TopUpQuorumTransactionRequestV : TopUpQuorumTransactionRequest;
     TransferICRC1QuorumTransactionRequestV : TransferICRC1QuorumTransactionRequest;
     WalletCreateTransactionRequestV : WalletCreateTransactionRequest;
     MemberRemoveTransactionRequestV : MemberRemoveTransactionRequest;
     MemberCreateTransactionRequestV : MemberCreateTransactionRequest;
-    TransferQuorumTransactionRequestV : TransferTransactionRequest;
     MemberCreateTransactionRequestV2 : MemberCreateTransactionRequestV2;
     TransferTransactionRequestV : TransferTransactionRequest;
+    TransferQuorumTransactionRequestV : TransferQuorumTransactionRequest;
     MemberUpdateRoleTransactionRequestV : MemberUpdateRoleTransactionRequest;
     WalletUpdateNameTransactionRequestV : WalletUpdateNameTransactionRequest;
     PolicyUpdateTransactionRequestV : PolicyUpdateTransactionRequest;
     VersionUpgradeTransactionRequestV : VersionUpgradeTransactionRequest;
-    TopUpQuorumTransactionRequestV : TopUpTransactionRequest;
     MemberExtendICRC1AccountRequestV : MemberExtendICRC1AccountRequest;
     PolicyRemoveTransactionRequestV : PolicyRemoveTransactionRequest;
     PolicyCreateTransactionRequestV : PolicyCreateTransactionRequest;
@@ -356,6 +362,14 @@ type TransferTransaction = record {
 };
 
 type TransferTransactionRequest = record {
+    memo : opt text;
+    currency : Currency;
+    address : text;
+    wallet : text;
+    amount : nat64;
+};
+
+type TransferQuorumTransactionRequest = record {
     memo : opt text;
     currency : Currency;
     address : text;
