@@ -22,8 +22,7 @@ env:
 
 jobs:
   Deploy:
-    runs-on:
-      group: dfx-runner
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
