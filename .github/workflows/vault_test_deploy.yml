@@ -66,13 +66,13 @@ jobs:
 
           # For PRO tests
           INSTALL_ARGUMENTS_PRO=$(cat <<EOF
-          (principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
+          (principal "7f3jf-ns7yl-tjcdk-fijk6-avi55-g5uyp-orxk6-4pv6p-f6d2c-7nex5-nae", record { origins = vec {"http://localhost:4200"; "https://dev.nfidvaults.com"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
           EOF
           )
 
           # For STANDARD tests
           INSTALL_ARGUMENTS_STANDARD=$(cat <<EOF
-          (principal "dtqie-ljbod-hxjr3-eqaud-lghwh-wngyj-iwai7-6dpth-jrkca-2j224-7ae", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
+          (principal "dtqie-ljbod-hxjr3-eqaud-lghwh-wngyj-iwai7-6dpth-jrkca-2j224-7ae", record { origins = vec {"http://localhost:4200"; "https://dev.nfidvaults.com"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
           EOF
           )
 

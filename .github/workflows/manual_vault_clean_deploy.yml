@@ -93,7 +93,7 @@ jobs:
           ID_PATH="/home/ubuntu/.config/dfx/identity/${ID_NAME}"
 
           INSTALL_ARGUMENTS=$(cat <<EOF
-          (principal "${OWNER_PRINCIPAL}", record { origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
+          (principal "${OWNER_PRINCIPAL}", record { origins = vec {"http://localhost:4200"; "https://dev.nfidvaults.com"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io"; }; repo_canister = "7jlkn-paaaa-aaaap-abvpa-cai" })
           EOF
           )
 

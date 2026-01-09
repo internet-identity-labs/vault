@@ -15,7 +15,7 @@ describe("VR Test", () => {
     before(async () => {
         DFX.INIT();
         DFX.USE_TEST_ADMIN();
-        await console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; })' `))
+        await console.log(execute(`dfx deploy vault_repo  --argument '(record { controllers = vec {}; origins = vec {"http://localhost:4200"; "https://dev.nfidvaults.com"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; })' `))
         canister_id = DFX.GET_CANISTER_ID("vault_repo");
         DFX.ADD_CONTROLLER(identity.getPrincipal().toText(), canister_id);
         await console.log(execute(`dfx canister call vault_repo sync_controllers`))
@@ -92,7 +92,7 @@ describe("VR Test", () => {
     });
 
     it("Get versions after upgrade", async function () {
-        await console.log(execute(`dfx canister install --mode upgrade --upgrade-unchanged vault_repo --argument '(record { controllers = vec {}; origins = vec {"http://localhost:4200"; "https://vaults-dev.nfid.one"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; })' `))
+        await console.log(execute(`dfx canister install --mode upgrade --upgrade-unchanged vault_repo --argument '(record { controllers = vec {}; origins = vec {"http://localhost:4200"; "https://dev.nfidvaults.com"; "https://hoj3i-aiaaa-aaaak-qcl7a-cai.icp0.io";}; })' `))
         let actor =  await getActor(canister_id, identity, idlFactory);
         let versions = await actor.get_available_versions() as VersionWrapper[];
         expect(versions.length).eq(2);
