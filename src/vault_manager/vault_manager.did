@@ -23,12 +23,12 @@ type VaultType = variant {
 type CreationPrice = record {
     price_e8s : nat64;
     approve_e8s : nat64;
+    cost_e8s : nat64;
+    protocol_e8s : nat64;
     initial_cycles_balance : nat;
     creation_fee_cycles : nat;
     total_cycles : nat;
-    payment_cycles : nat;
     xdr_permyriad_per_icp : nat64;
-    covered : bool;
 };
 
 type CreationPriceResult = variant {

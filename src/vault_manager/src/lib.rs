@@ -18,8 +18,8 @@ use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted
 use crate::config::{Conf, CONF};
 use crate::cost::create_canister_cost;
 use crate::payment::LEDGER_FEE_E8S;
-use crate::payment::{charge_user, manager_icp_balance, parse_destination, sweep_to, e8s_to_cycles, get_icp_xdr_rate, nat_to_u64, pay_protocol,
-                     refund_user, split_payment, top_up_self};
+use crate::payment::{charge_user, compute_price, get_icp_xdr_rate, manager_icp_balance, nat_to_u64,
+                     parse_destination, pay_protocol, refund_user, sweep_to, top_up_self, VaultPrice};
 
 mod config;
 mod cost;
@@ -124,10 +124,10 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
 
 /// Creates a vault paid with an ICRC-2 allowance instead of a pre-made ledger transfer.
 ///
-/// The caller has to approve at least `icp_price + ledger fee` e8s for this canister
+/// The caller has to approve `get_creation_price().approve_e8s` for this canister
 /// beforehand. The payment is pulled first, the vault is created from the cycles already
 /// held by the manager, and only afterwards the payment is split between a CMC top up
-/// that refills those cycles and the protocol wallet. Keeping the conversion last means
+/// that refills those cycles and the protocol margin. Keeping the conversion last means
 /// the ICP is still untouched on the manager account while the vault is being built, so
 /// any failure along the way can be refunded in full.
 #[update]
@@ -145,22 +145,13 @@ async fn create_canister_icrc2(vault_type: Option<VaultType>, owner: Option<Prin
 }
 
 async fn create_canister_icrc2_inner(payer: Principal, vault_type: Option<VaultType>, owner: Option<Principal>) -> Result<CreateResult, String> {
-    let price = get_payment_cycles();
-    let split = split_payment(price)?;
-    let required_cycles = required_cycles()?;
-
-    // Refuse before touching the user funds if the cycles part of the payment would not
-    // refill what this vault costs to create.
+    // The price follows the cost of a vault at the current rate, so it is computed
+    // here rather than read from the config. The user approved a little more than
+    // what was quoted, which absorbs a rate move since then.
     let rate = get_icp_xdr_rate().await?;
-    let expected_cycles = e8s_to_cycles(split.to_cycles, rate);
-    if expected_cycles < required_cycles {
-        return Err(format!(
-            "The configured price of {} e8s converts to {} cycles at the current rate, {} are required",
-            price, expected_cycles, required_cycles
-        ));
-    }
+    let price: VaultPrice = compute_price(required_cycles()?, rate)?;
 
-    let block_index = charge_user(payer, price).await?;
+    let block_index = charge_user(payer, price.price_e8s).await?;
 
     let initiator = owner.unwrap_or_else(|| payer);
     let created = provision_vault(
@@ -173,7 +164,7 @@ async fn create_canister_icrc2_inner(payer: Principal, vault_type: Option<VaultT
         Ok(x) => x,
         Err(reason) => {
             // The payment is still sitting on the manager account, give it back as a whole.
-            return match refund_user(payer, price).await {
+            return match refund_user(payer, price.price_e8s).await {
                 Ok(_) => Err(reason),
                 Err(refund_error) => Err(format!(
                     "{}. The refund failed as well: {}. The payment is held on the manager at block {}",
@@ -184,13 +175,13 @@ async fn create_canister_icrc2_inner(payer: Principal, vault_type: Option<VaultT
     };
 
     // The vault exists and belongs to the user from here on, so neither of the two
-    // settlement transfers may fail the call. Any leftover stays on the manager account
-    // and can be swept later.
-    if let Err(e) = top_up_self(split.to_cycles).await {
-        api::print(format!("Failed to convert {} e8s into cycles: {}", split.to_cycles, e));
+    // settlement transfers may fail the call. Anything left behind stays on the
+    // manager account and can be recovered with `sweep_icp`.
+    if let Err(e) = top_up_self(price.cost_e8s).await {
+        api::print(format!("Failed to convert {} e8s into cycles: {}", price.cost_e8s, e));
     }
-    if let Err(e) = pay_protocol(split.to_protocol).await {
-        api::print(format!("Failed to send the protocol cut of {} e8s: {}", split.to_protocol, e));
+    if let Err(e) = pay_protocol(price.protocol_e8s).await {
+        api::print(format!("Failed to send the protocol margin of {} e8s: {}", price.protocol_e8s, e));
     }
 
     Ok(created)
@@ -260,44 +251,42 @@ fn required_cycles() -> Result<u128, String> {
 pub struct CreationPrice {
     /// e8s charged from the user by `create_canister_icrc2`.
     pub price_e8s: u64,
-    /// e8s the user has to approve for this canister: the price plus the ledger fee
-    /// that `icrc2_transfer_from` takes on top of the transferred amount.
+    /// e8s the user has to approve: the price, head room for a rate move, and the
+    /// ledger fee taken on top of the pulled amount.
     pub approve_e8s: u64,
+    /// Part of the price that buys the cycles a vault runs on.
+    pub cost_e8s: u64,
+    /// Part of the price kept by the protocol.
+    pub protocol_e8s: u64,
     /// Cycles the new vault is funded with.
     pub initial_cycles_balance: u128,
     /// Cycles the replica charges for creating the canister on this subnet.
     pub creation_fee_cycles: u128,
     /// Cycles a vault costs the manager in total.
     pub total_cycles: u128,
-    /// Cycles the cycles part of the payment converts into at the current rate.
-    pub payment_cycles: u128,
-    /// ICP/XDR rate the conversion above is based on.
+    /// ICP/XDR rate the price is based on.
     pub xdr_permyriad_per_icp: u64,
-    /// False when the current rate makes the configured price too low to cover a vault,
-    /// in which case `create_canister_icrc2` refuses before charging anyone.
-    pub covered: bool,
 }
 
-/// Current price of a vault. Not a query: the ICP/XDR rate comes from the CMC.
+/// Current price of a vault. Not a query: the price follows the ICP/XDR rate,
+/// which comes from the cycles minting canister.
 #[update]
 async fn get_creation_price() -> Result<CreationPrice, String> {
-    let price_e8s = get_payment_cycles();
-    let split = split_payment(price_e8s)?;
     let initial_cycles_balance = get_initial_cycles_balance();
     let creation_fee_cycles = create_canister_cost()?;
     let total_cycles = initial_cycles_balance + creation_fee_cycles;
 
     let xdr_permyriad_per_icp = get_icp_xdr_rate().await?;
-    let payment_cycles = e8s_to_cycles(split.to_cycles, xdr_permyriad_per_icp);
+    let price = compute_price(total_cycles, xdr_permyriad_per_icp)?;
 
     Ok(CreationPrice {
-        price_e8s,
-        approve_e8s: price_e8s + LEDGER_FEE_E8S,
+        price_e8s: price.price_e8s,
+        approve_e8s: price.approve_e8s,
+        cost_e8s: price.cost_e8s,
+        protocol_e8s: price.protocol_e8s,
         initial_cycles_balance,
         creation_fee_cycles,
         total_cycles,
-        payment_cycles,
-        covered: payment_cycles >= total_cycles,
         xdr_permyriad_per_icp,
     })
 }

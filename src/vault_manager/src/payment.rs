@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::call::call;
 use ic_ledger_types::{AccountBalanceArgs, AccountIdentifier, DEFAULT_FEE, DEFAULT_SUBACCOUNT, MAINNET_CYCLES_MINTING_CANISTER_ID,
@@ -11,35 +13,66 @@ use crate::config::CONF;
 /// "TPUP" - memo the CMC expects for a top up of an existing canister.
 pub const MEMO_TOP_UP_CANISTER: Memo = Memo(1347768404);
 
-/// Share of the user payment kept by the protocol, the rest is converted into cycles.
-pub const PROTOCOL_CUT_PERCENT: u64 = 10;
-
 /// The ICP ledger transfer fee, charged on every transfer and on top of the amount
 /// pulled by `icrc2_transfer_from`.
 pub const LEDGER_FEE_E8S: u64 = DEFAULT_FEE.e8s();
+
+/// Margin the protocol adds on top of what a vault actually costs.
+pub const PROTOCOL_MARGIN_PERCENT: u64 = 10;
+
+/// Head room added to the amount the user approves, so that a rate move between
+/// showing the price and charging it does not leave the allowance short. The
+/// allowance is only an upper bound: whatever is not needed is never pulled.
+pub const APPROVE_BUFFER_PERCENT: u64 = 10;
 
 /// Every ICP leaving the manager costs one ledger fee. We do two of them:
 /// one to the CMC and one to the protocol wallet.
 pub const OUTGOING_TRANSFERS: u64 = 2;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
-pub struct PaymentSplit {
-    /// Part of the payment converted into cycles on the manager balance.
-    pub to_cycles: u64,
-    /// Part of the payment sent to the protocol wallet.
-    pub to_protocol: u64,
+pub struct VaultPrice {
+    /// e8s that cover the cycles a vault costs, converted at the current rate.
+    pub cost_e8s: u64,
+    /// e8s kept by the protocol.
+    pub protocol_e8s: u64,
+    /// Ledger fees for moving the payment out of the manager.
+    pub fees_e8s: u64,
+    /// e8s charged from the user: the three above.
+    pub price_e8s: u64,
+    /// e8s the user should approve: the price, a buffer against rate moves, and
+    /// the ledger fee that `icrc2_transfer_from` charges on top of the amount.
+    pub approve_e8s: u64,
 }
 
-/// Splits the user payment between the cycles top up and the protocol revenue.
-/// Both outgoing ledger fees are taken from the cycles part.
-pub fn split_payment(price: u64) -> Result<PaymentSplit, String> {
-    let to_protocol = price / 100 * PROTOCOL_CUT_PERCENT;
-    let fees = DEFAULT_FEE.e8s() * OUTGOING_TRANSFERS;
-    let to_cycles = match price.checked_sub(to_protocol + fees) {
-        None => return Err(format!("Configured price {} does not cover the protocol cut and the ledger fees", price)),
-        Some(x) => x,
-    };
-    Ok(PaymentSplit { to_cycles, to_protocol })
+/// e8s needed to mint `cycles` at the given rate, rounded up so that a vault is
+/// never underfunded by the rounding.
+pub fn cycles_to_e8s(cycles: u128, xdr_permyriad_per_icp: u64) -> Result<u64, String> {
+    if xdr_permyriad_per_icp == 0 {
+        return Err("The CMC reported a zero ICP/XDR rate".to_string());
+    }
+    let rate = xdr_permyriad_per_icp as u128;
+    let e8s = (cycles + rate - 1) / rate;
+    u64::try_from(e8s).map_err(|_| format!("The cost of {} cycles does not fit into e8s", cycles))
+}
+
+/// What a vault costs the user right now: the cycles it takes to create one,
+/// converted into ICP, plus the ledger fees and the protocol margin.
+pub fn compute_price(required_cycles: u128, xdr_permyriad_per_icp: u64) -> Result<VaultPrice, String> {
+    let cost_e8s = cycles_to_e8s(required_cycles, xdr_permyriad_per_icp)?;
+    let fees_e8s = LEDGER_FEE_E8S * OUTGOING_TRANSFERS;
+    let protocol_e8s = cost_e8s / 100 * PROTOCOL_MARGIN_PERCENT;
+
+    let price_e8s = cost_e8s
+        .checked_add(fees_e8s)
+        .and_then(|x| x.checked_add(protocol_e8s))
+        .ok_or_else(|| "The vault price overflows".to_string())?;
+
+    let approve_e8s = price_e8s
+        .checked_add(price_e8s / 100 * APPROVE_BUFFER_PERCENT)
+        .and_then(|x| x.checked_add(LEDGER_FEE_E8S))
+        .ok_or_else(|| "The approval amount overflows".to_string())?;
+
+    Ok(VaultPrice { cost_e8s, protocol_e8s, fees_e8s, price_e8s, approve_e8s })
 }
 
 /// Candid `nat` is unbounded, both conversions saturate instead of trapping.
@@ -78,9 +111,11 @@ struct IcpXdrConversionRateResponse {
 }
 
 /// Cycles the CMC would mint for the given amount of e8s under the given rate.
+/// The inverse of `cycles_to_e8s`, kept to check that conversion in tests.
 ///
 /// 1 XDR is 10^12 cycles and the rate is given in permyriad of XDR per ICP, so
 /// `e8s / 10^8 * rate / 10^4 * 10^12` collapses into a plain `e8s * rate`.
+#[cfg(test)]
 pub fn e8s_to_cycles(e8s: u64, xdr_permyriad_per_icp: u64) -> u128 {
     (e8s as u128) * (xdr_permyriad_per_icp as u128)
 }
@@ -248,30 +283,53 @@ mod tests {
 
     const ICP: u64 = 100_000_000;
 
+    // A vault on the fiduciary subnet: 250B of funding plus 500B of creation fee.
+    const VAULT_CYCLES: u128 = 750_000_000_000;
+    // 1 ICP is 1.8631 XDR.
+    const RATE: u64 = 18_631;
+
     #[test]
-    fn split_takes_ten_percent_and_covers_both_fees() {
-        let split = split_payment(ICP).unwrap();
-        assert_eq!(split.to_protocol, 10_000_000);
-        assert_eq!(split.to_cycles, ICP - 10_000_000 - 20_000);
-        assert_eq!(split.to_cycles + split.to_protocol + 20_000, ICP);
+    fn the_price_covers_the_cycles_the_fees_and_the_margin() {
+        let price = compute_price(VAULT_CYCLES, RATE).unwrap();
+
+        assert_eq!(price.fees_e8s, 20_000);
+        assert_eq!(price.protocol_e8s, price.cost_e8s / 100 * 10);
+        assert_eq!(
+            price.price_e8s,
+            price.cost_e8s + price.fees_e8s + price.protocol_e8s
+        );
+        // Everything charged is paid back out, so the manager keeps nothing.
+        assert_eq!(
+            price.cost_e8s + price.protocol_e8s + DEFAULT_FEE.e8s() * 2,
+            price.price_e8s
+        );
     }
 
     #[test]
-    fn split_rejects_a_price_below_the_fees() {
-        assert!(split_payment(DEFAULT_FEE.e8s()).is_err());
+    fn the_cost_buys_at_least_the_cycles_a_vault_needs() {
+        let price = compute_price(VAULT_CYCLES, RATE).unwrap();
+        assert!(e8s_to_cycles(price.cost_e8s, RATE) >= VAULT_CYCLES);
     }
 
     #[test]
-    fn one_icp_at_four_xdr_mints_four_trillion_cycles() {
-        // 40_000 permyriad per ICP is 4 XDR, and 1 XDR is 10^12 cycles.
-        assert_eq!(e8s_to_cycles(ICP, 40_000), 4_000_000_000_000);
+    fn the_cost_rounds_up_so_a_vault_is_never_underfunded() {
+        // One cycle short of an exact e8s worth still costs a full e8s.
+        assert_eq!(cycles_to_e8s(RATE as u128 + 1, RATE).unwrap(), 2);
+        assert_eq!(cycles_to_e8s(RATE as u128, RATE).unwrap(), 1);
+        assert!(cycles_to_e8s(VAULT_CYCLES, 0).is_err());
     }
 
     #[test]
-    fn the_cycles_part_of_one_icp_covers_a_vault() {
-        // A vault costs 500B cycles plus the 100B creation fee.
-        let split = split_payment(ICP).unwrap();
-        assert!(e8s_to_cycles(split.to_cycles, 40_000) >= 600_000_000_000);
+    fn the_approval_leaves_room_for_the_rate_to_move() {
+        let price = compute_price(VAULT_CYCLES, RATE).unwrap();
+        assert_eq!(
+            price.approve_e8s,
+            price.price_e8s + price.price_e8s / 100 * 10 + DEFAULT_FEE.e8s()
+        );
+
+        // A rate 10% worse still fits in what the user approved.
+        let worse = compute_price(VAULT_CYCLES, RATE * 100 / 110).unwrap();
+        assert!(worse.price_e8s + DEFAULT_FEE.e8s() <= price.approve_e8s);
     }
 
     #[test]
