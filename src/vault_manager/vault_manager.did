@@ -20,6 +20,27 @@ type VaultType = variant {
     Light
 };
 
+type CreationPrice = record {
+    price_e8s : nat64;
+    approve_e8s : nat64;
+    cost_e8s : nat64;
+    protocol_e8s : nat64;
+    initial_cycles_balance : nat;
+    creation_fee_cycles : nat;
+    total_cycles : nat;
+    xdr_permyriad_per_icp : nat64;
+};
+
+type CreationPriceResult = variant {
+    Ok : CreationPrice;
+    Err : text
+};
+
+type BalanceResult = variant {
+    Ok : nat64;
+    Err : text
+};
+
 type VaultCanister = record {
     initiator : principal;
     canister_id : principal;
@@ -28,6 +49,10 @@ type VaultCanister = record {
 };service : (Conf) -> {
     canister_balance : () -> (nat64) query;
     create_canister_call : (nat64, opt VaultType, opt principal) -> (Result);
+    create_canister_icrc2 : (opt VaultType, opt principal) -> (Result);
     get_all_canisters : () -> (vec VaultCanister) query;
+    get_creation_price : () -> (CreationPriceResult);
+    get_icp_balance : () -> (BalanceResult);
+    sweep_icp : (opt text, opt nat64) -> (BalanceResult);
     get_config : () -> (Conf) query;
 }

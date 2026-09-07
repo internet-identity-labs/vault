@@ -1,11 +1,13 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use api::call;
 use candid::{export_service, Principal};
 use candid::CandidType;
 use ic_cdk::{api, call, caller, id, storage, trap};
 use ic_cdk::api::call::CallResult;
-use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterSettings, InstallCodeArgument};
+use ic_cdk::api::management_canister::main::{CanisterIdRecord, CanisterInstallMode, CanisterSettings,
+                                             delete_canister, InstallCodeArgument, stop_canister};
 use ic_cdk_macros::*;
 use ic_ledger_types::{GetBlocksArgs, MAINNET_LEDGER_CANISTER_ID, Operation, query_blocks};
 pub use semver::Version;
@@ -14,10 +16,14 @@ use serde::{Deserialize, Serialize};
 use nfid_certified::{CertifiedResponse, get_trusted_origins_cert, update_trusted_origins};
 
 use crate::config::{Conf, CONF};
+use crate::cost::create_canister_cost;
+use crate::payment::LEDGER_FEE_E8S;
+use crate::payment::{charge_user, compute_price, get_icp_xdr_rate, manager_icp_balance, nat_to_u64,
+                     parse_destination, pay_protocol, refund_user, sweep_to, top_up_self, VaultPrice};
 
 mod config;
-
-const FEE: u128 = 100_000_000_000;
+mod cost;
+mod payment;
 
 #[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
 pub struct VaultCanister {
@@ -29,6 +35,31 @@ pub struct VaultCanister {
 
 thread_local! {
     pub static CANISTERS: RefCell<Vec<VaultCanister>> = RefCell::new(Vec::default());
+    /// Callers with a vault creation in flight, guarding against a second call
+    /// slipping in while the first one is awaiting the ledger.
+    static IN_FLIGHT: RefCell<HashMap<Principal, u64>> = RefCell::new(HashMap::default());
+}
+
+/// A lock is dropped after this timeout so that a trapping call cannot block a
+/// caller forever: a trap only rolls the state back to the last await point.
+const LOCK_TIMEOUT_NANOS: u64 = 5 * 60 * 1_000_000_000;
+
+fn acquire_lock(caller: Principal) -> bool {
+    IN_FLIGHT.with(|l| {
+        let mut locks = l.borrow_mut();
+        let now = api::time();
+        match locks.get(&caller) {
+            Some(started) if now - started < LOCK_TIMEOUT_NANOS => false,
+            _ => {
+                locks.insert(caller, now);
+                true
+            }
+        }
+    })
+}
+
+fn release_lock(caller: Principal) {
+    IN_FLIGHT.with(|l| l.borrow_mut().remove(&caller));
 }
 
 #[derive(CandidType, Clone, Deserialize)]
@@ -86,9 +117,186 @@ async fn get_all_canisters() -> Vec<VaultCanister> {
 
 #[update]
 async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, owner: Option<Principal>) -> Result<CreateResult, String> {
-    let vault_type = vault_type.unwrap_or_else(|| VaultType::Pro);
-
     verify_payment(block_number).await;
+    let initiator = owner.unwrap_or_else(|| caller());
+    provision_vault(initiator, vault_type.unwrap_or_else(|| VaultType::Pro), block_number).await
+}
+
+/// Creates a vault paid with an ICRC-2 allowance instead of a pre-made ledger transfer.
+///
+/// The caller has to approve `get_creation_price().approve_e8s` for this canister
+/// beforehand. The payment is pulled first, the vault is created from the cycles already
+/// held by the manager, and only afterwards the payment is split between a CMC top up
+/// that refills those cycles and the protocol margin. Keeping the conversion last means
+/// the ICP is still untouched on the manager account while the vault is being built, so
+/// any failure along the way can be refunded in full.
+#[update]
+async fn create_canister_icrc2(vault_type: Option<VaultType>, owner: Option<Principal>) -> Result<CreateResult, String> {
+    let payer = caller();
+    if payer == Principal::anonymous() {
+        return Err("Anonymous caller cannot create a vault".to_string());
+    }
+    if !acquire_lock(payer) {
+        return Err("A vault creation is already in progress for this caller".to_string());
+    }
+    let result = create_canister_icrc2_inner(payer, vault_type, owner).await;
+    release_lock(payer);
+    result
+}
+
+async fn create_canister_icrc2_inner(payer: Principal, vault_type: Option<VaultType>, owner: Option<Principal>) -> Result<CreateResult, String> {
+    // The price follows the cost of a vault at the current rate, so it is computed
+    // here rather than read from the config. The user approved a little more than
+    // what was quoted, which absorbs a rate move since then.
+    let rate = get_icp_xdr_rate().await?;
+    let price: VaultPrice = compute_price(required_cycles()?, rate)?;
+
+    let block_index = charge_user(payer, price.price_e8s).await?;
+
+    let initiator = owner.unwrap_or_else(|| payer);
+    let created = provision_vault(
+        initiator,
+        vault_type.unwrap_or_else(|| VaultType::Pro),
+        nat_to_u64(&block_index),
+    ).await;
+
+    let created = match created {
+        Ok(x) => x,
+        Err(reason) => {
+            // The payment is still sitting on the manager account, give it back as a whole.
+            return match refund_user(payer, price.price_e8s).await {
+                Ok(_) => Err(reason),
+                Err(refund_error) => Err(format!(
+                    "{}. The refund failed as well: {}. The payment is held on the manager at block {}",
+                    reason, refund_error, block_index
+                )),
+            };
+        }
+    };
+
+    // The vault exists and belongs to the user from here on, so neither of the two
+    // settlement transfers may fail the call. Anything left behind stays on the
+    // manager account and can be recovered with `sweep_icp`.
+    if let Err(e) = top_up_self(price.cost_e8s).await {
+        api::print(format!("Failed to convert {} e8s into cycles: {}", price.cost_e8s, e));
+    }
+    if let Err(e) = pay_protocol(price.protocol_e8s).await {
+        api::print(format!("Failed to send the protocol margin of {} e8s: {}", price.protocol_e8s, e));
+    }
+
+    Ok(created)
+}
+
+/// Guard for methods only the canister controllers may call.
+fn is_caller_controller() -> Result<(), String> {
+    if api::is_controller(&caller()) {
+        Ok(())
+    } else {
+        Err("Only a controller can call this method".to_string())
+    }
+}
+
+/// ICP currently held on the manager default account.
+#[update(guard = "is_caller_controller")]
+async fn get_icp_balance() -> Result<u64, String> {
+    manager_icp_balance().await
+}
+
+/// Moves ICP off the manager account.
+///
+/// The manager is not meant to hold ICP: a payment is converted into cycles and
+/// settled to the protocol wallet within the same call. Money left behind means a
+/// step did not go through, most often a refund that the ledger rejected, and this
+/// is how it is recovered.
+///
+/// `to` accepts an account identifier in hex or a principal, and defaults to the
+/// configured protocol wallet. `amount_e8s` defaults to the whole balance minus the
+/// transfer fee.
+#[update(guard = "is_caller_controller")]
+async fn sweep_icp(to: Option<String>, amount_e8s: Option<u64>) -> Result<u64, String> {
+    let destination = match to {
+        Some(ref text) => parse_destination(text)?,
+        None => parse_destination(&CONF.with(|c| c.borrow().destination_address.clone()))?,
+    };
+
+    let balance = manager_icp_balance().await?;
+    let amount = match amount_e8s {
+        Some(requested) => requested,
+        // The fee is taken on top of the amount, so the most that can leave the
+        // account is the balance minus one fee.
+        None => balance.checked_sub(LEDGER_FEE_E8S).unwrap_or(0),
+    };
+
+    if amount == 0 {
+        return Err(format!("Nothing to sweep, the balance is {} e8s", balance));
+    }
+    if amount + LEDGER_FEE_E8S > balance {
+        return Err(format!(
+            "Cannot sweep {} e8s: the balance is {} e8s and the transfer fee is {} e8s",
+            amount, balance, LEDGER_FEE_E8S
+        ));
+    }
+
+    sweep_to(destination, amount).await
+}
+
+/// Cycles a new vault costs the manager: what the vault is funded with, plus what the
+/// replica charges for creating the canister on this subnet.
+fn required_cycles() -> Result<u128, String> {
+    Ok(get_initial_cycles_balance() + create_canister_cost()?)
+}
+
+/// Everything the frontend needs to show a price and build the ICRC-2 approval.
+#[derive(Clone, Debug, CandidType, Deserialize, Serialize)]
+pub struct CreationPrice {
+    /// e8s charged from the user by `create_canister_icrc2`.
+    pub price_e8s: u64,
+    /// e8s the user has to approve: the price, head room for a rate move, and the
+    /// ledger fee taken on top of the pulled amount.
+    pub approve_e8s: u64,
+    /// Part of the price that buys the cycles a vault runs on.
+    pub cost_e8s: u64,
+    /// Part of the price kept by the protocol.
+    pub protocol_e8s: u64,
+    /// Cycles the new vault is funded with.
+    pub initial_cycles_balance: u128,
+    /// Cycles the replica charges for creating the canister on this subnet.
+    pub creation_fee_cycles: u128,
+    /// Cycles a vault costs the manager in total.
+    pub total_cycles: u128,
+    /// ICP/XDR rate the price is based on.
+    pub xdr_permyriad_per_icp: u64,
+}
+
+/// Current price of a vault. Not a query: the price follows the ICP/XDR rate,
+/// which comes from the cycles minting canister.
+#[update]
+async fn get_creation_price() -> Result<CreationPrice, String> {
+    let initial_cycles_balance = get_initial_cycles_balance();
+    let creation_fee_cycles = create_canister_cost()?;
+    let total_cycles = initial_cycles_balance + creation_fee_cycles;
+
+    let xdr_permyriad_per_icp = get_icp_xdr_rate().await?;
+    let price = compute_price(total_cycles, xdr_permyriad_per_icp)?;
+
+    Ok(CreationPrice {
+        price_e8s: price.price_e8s,
+        approve_e8s: price.approve_e8s,
+        cost_e8s: price.cost_e8s,
+        protocol_e8s: price.protocol_e8s,
+        initial_cycles_balance,
+        creation_fee_cycles,
+        total_cycles,
+        xdr_permyriad_per_icp,
+    })
+}
+
+/// Creates an empty canister, installs the latest vault wasm into it and hands the
+/// control over to the vault itself. The canister is created through the management
+/// canister on purpose: it places the vault on the same subnet as this manager, which
+/// is what keeps production vaults on the fiduciary subnet.
+async fn provision_vault(initiator: Principal, vault_type: VaultType, block_number: u64) -> Result<CreateResult, String> {
+    let cycles = required_cycles()?;
 
     let set = CanisterSettings {
         controllers: Some(vec![id()]),
@@ -99,7 +307,7 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
     };
 
     let args = CreateCanisterArgs {
-        cycles: get_initial_cycles_balance() + FEE,
+        cycles,
         settings: set.clone(),
     };
 
@@ -127,13 +335,17 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
         }
     };
 
-    let initiator = owner.unwrap_or_else(|| caller());
-    install_wallet(&create_result.canister_id, &initiator).await?;
+    if let Err(install_error) = install_wallet(&create_result.canister_id, &initiator).await {
+        // Nothing was handed over yet, so the canister is still ours to delete and the
+        // cycles locked in it come back to the manager.
+        discard_canister(create_result.canister_id).await;
+        return Err(install_error);
+    }
 
     CANISTERS.with(|c| c.borrow_mut().push(VaultCanister {
         canister_id: create_result.canister_id.clone(),
         initiator,
-        block_number: block_number.clone(),
+        block_number,
         vault_type,
     }));
 
@@ -148,6 +360,19 @@ async fn create_canister_call(block_number: u64, vault_type: Option<VaultType>, 
         },
     }).await;
     Ok(create_result)
+}
+
+/// Stops and deletes a canister that failed to receive its wasm, refunding its cycles
+/// to the manager. Failures are only logged: the caller is already returning an error.
+async fn discard_canister(canister_id: Principal) {
+    let arg = CanisterIdRecord { canister_id };
+    if let Err((code, msg)) = stop_canister(arg.clone()).await {
+        api::print(format!("Failed to stop the canister {}: {}: {}", canister_id, code as u8, msg));
+        return;
+    }
+    if let Err((code, msg)) = delete_canister(arg).await {
+        api::print(format!("Failed to delete the canister {}: {}: {}", canister_id, code as u8, msg));
+    }
 }
 
 #[derive(Clone, CandidType, Deserialize)]
@@ -186,7 +411,7 @@ async fn install_wallet(canister_id: &Principal, initiator: &Principal) -> Resul
     };
 
     let (wasm, ): (VaultWasm, ) = match call::call(
-        get_repo_canister_id(),
+        get_repo_canister_id()?,
         "get_latest_version",
         (),
     ).await {
@@ -206,7 +431,7 @@ async fn install_wallet(canister_id: &Principal, initiator: &Principal) -> Resul
         arg,
     };
 
-    match call::call(
+    match call::call::<_, ()>(
         Principal::management_canister(),
         "install_code",
         (arg, ), ).await {
@@ -354,8 +579,10 @@ async fn verify_payment(block_number: u64) {
     }
 }
 
-fn get_repo_canister_id() -> Principal {
-    CONF.with(|c| Principal::from_text(c.borrow().repo_canister_id.clone()).unwrap())
+fn get_repo_canister_id() -> Result<Principal, String> {
+    let configured = CONF.with(|c| c.borrow().repo_canister_id.clone());
+    Principal::from_text(&configured)
+        .map_err(|e| format!("Invalid repo canister id {} in the config: {}", configured, e))
 }
 
 fn get_initial_cycles_balance() -> u128 {
